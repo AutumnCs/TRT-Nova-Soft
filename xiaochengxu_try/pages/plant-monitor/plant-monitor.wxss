@@ -1,0 +1,112 @@
+.container {
+  padding: 20rpx;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 设备卡片样式 */
+.device-card {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.device-header {
+  border-bottom: 2rpx solid #f0f0f0;
+  padding-bottom: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.device-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.device-info {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+}
+
+.info-label {
+  font-size: 32rpx;
+  color: #666;
+  width: 200rpx;
+}
+
+.info-value {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+/* 传感器卡片样式 */
+.sensors-card {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 传感器项样式 */
+.sensor-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+}
+
+.sensor-item:last-child {
+  border-bottom: none;
+}
+
+.sensor-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.sensor-name {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.sensor-value {
+  font-size: 40rpx;
+  color: #07c160;
+  font-weight: bold;
+}
+
+.sensor-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-text {
+  font-size: 28rpx;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  background-color: #e8f5e8;
+  color: #07c160;
+}
+
+/* 更新时间样式 */
+.update-time {
+  margin-top: 30rpx;
+  text-align: center;
+}
+
+.time-text {
+  font-size: 26rpx;
+  color: #999;
+}

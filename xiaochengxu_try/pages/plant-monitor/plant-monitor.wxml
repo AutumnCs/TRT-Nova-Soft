@@ -1,0 +1,96 @@
+<view class="container">
+  <!-- 设备信息卡片 -->
+  <view class="device-card">
+    <view class="device-header">
+      <text class="device-title">智能花盆设备信息</text>
+    </view>
+    <view class="device-info">
+      <view class="info-item">
+        <text class="info-label">设备名称：</text>
+        <text class="info-value">{{deviceInfo.deviceName}}</text>
+      </view>
+      <view class="info-item">
+        <text class="info-label">设备编号：</text>
+        <text class="info-value">{{deviceInfo.deviceId}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 传感器数据卡片 -->
+  <view class="sensors-card">
+    <view class="device-header">
+      <text class="device-title">传感器数据</text>
+    </view>
+    
+    <!-- 温度传感器 -->
+    <view class="sensor-item">
+      <view class="sensor-info">
+        <text class="sensor-name">🌡️ 温度</text>
+        <text class="sensor-value">{{sensors.temperature}}°C</text>
+      </view>
+      <view class="sensor-status">
+        <text class="status-text">{{sensors.temperatureStatus}}</text>
+      </view>
+    </view>
+
+    <!-- 湿度传感器 -->
+    <view class="sensor-item">
+      <view class="sensor-info">
+        <text class="sensor-name">💧 土壤湿度</text>
+        <text class="sensor-value">{{sensors.humidity}}%</text>
+      </view>
+      <view class="sensor-status">
+        <text class="status-text">{{sensors.humidityStatus}}</text>
+      </view>
+    </view>
+
+    <!-- 光照传感器 -->
+    <view class="sensor-item">
+      <view class="sensor-info">
+        <text class="sensor-name">☀️ 光照强度</text>
+        <text class="sensor-value">{{sensors.light}} lux</text>
+      </view>
+      <view class="sensor-status">
+        <text class="status-text">{{sensors.lightStatus}}</text>
+      </view>
+    </view>
+
+    <!-- 水分传感器 -->
+    <view class="sensor-item">
+      <view class="sensor-info">
+        <text class="sensor-name">💧 水分含量</text>
+        <text class="sensor-value">{{sensors.moisture}}%</text>
+      </view>
+      <view class="sensor-status">
+        <text class="status-text">{{sensors.moistureStatus}}</text>
+      </view>
+    </view>
+
+    <!-- pH值传感器 -->
+    <view class="sensor-item">
+      <view class="sensor-info">
+        <text class="sensor-name">🧪 土壤pH值</text>
+        <text class="sensor-value">{{sensors.ph}}</text>
+      </view>
+      <view class="sensor-status">
+        <text class="status-text">{{sensors.phStatus}}</text>
+      </view>
+    </view>
+
+    <!-- 养分传感器 -->
+    <view class="sensor-item">
+      <view class="sensor-info">
+        <text class="sensor-name">🌱 养分浓度</text>
+        <text class="sensor-value">{{sensors.fertility}} mg/L</text>
+      </view>
+      <view class="sensor-status">
+        <text class="status-text">{{sensors.fertilityStatus}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 更新时间 -->
+  <view class="update-time">
+    <text class="time-text">数据更新时间：{{updateTime}}</text>
+  </view>
+</view>
