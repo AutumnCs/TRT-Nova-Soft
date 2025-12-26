@@ -1,0 +1,118 @@
+<view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
+  <!-- Header Removed -->
+
+  <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}" style="padding-top: 10px;">
+    
+    <!-- Health Score -->
+    <view class="section">
+      <view class="health-card">
+        <view class="health-circle">
+          <text class="health-score">92</text>
+          <text class="health-label">健康分</text>
+        </view>
+        <view class="health-info">
+          <text class="health-status">状态极佳 🌿</text>
+          <text class="health-desc">各项指标均在适宜范围内，继续保持！</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Time Filter -->
+    <view class="filter-bar">
+      <view class="filter-item {{currentTab === 'day' ? 'active' : ''}}" bindtap="switchTab" data-tab="day">今天</view>
+      <view class="filter-item {{currentTab === 'week' ? 'active' : ''}}" bindtap="switchTab" data-tab="week">本周</view>
+      <view class="filter-item {{currentTab === 'month' ? 'active' : ''}}" bindtap="switchTab" data-tab="month">本月</view>
+    </view>
+
+    <!-- Chart (Simulated with CSS) -->
+    <view class="section">
+      <view class="card chart-card">
+        <view class="chart-header">
+          <text class="chart-title">土壤湿度趋势</text>
+          <text class="chart-legend">平均 52%</text>
+        </view>
+        <view class="chart-container">
+          <block wx:for="{{chartData}}" wx:key="index">
+            <view class="bar-group">
+              <text class="bar-value">{{item}}</text>
+              <view class="bar" style="height: {{item}}%;"></view>
+              <text class="bar-label">{{['M','T','W','T','F','S','S'][index]}}</text>
+            </view>
+          </block>
+        </view>
+      </view>
+    </view>
+
+    <!-- AI Insights -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">智能分析</text>
+      </view>
+      <view class="insight-card">
+        <view class="insight-item">
+          <text class="insight-icon">💡</text>
+          <view class="insight-text">
+            <text class="insight-title">光照充足</text>
+            <text class="insight-desc">近期光照时长达标，有利于光合作用。</text>
+          </view>
+        </view>
+        <view class="insight-divider"></view>
+        <view class="insight-item">
+          <text class="insight-icon">💧</text>
+          <view class="insight-text">
+            <text class="insight-title">水分消耗快</text>
+            <text class="insight-desc">气温升高，建议适当增加浇水频率。</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- Summary Stats -->
+    <view class="section">
+      <view class="grid-3">
+        <view class="stat-item">
+          <text class="stat-value">{{stats.avgTemp}}°</text>
+          <text class="stat-label">平均温度</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{stats.avgMoisture}}%</text>
+          <text class="stat-label">平均湿度</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{stats.totalWater}}L</text>
+          <text class="stat-label">累计浇水</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Recent Logs -->
+    <view class="section" style="padding-bottom: 120px;">
+      <view class="section-header">
+        <text class="section-title">近期日志</text>
+      </view>
+      <view class="log-list">
+        <block wx:for="{{logs}}" wx:key="id">
+          <view class="log-item">
+            <view class="log-left">
+              <view class="log-time">{{item.time}}</view>
+              <view class="log-line"></view>
+            </view>
+            <view class="log-content">
+              <view class="log-icon-box {{item.type}}">
+                <text wx:if="{{item.type === 'water'}}">💧</text>
+                <text wx:elif="{{item.type === 'light'}}">💡</text>
+                <text wx:elif="{{item.type === 'fert'}}">🍃</text>
+                <text wx:elif="{{item.type === 'warn'}}">⚠️</text>
+              </view>
+              <view class="log-info">
+                <text class="log-title">{{item.title}}</text>
+                <text class="log-desc">{{item.desc}}</text>
+              </view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+  </scroll-view>
+</view>

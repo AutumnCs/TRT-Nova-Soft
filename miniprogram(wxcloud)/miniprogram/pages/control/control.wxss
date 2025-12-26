@@ -1,0 +1,233 @@
+/* pages/control/control.wxss */
+page {
+  background-color: #F3F4F6;
+  font-family: -apple-system, sans-serif;
+  color: #1F2937;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.header {
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(4px);
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 30;
+  box-sizing: border-box;
+  margin-top: inherit;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.scroll-content {
+  flex: 1;
+  padding-top: 44px;
+  box-sizing: border-box;
+}
+
+.section {
+  padding: 0 24px;
+  margin-top: 24px;
+}
+
+.section-header {
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Scenes */
+.scene-scroll {
+  width: 100%;
+  white-space: nowrap;
+}
+
+.scene-list {
+  display: flex;
+  padding: 0 4px;
+  gap: 12px;
+}
+
+.scene-card {
+  background-color: white;
+  padding: 12px 20px;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  min-width: 72px;
+}
+
+.scene-card.active {
+  background-color: #ECFDF5;
+  border-color: #10B981;
+}
+
+.scene-icon {
+  font-size: 24px;
+}
+
+.scene-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4B5563;
+}
+
+.scene-card.active .scene-name {
+  color: #059669;
+}
+
+/* Device Grid */
+.device-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.device-card {
+  background-color: white;
+  padding: 16px;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 120px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+  border: 2px solid transparent;
+  transform: scale(1);
+}
+
+.device-card:active {
+  transform: scale(0.96);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.device-card.active {
+  background-color: #10B981;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.device-icon-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #F3F4F6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.device-card.active .device-icon-box {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.device-info {
+  margin-top: 12px;
+}
+
+.device-name {
+  font-weight: 700;
+  font-size: 16px;
+  display: block;
+}
+
+.device-card.active .device-name {
+  color: white;
+}
+
+.device-status {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+.device-card.active .device-status {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.toggle-indicator {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  border: 1px solid #E5E7EB;
+}
+
+.device-card.active .toggle-indicator {
+  background-color: white;
+  border-color: white;
+}
+
+/* Settings */
+.setting-card {
+  background-color: white;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.pulse-card {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.setting-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.setting-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.setting-icon {
+  font-size: 18px;
+}
+
+.setting-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.setting-value {
+  font-weight: 700;
+  color: #4B5563;
+}
+
+.setting-desc {
+  font-size: 12px;
+  color: #9CA3AF;
+  margin-top: 8px;
+  display: block;
+}
