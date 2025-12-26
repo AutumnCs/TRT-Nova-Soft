@@ -1,0 +1,121 @@
+<view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
+  
+  <!-- Header with Plant Switcher -->
+  <view class="header-bar">
+    <view class="plant-picker" bindtap="switchPlant">
+      <text class="plant-name">{{plantName}}</text>
+      <text class="chevron">▼</text>
+    </view>
+  </view>
+
+  <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}" style="padding-top: 10px;">
+    
+    <!-- Plant Visualization -->
+    <view class="plant-section">
+      <view class="glow-bg"></view>
+      <view class="plant-circle">
+        <image src="{{plantImage}}" mode="aspectFill" class="plant-img"></image>
+      </view>
+      
+      <!-- Weather Widget (Centered Bottom) -->
+      <view class="weather-widget">
+        <text class="weather-icon">🌤️</text>
+        <text class="weather-temp">26°C</text>
+      </view>
+      
+      <!-- Status Bubbles -->
+      <view class="bubble bubble-warning" animation="{{bubbleAnimation}}" style="top: 20rpx; right: 120rpx;">
+        <text class="bubble-icon">🌡️</text>
+        <text class="bubble-text">温度偏低</text>
+      </view>
+      <view class="bubble bubble-success" animation="{{bubbleAnimation}}" style="bottom: 40rpx; left: 40rpx;">
+        <text class="bubble-icon">☀️</text>
+        <text class="bubble-text">光照适宜</text>
+      </view>
+      
+      <!-- Mood Icon -->
+      <view class="mood-icon">
+        <text>😊</text>
+      </view>
+    </view>
+
+    <!-- Dialogue -->
+    <view class="dialogue-section">
+      <view class="chat-bubble">
+        <text class="chat-text">"{{dialogue}}"</text>
+      </view>
+    </view>
+
+    <!-- Todo Cards -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">今日待办</text>
+        <view class="todo-header-right">
+          <view class="tag"><text>{{todos.length}} 项</text></view>
+          <view class="add-todo-btn" bindtap="addTodo">
+            <text>+</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="card-list">
+        <block wx:for="{{todos}}" wx:key="id">
+          <view class="card {{item.urgent ? 'border-l-red' : 'border-l-blue'}}" bindtap="onTaskDone" data-id="{{item.id}}">
+            <view class="card-left">
+              <view class="icon-circle {{item.iconBg}}">
+                <text>{{item.icon}}</text>
+              </view>
+              <view class="card-info">
+                <text class="card-title">{{item.title}}</text>
+                <text class="card-desc {{item.urgent ? 'text-red' : 'text-gray'}}">{{item.desc}}</text>
+              </view>
+            </view>
+            <view class="check-btn">
+              <text>⭕</text>
+            </view>
+          </view>
+        </block>
+        <view wx:if="{{todos.length === 0}}" class="empty-state">
+          <text>🎉 今日任务全部完成！</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Sensor Grid -->
+    <view class="section" style="padding-bottom: 120px;">
+      <view class="section-header">
+        <text class="section-title">实时监测</text>
+        <text class="section-subtitle">刚刚更新</text>
+      </view>
+      <view class="grid">
+        <!-- Temp -->
+        <view class="grid-item" bindtap="refreshSensor" data-type="temp">
+          <text class="grid-icon text-green">🌡️</text>
+          <view class="grid-value">{{sensors.temp.value}}<text class="unit">{{sensors.temp.unit}}</text></view>
+          <text class="grid-label">{{sensors.temp.label}}</text>
+        </view>
+        <!-- Light -->
+        <view class="grid-item" bindtap="refreshSensor" data-type="light">
+          <text class="grid-icon text-amber">☀️</text>
+          <view class="grid-value text-amber">{{sensors.light.value}}<text class="unit">{{sensors.light.unit}}</text></view>
+          <text class="grid-label">{{sensors.light.label}}</text>
+        </view>
+        <!-- Humidity -->
+        <view class="grid-item" bindtap="refreshSensor" data-type="humidity">
+          <text class="grid-icon text-blue">💧</text>
+          <view class="grid-value">{{sensors.humidity.value}}<text class="unit">{{sensors.humidity.unit}}</text></view>
+          <text class="grid-label">{{sensors.humidity.label}}</text>
+        </view>
+        <!-- Soil -->
+        <view class="grid-item" bindtap="refreshSensor" data-type="soil">
+          <text class="grid-icon text-blue-dark">🌊</text>
+          <view class="grid-value text-red">{{sensors.soil.value}}<text class="unit">{{sensors.soil.unit}}</text></view>
+          <text class="grid-label text-red">{{sensors.soil.label}}</text>
+        </view>
+      </view>
+    </view>
+
+  </scroll-view>
+
+  <!-- Custom Tab Bar is now handled by miniprogram/custom-tab-bar/ -->
+</view>

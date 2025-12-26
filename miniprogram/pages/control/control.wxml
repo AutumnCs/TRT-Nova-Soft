@@ -1,0 +1,103 @@
+<view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
+  <!-- Header Removed -->
+  
+  <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}" style="padding-top: 10px;">
+    
+    <!-- Quick Actions -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">场景模式</text>
+      </view>
+      <scroll-view scroll-x="true" class="scene-scroll" show-scrollbar="{{false}}">
+        <view class="scene-list">
+          <view class="scene-card {{activeScene === 'auto' ? 'active' : ''}}" bindtap="switchScene" data-scene="auto">
+            <text class="scene-icon">🤖</text>
+            <text class="scene-name">智能托管</text>
+          </view>
+          <view class="scene-card {{activeScene === 'growth' ? 'active' : ''}}" bindtap="switchScene" data-scene="growth">
+            <text class="scene-icon">🌱</text>
+            <text class="scene-name">快速生长</text>
+          </view>
+          <view class="scene-card {{activeScene === 'vacation' ? 'active' : ''}}" bindtap="switchScene" data-scene="vacation">
+            <text class="scene-icon">🏖️</text>
+            <text class="scene-name">度假模式</text>
+          </view>
+          <view class="scene-card {{activeScene === 'night' ? 'active' : ''}}" bindtap="switchScene" data-scene="night">
+            <text class="scene-icon">🌙</text>
+            <text class="scene-name">夜间静音</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- Quick Actions -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">手动开关</text>
+      </view>
+      <view class="device-grid">
+        <block wx:for="{{devices}}" wx:key="id">
+          <view class="device-card {{item.isOn ? 'active' : ''}}" bindtap="toggleDevice" data-index="{{index}}">
+            <view class="device-icon-box">
+              <text class="device-icon">{{item.icon}}</text>
+            </view>
+            <view class="device-info">
+              <text class="device-name">{{item.name}}</text>
+              <text class="device-status">{{item.isOn ? '已开启' : '已关闭'}}</text>
+            </view>
+            <view class="toggle-indicator">
+              <view class="toggle-dot"></view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </view>
+
+    <!-- Automation Settings -->
+    <view class="section" style="padding-bottom: 120px;">
+      <view class="section-header">
+        <text class="section-title">自动化参数</text>
+      </view>
+      
+      <!-- Moisture Slider -->
+      <view class="setting-card {{animatingCard === 'minMoisture' ? 'pulse-card' : ''}}">
+        <view class="setting-header">
+          <view class="setting-label">
+            <text class="setting-icon">💧</text>
+            <text class="setting-name">最低土壤湿度</text>
+          </view>
+          <text class="setting-value">{{settings.minMoisture}}%</text>
+        </view>
+        <slider class="slider" activeColor="#10B981" block-size="24" value="{{settings.minMoisture}}" data-key="minMoisture" bindchanging="sliderChanging" bindchange="sliderChange" min="0" max="100"/>
+        <text class="setting-desc">当湿度低于此值时，自动启动水泵。</text>
+      </view>
+
+      <!-- Temp Slider -->
+      <view class="setting-card {{animatingCard === 'targetTemp' ? 'pulse-card' : ''}}">
+        <view class="setting-header">
+          <view class="setting-label">
+            <text class="setting-icon">🌡️</text>
+            <text class="setting-name">目标恒温</text>
+          </view>
+          <text class="setting-value">{{settings.targetTemp}}°C</text>
+        </view>
+        <slider class="slider" activeColor="#F59E0B" block-size="24" value="{{settings.targetTemp}}" data-key="targetTemp" bindchanging="sliderChanging" bindchange="sliderChange" min="15" max="35"/>
+        <text class="setting-desc">超出范围自动调节通风或加热。</text>
+      </view>
+
+      <!-- Light Duration -->
+      <view class="setting-card {{animatingCard === 'lightDuration' ? 'pulse-card' : ''}}">
+        <view class="setting-header">
+          <view class="setting-label">
+            <text class="setting-icon">☀️</text>
+            <text class="setting-name">每日补光时长</text>
+          </view>
+          <text class="setting-value">{{settings.lightDuration}}小时</text>
+        </view>
+        <slider class="slider" activeColor="#60A5FA" block-size="24" value="{{settings.lightDuration}}" data-key="lightDuration" bindchanging="sliderChanging" bindchange="sliderChange" min="1" max="12"/>
+      </view>
+
+    </view>
+
+  </scroll-view>
+</view>

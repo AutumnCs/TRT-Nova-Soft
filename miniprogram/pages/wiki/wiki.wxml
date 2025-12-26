@@ -1,0 +1,93 @@
+<view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
+  
+  <scroll-view scroll-y="{{!showCommentInput}}" class="scroll-content" show-scrollbar="{{false}}" style="padding-top: 10px;">
+    
+    <!-- Search Bar -->
+    <view class="search-box-container">
+      <view class="search-box">
+        <text class="search-icon">🔍</text>
+        <input class="search-input" placeholder="搜索帖子..." placeholder-class="placeholder" bindinput="onInputSearch"/>
+      </view>
+    </view>
+
+    <!-- Post List -->
+    <view class="post-list" style="padding-bottom: 120px;">
+      <block wx:for="{{filteredPosts}}" wx:key="id">
+        <view class="post-card">
+          <!-- User Info -->
+          <view class="post-header">
+            <image class="post-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+            <view class="post-user-info">
+              <text class="post-username">{{item.username}}</text>
+              <text class="post-time">{{item.time}}</text>
+            </view>
+            <view class="post-more">...</view>
+          </view>
+          
+          <!-- Content -->
+          <view class="post-content">
+            <text class="post-text">{{item.content}}</text>
+            <image wx:if="{{item.image}}" class="post-image" src="{{item.image}}" mode="aspectFill" lazy-load></image>
+          </view>
+          
+          <!-- Actions -->
+          <view class="post-actions">
+            <view class="action-btn {{item.isLiked ? 'active' : ''}}" bindtap="onLike" data-id="{{item.id}}">
+              <text class="action-icon">{{item.isLiked ? '❤️' : '🤍'}}</text>
+              <text class="action-text">{{item.likes}}</text>
+            </view>
+            <view class="action-btn" bindtap="onComment" data-id="{{item.id}}">
+              <text class="action-icon">💬</text>
+              <text class="action-text">{{item.comments}}</text>
+            </view>
+            <view class="action-btn">
+              <text class="action-icon">📤</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+  </scroll-view>
+
+  <!-- Comment Input Modal (Bottom Sheet Style) -->
+  <view wx:if="{{showCommentInput}}" class="comment-sheet-mask" bindtap="closeComment" catchtouchmove="stopProp">
+    <view class="comment-sheet" catchtap="stopProp">
+      <view class="sheet-header">
+        <text class="sheet-title">全部评论 ({{currentComments.length}})</text>
+        <view class="close-btn" bindtap="closeComment">×</view>
+      </view>
+      
+      <scroll-view scroll-y="true" class="comment-list">
+        <block wx:for="{{currentComments}}" wx:key="id">
+          <view class="comment-item">
+            <image class="comment-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+            <view class="comment-right">
+              <view class="comment-user-row">
+                <text class="comment-user">{{item.user}}</text>
+                <text class="comment-likes">❤️ {{item.likes}}</text>
+              </view>
+              <text class="comment-content">{{item.content}}</text>
+              <text class="comment-time">{{item.time}} · 回复</text>
+            </view>
+          </view>
+        </block>
+        <view class="empty-comment" wx:if="{{currentComments.length === 0}}">
+          <text>暂无评论，快来抢沙发~</text>
+        </view>
+      </scroll-view>
+      
+      <view class="input-row">
+        <input class="comment-input" placeholder="说点什么..." focus="{{true}}" confirm-type="send" bindconfirm="sendComment"/>
+        <view class="send-btn" bindtap="sendComment">发送</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Floating Action Button moved outside container to fix position issue -->
+</view>
+
+<!-- FAB outside container -->
+<view class="fab-btn" bindtap="onPost" style="bottom: 120px;">
+  <text class="fab-icon">+</text>
+</view>
