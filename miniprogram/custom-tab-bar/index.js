@@ -18,7 +18,7 @@ Component({
     }, {
       pagePath: "/pages/wiki/wiki",
       text: "社区",
-      icon: "�"
+      icon: "🌱"
     }, {
       pagePath: "/pages/profile/profile",
       text: "我的",

@@ -66,9 +66,13 @@ Page({
     this.setData({
       statusBarHeight: sysInfo.statusBarHeight
     });
+    
+    // 立即检查登录状态
+    this.checkLoginStatus();
   },
 
   onShow: function() {
+    // 设置导航栏和执行动画
     if (typeof this.getTabBar === 'function' &&
       this.getTabBar()) {
       this.getTabBar().setData({
@@ -76,6 +80,27 @@ Page({
       })
     }
     this.startBubbleAnimation();
+    
+    // 每次显示页面都检查登录状态
+    this.checkLoginStatus();
+  },
+  
+  // 检查登录状态
+  checkLoginStatus: function() {
+    // 先检查本地存储，确保状态最新
+    app.checkLoginStatus();
+    
+    const { hasLogin } = app.globalData;
+    console.log('Index checkLoginStatus:', hasLogin ? '已登录' : '未登录');
+    
+    if (!hasLogin) {
+      // 使用app的统一跳转方法，避免重复跳转
+      setTimeout(() => {
+        app.gotoLoginPage();
+      }, 100);
+      return false;
+    }
+    return true;
   },
 
   onHide: function() {
@@ -104,27 +129,24 @@ Page({
 
   addTodo: function() {
     wx.vibrateShort({ type: 'light' });
-    wx.showModal({
-      title: '添加待办',
-      placeholderText: '请输入任务内容',
-      editable: true,
+    wx.showActionSheet({
+      itemList: ['添加任务'],
       success: (res) => {
-        if (res.confirm && res.content) {
-          const newTodo = {
-            id: Date.now(),
-            title: res.content,
-            urgent: false,
-            icon: "📝",
-            iconColor: "text-blue-500",
-            iconBg: "bg-blue-50",
-            desc: "长按切换优先级",
-            status: "pending"
-          };
-          this.setData({
-            todos: [newTodo, ...this.data.todos]
-          });
-          wx.showToast({ title: '添加成功', icon: 'success' });
-        }
+        // 模拟添加任务
+        const newTodo = {
+          id: Date.now(),
+          title: '新任务',
+          urgent: false,
+          icon: "📝",
+          iconColor: "text-blue-500",
+          iconBg: "bg-blue-50",
+          desc: "长按切换优先级",
+          status: "pending"
+        };
+        this.setData({
+          todos: [newTodo, ...this.data.todos]
+        });
+        wx.showToast({ title: '添加成功', icon: 'success' });
       }
     });
   },

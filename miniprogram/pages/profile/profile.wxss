@@ -151,3 +151,17 @@ page {
   font-size: 18px;
   font-weight: 300;
 }
+
+/* Logout Button Styles */
+.logout-item {
+  margin-top: 16px;
+}
+
+.logout-title {
+  color: #EF4444;
+  font-weight: 600;
+}
+
+.logout-icon {
+  color: #EF4444;
+}

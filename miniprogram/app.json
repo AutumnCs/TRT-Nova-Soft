@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/auth/auth",
     "pages/control/control",
     "pages/data/data",
     "pages/wiki/wiki",
