@@ -76,7 +76,8 @@
           </view>
         </block>
         <view wx:if="{{todos.length === 0}}" class="empty-state">
-          <text>🎉 今日任务全部完成！</text>
+           <text class="text-gray">🎉 暂无任务，享受生活吧！</text>
+           <text class="text-xs text-gray-light" style="display: block; margin-top: 10rpx;">点击右上角 + 号添加</text>
         </view>
       </view>
     </view>
