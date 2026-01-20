@@ -39,7 +39,11 @@ App({
     }
   },
   
-  // 跳转到登录页面 33444
+  // 跳转到登录页面
+
+
+  // 这里是测试
+
   gotoLoginPage: function() {
     // 避免重复跳转
     const pages = getCurrentPages();
@@ -49,7 +53,8 @@ App({
     }
     
     wx.redirectTo({
-      url: '/pages/auth/auth'
+      url: '/pages/auth/auth11122'
     });
   }
 });
+
