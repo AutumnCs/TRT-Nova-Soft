@@ -1,0 +1,56 @@
+<view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
+  
+  <!-- Header -->
+  <view class="header">
+    <text class="title">欢迎使用智能花盆</text>
+    <text class="subtitle">请完成身份认证，开始管理您的植物</text>
+  </view>
+
+  <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}">
+    
+    <!-- Auth Section -->
+    <view class="auth-section">
+      
+      <!-- New Way: User selects avatar + inputs nickname -->
+      <view class="auth-card">
+        <text class="auth-card-title">快速认证</text>
+        
+        <!-- Always show login options -->
+        <view class="avatar-section">
+          <button class="avatar-uploader" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+            <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+          </button>
+          <text class="avatar-hint">选择头像</text>
+        </view>
+        
+        <view class="nickname-section">
+          <input 
+            type="nickname" 
+            class="nickname-input" 
+            placeholder="请输入昵称" 
+            value="{{userInfo.nickName}}" 
+            bind:change="onInputChange"
+            maxlength="20"
+          />
+        </view>
+        
+        <!-- 引导用户使用快速认证 -->
+        <view class="guide-text">
+          <text>点击上方选择头像并输入昵称，快速完成认证</text>
+        </view>
+        
+        <!-- Logged in state -->
+        <view wx:if="{{hasUserInfo}}" class="logged-in">
+          <view class="user-info">
+            <image class="user-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+            <text class="user-nickname">{{userInfo.nickName}}</text>
+          </view>
+          <button class="enter-btn" bindtap="loginSuccess">
+            进入首页
+          </button>
+        </view>
+      </view>
+      
+    </view>
+  </scroll-view>
+</view>
