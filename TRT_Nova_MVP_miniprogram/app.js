@@ -39,7 +39,7 @@ App({
     }
   },
   
-  // 跳转到登录页面
+  // 跳转到登录页面 33333
   gotoLoginPage: function() {
     // 避免重复跳转
     const pages = getCurrentPages();
