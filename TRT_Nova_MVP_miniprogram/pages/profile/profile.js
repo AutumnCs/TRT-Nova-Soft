@@ -39,6 +39,11 @@ Page({
   },
 
   onShow: function() {
+    // 设置导航栏 - 根据custom-tab-bar配置，我的页是第3个tab，索引为2
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 2 })
+    }
+    
     // 同步用户信息
     const { userInfo } = app.globalData;
     if (userInfo) {
@@ -49,11 +54,6 @@ Page({
           avatar: userInfo.avatarUrl
         }
       });
-    }
-    
-    // 设置导航栏
-    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 4 })
     }
     
     // 每次显示页面都检查登录状态

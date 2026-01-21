@@ -3,68 +3,112 @@ const app = getApp()
 Page({
   data: {
     statusBarHeight: 20,
-    posts: [
+    // 植物列表数据
+    plants: [
       {
         id: 1,
-        username: "植物达人",
-        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
-        time: "2小时前",
-        content: "今天的芦荟状态真好！大家看看我的养护成果。🌿",
-        image: "https://images.unsplash.com/photo-1509423355108-74d6920d986b?q=80&w=600&auto=format&fit=crop",
-        likes: 128,
-        isLiked: true,
-        comments: 32
+        name: '龟背竹',
+        family: '天南星科・龟背竹属',
+        feature: 'partial-shade',
+        featureText: '半阴',
+        image: 'https://images.unsplash.com/photo-1509423355108-74d6920d986b?q=80&w=600&auto=format&fit=crop',
+        isFavorite: false,
+        category: 'foliage',
+        scientificName: 'Monstera deliciosa',
+        tags: ['常绿植物', '净化空气', '新手友好'],
+        description: '原生生于热带雨林，具有独特的孔洞叶片，极具观赏性。',
+        care: {
+          light: '半阴或明亮散光',
+          water: '干透浇透，避积水'
+        }
       },
       {
         id: 2,
-        username: "新手小白",
-        avatar: "https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=100&auto=format&fit=crop",
-        time: "5小时前",
-        content: "求助：为什么我的多肉叶子变黄了？是不是浇水太多了？😭",
-        image: null,
-        likes: 15,
-        isLiked: false,
-        comments: 48
+        name: '多肉・玉露',
+        family: '独尾草科・瓦苇属',
+        feature: 'avoid-sun',
+        featureText: '忌暴晒',
+        image: 'https://images.unsplash.com/photo-1518676590629-3dcbd9c5a5c9?q=80&w=600&auto=format&fit=crop',
+        isFavorite: true,
+        category: 'succulent',
+        scientificName: 'Haworthia cooperi',
+        tags: ['多肉植物', '耐旱', '小型盆栽'],
+        description: '叶片晶莹剔透，形如露珠，是多肉植物中的珍品。',
+        care: {
+          light: '散射光，忌强光直射',
+          water: '干透浇透，冬季少水'
+        }
       },
       {
         id: 3,
-        username: "园艺专家",
-        avatar: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop",
-        time: "1天前",
-        content: "分享一些关于室内补光的技巧，建议大家根据植物习性调整光谱。",
-        image: "https://images.unsplash.com/photo-1463936575229-4699413f3030?q=80&w=600&auto=format&fit=crop",
-        likes: 542,
-        isLiked: false,
-        comments: 89
+        name: '天堂鸟',
+        family: '旅人蕉科・鹤望兰属',
+        feature: 'sun-loving',
+        featureText: '喜阳光',
+        image: 'https://images.unsplash.com/photo-1526304640581-d334cdbbf45e?q=80&w=600&auto=format&fit=crop',
+        isFavorite: false,
+        category: 'foliage',
+        scientificName: 'Strelitzia reginae',
+        tags: ['观花植物', '大型盆栽', '喜温暖'],
+        description: '花朵形如仙鹤，姿态优美，是室内外装饰的佳品。',
+        care: {
+          light: '充足阳光，每天至少4小时',
+          water: '保持土壤湿润，避免积水'
+        }
+      },
+      {
+        id: 4,
+        name: '银斑葛',
+        family: '天南星科・麒麟叶属',
+        feature: 'shade-tolerant',
+        featureText: '耐阴',
+        image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop',
+        isFavorite: false,
+        category: 'foliage',
+        scientificName: 'Scindapsus pictus',
+        tags: ['藤蔓植物', '净化空气', '耐阴'],
+        description: '叶片带有银色斑点，富有质感，适合悬挂栽培。',
+        care: {
+          light: '低光到中等光照，忌强光',
+          water: '保持土壤微湿，避免干燥'
+        }
       }
     ],
-    filteredPosts: []
+    // 状态管理
+    filteredPlants: [],
+    activeCategory: 'all',
+    searchKeyword: '',
+    showDetail: false,
+    currentPlant: null,
+    showMore: false
   },
 
   onLoad: function (options) {
     const sysInfo = wx.getSystemInfoSync();
+    
+    // 先设置statusBarHeight，确保页面正常渲染
     this.setData({
-      statusBarHeight: sysInfo.statusBarHeight,
-      filteredPosts: this.data.posts
+      statusBarHeight: sysInfo.statusBarHeight
     });
     
-    // 检查登录状态
+    // 延迟初始化数据，确保页面渲染完成
+    setTimeout(() => {
+      this.setData({
+        filteredPlants: this.data.plants,
+        showDetail: false,
+        currentPlant: null,
+        showMore: false
+      });
+    }, 100);
+    
+    // 检查登录状态 - 但不阻止页面渲染
     this.checkLoginStatus();
   },
 
-  onInputSearch: function(e) {
-    const keyword = e.detail.value.toLowerCase();
-    const filtered = this.data.posts.filter(p => 
-      p.content.toLowerCase().includes(keyword) || 
-      p.username.toLowerCase().includes(keyword)
-    );
-    this.setData({ filteredPosts: filtered });
-  },
-
   onShow: function() {
-    // 设置导航栏
+    // 设置导航栏 - 根据custom-tab-bar配置，社区页是第2个tab，索引为1
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 3 })
+      this.getTabBar().setData({ selected: 1 })
     }
     
     // 每次显示页面都检查登录状态
@@ -90,92 +134,102 @@ Page({
     return true;
   },
 
-  onLike: function(e) {
+  // 搜索功能
+  onSearch: function(e) {
+    const keyword = e.detail.value.toLowerCase();
+    this.setData({ searchKeyword: keyword });
+    this.filterPlants();
+  },
+
+  // 切换分类
+  switchCategory: function(e) {
+    const category = e.currentTarget.dataset.category;
+    this.setData({ activeCategory: category });
+    this.filterPlants();
+  },
+
+  // 筛选植物
+  filterPlants: function() {
+    let filtered = this.data.plants;
+    
+    // 按分类筛选
+    if (this.data.activeCategory === 'favorites') {
+      filtered = filtered.filter(plant => plant.isFavorite);
+    } else if (this.data.activeCategory !== 'all') {
+      filtered = filtered.filter(plant => plant.category === this.data.activeCategory);
+    }
+    
+    // 按关键词搜索
+    if (this.data.searchKeyword) {
+      const keyword = this.data.searchKeyword;
+      filtered = filtered.filter(plant => 
+        plant.name.toLowerCase().includes(keyword) ||
+        plant.family.toLowerCase().includes(keyword) ||
+        plant.featureText.toLowerCase().includes(keyword)
+      );
+    }
+    
+    this.setData({ filteredPlants: filtered });
+  },
+
+  // 切换收藏状态
+  toggleFavorite: function(e) {
     const id = e.currentTarget.dataset.id;
-    const posts = this.data.posts.map(p => {
-      if (p.id === id) {
-        wx.vibrateShort({ type: 'light' });
+    e.stopPropagation(); // 阻止事件冒泡到卡片点击
+    
+    wx.vibrateShort({ type: 'light' });
+    
+    const plants = this.data.plants.map(plant => {
+      if (plant.id === id) {
         return {
-          ...p,
-          isLiked: !p.isLiked,
-          likes: !p.isLiked ? p.likes + 1 : p.likes - 1
+          ...plant,
+          isFavorite: !plant.isFavorite
         };
       }
-      return p;
+      return plant;
     });
-    this.setData({ posts, filteredPosts: posts });
+    
+    this.setData({ plants });
+    this.filterPlants();
   },
 
-  onComment: function(e) {
+  // 显示植物详情
+  showPlantDetail: function(e) {
+    const id = e.currentTarget.dataset.id;
+    const plant = this.data.plants.find(p => p.id === id);
+    
+    wx.vibrateShort({ type: 'light' });
+    
     this.setData({
-      showCommentInput: true,
-      activePostId: e.currentTarget.dataset.id,
-      // More mock comments with details
-      currentComments: [
-        { 
-          id: 1,
-          user: '花友A', 
-          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop',
-          content: '真的很有用！感谢分享。我家那盆也遇到了一样的问题，回去试试看。', 
-          time: '10分钟前',
-          likes: 5
-        },
-        { 
-          id: 2,
-          user: '路人B', 
-          avatar: 'https://images.unsplash.com/photo-1527980965255-d3b416303d12?q=80&w=100&auto=format&fit=crop',
-          content: '我也遇到了这个问题，试试楼主的方法。', 
-          time: '30分钟前',
-          likes: 2
-        },
-        { 
-          id: 3,
-          user: '园艺小萌新', 
-          avatar: 'https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=100&auto=format&fit=crop',
-          content: '请问这个需要每天都浇水吗？感觉土一直干不了。', 
-          time: '1小时前',
-          likes: 0
-        },
-        { 
-          id: 4,
-          user: '植物医生', 
-          avatar: 'https://images.unsplash.com/photo-1463936575229-4699413f3030?q=80&w=100&auto=format&fit=crop',
-          content: '回复 @园艺小萌新：看土壤表面，干透了再浇透，不要积水。', 
-          time: '50分钟前',
-          likes: 12
-        }
-      ]
+      showDetail: true,
+      currentPlant: plant,
+      showMore: false
     });
   },
 
-  closeComment: function() {
+  // 关闭详情页
+  closeDetail: function() {
+    wx.vibrateShort({ type: 'light' });
     this.setData({
-      showCommentInput: false,
-      activePostId: null,
-      currentComments: []
+      showDetail: false,
+      currentPlant: null,
+      showMore: false
     });
   },
 
-  stopProp: function() {},
+  // 切换更多资料显示
+  toggleMore: function() {
+    this.setData({
+      showMore: !this.data.showMore
+    });
+  },
 
-  sendComment: function() {
+  // 加入养护提醒
+  addReminder: function() {
+    wx.vibrateShort({ type: 'medium' });
     wx.showToast({
-      title: '评论已发送',
+      title: '已加入养护提醒',
       icon: 'success'
     });
-    this.closeComment();
-  },
-
-  onPost: function() {
-    wx.vibrateShort({ type: 'medium' });
-    wx.showActionSheet({
-      itemList: ['发布图文', '发布视频', '提问'],
-      success: (res) => {
-        wx.showToast({
-          title: '功能开发中',
-          icon: 'none'
-        })
-      }
-    })
   }
 })

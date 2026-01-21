@@ -1,93 +1,123 @@
-<view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
+<!-- 植物列表页 -->
+<view wx:if="{{!showDetail}}" class="container">
   
-  <scroll-view scroll-y="{{!showCommentInput}}" class="scroll-content" show-scrollbar="{{false}}" style="padding-top: 10px;">
+  <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}">
     
-    <!-- Search Bar -->
-    <view class="search-box-container">
+    <!-- 顶部搜索区 -->
+    <view class="search-section">
       <view class="search-box">
         <text class="search-icon">🔍</text>
-        <input class="search-input" placeholder="搜索帖子..." placeholder-class="placeholder" bindinput="onInputSearch"/>
+        <input class="search-input" placeholder="搜索植物名称、科属或特征" placeholder-class="placeholder" bindinput="onSearch"/>
+      </view>
+      
+      <!-- 分类标签 -->
+      <view class="category-tags">
+        <view class="tag {{activeCategory === 'all' ? 'active' : ''}}" bindtap="switchCategory" data-category="all">全部</view>
+        <view class="tag {{activeCategory === 'favorites' ? 'active' : ''}}" bindtap="switchCategory" data-category="favorites">我的收藏</view>
+        <view class="tag {{activeCategory === 'succulent' ? 'active' : ''}}" bindtap="switchCategory" data-category="succulent">多肉植物</view>
+        <view class="tag {{activeCategory === 'foliage' ? 'active' : ''}}" bindtap="switchCategory" data-category="foliage">观叶植物</view>
       </view>
     </view>
 
-    <!-- Post List -->
-    <view class="post-list" style="padding-bottom: 120px;">
-      <block wx:for="{{filteredPosts}}" wx:key="id">
-        <view class="post-card">
-          <!-- User Info -->
-          <view class="post-header">
-            <image class="post-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
-            <view class="post-user-info">
-              <text class="post-username">{{item.username}}</text>
-              <text class="post-time">{{item.time}}</text>
+    <!-- 植物卡片列表 -->
+    <view class="plant-grid">
+      <block wx:for="{{filteredPlants}}" wx:key="id">
+        <view class="plant-card" bindtap="showPlantDetail" data-id="{{item.id}}">
+          <!-- 植物图片 -->
+          <view class="plant-image-container">
+            <image class="plant-image" src="{{item.image}}" mode="aspectFill"></image>
+            <!-- 收藏图标 -->
+            <view class="favorite-icon {{item.isFavorite ? 'active' : ''}}" bindtap="toggleFavorite" data-id="{{item.id}}">
+              <text>{{item.isFavorite ? '❤️' : '🤍'}}</text>
             </view>
-            <view class="post-more">...</view>
           </view>
           
-          <!-- Content -->
-          <view class="post-content">
-            <text class="post-text">{{item.content}}</text>
-            <image wx:if="{{item.image}}" class="post-image" src="{{item.image}}" mode="aspectFill" lazy-load></image>
+          <!-- 植物信息 -->
+          <view class="plant-info">
+            <text class="plant-name">{{item.name}}</text>
+            <text class="plant-family">{{item.family}}</text>
+            <view class="feature-tag {{item.feature}}">
+              {{item.featureText}}
+            </view>
           </view>
           
-          <!-- Actions -->
-          <view class="post-actions">
-            <view class="action-btn {{item.isLiked ? 'active' : ''}}" bindtap="onLike" data-id="{{item.id}}">
-              <text class="action-icon">{{item.isLiked ? '❤️' : '🤍'}}</text>
-              <text class="action-text">{{item.likes}}</text>
-            </view>
-            <view class="action-btn" bindtap="onComment" data-id="{{item.id}}">
-              <text class="action-icon">💬</text>
-              <text class="action-text">{{item.comments}}</text>
-            </view>
-            <view class="action-btn">
-              <text class="action-icon">📤</text>
-            </view>
+          <!-- 详情按钮 -->
+          <view class="detail-btn">
+            <text>i</text>
           </view>
         </view>
       </block>
     </view>
 
-  </scroll-view>
-
-  <!-- Comment Input Modal (Bottom Sheet Style) -->
-  <view wx:if="{{showCommentInput}}" class="comment-sheet-mask" bindtap="closeComment" catchtouchmove="stopProp">
-    <view class="comment-sheet" catchtap="stopProp">
-      <view class="sheet-header">
-        <text class="sheet-title">全部评论 ({{currentComments.length}})</text>
-        <view class="close-btn" bindtap="closeComment">×</view>
-      </view>
-      
-      <scroll-view scroll-y="true" class="comment-list">
-        <block wx:for="{{currentComments}}" wx:key="id">
-          <view class="comment-item">
-            <image class="comment-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
-            <view class="comment-right">
-              <view class="comment-user-row">
-                <text class="comment-user">{{item.user}}</text>
-                <text class="comment-likes">❤️ {{item.likes}}</text>
-              </view>
-              <text class="comment-content">{{item.content}}</text>
-              <text class="comment-time">{{item.time}} · 回复</text>
-            </view>
-          </view>
-        </block>
-        <view class="empty-comment" wx:if="{{currentComments.length === 0}}">
-          <text>暂无评论，快来抢沙发~</text>
+    <!-- 底部模块 -->
+    <view class="calendar-section">
+      <view class="calendar-header">
+        <text class="calendar-title">2026 年 01 月植物日历</text>
+        <view class="calendar-icon">
+          <text>10</text>
         </view>
-      </scroll-view>
-      
-      <view class="input-row">
-        <input class="comment-input" placeholder="说点什么..." focus="{{true}}" confirm-type="send" bindconfirm="sendComment"/>
-        <view class="send-btn" bindtap="sendComment">发送</view>
+      </view>
+      <text class="calendar-desc">今日推荐：春羽・适合室内半阴环</text>
+    </view>
+
+  </scroll-view>
+</view>
+
+<!-- 植物详情页 -->
+<view wx:else class="container detail-page" style="padding-top: {{statusBarHeight}}px;">
+  
+  <!-- 顶部导航 -->
+  <view class="detail-nav">
+    <view class="nav-btn close-btn" bindtap="closeDetail">
+      <text>×</text>
+    </view>
+    <text class="nav-title">卡片详情</text>
+    <view class="nav-btn share-btn">
+      <text>📤</text>
+    </view>
+  </view>
+  
+  <!-- 植物展示区 -->
+  <view class="plant-showcase">
+    <image class="showcase-image" src="{{currentPlant.image}}" mode="aspectFill"></image>
+    <view class="plant-details">
+      <text class="showcase-name">{{currentPlant.name}}</text>
+      <text class="showcase-scientific">{{currentPlant.scientificName}}</text>
+      <view class="showcase-tags">
+        <view class="tag-item" wx:for="{{currentPlant.tags}}" wx:key="*this">
+          {{item}}
+        </view>
       </view>
     </view>
   </view>
+  
+  <!-- 植物简介 -->
+  <view class="plant-intro">
+    <text class="section-title">植物简介</text>
+    <text class="intro-text">{{currentPlant.description}}</text>
+    <view class="more-link" bindtap="toggleMore">
+      {{showMore ? '收起' : '查看更多详细资料'}} ↓
+    </view>
+  </view>
+  
+  <!-- 养护信息区 -->
+  <view class="care-info">
+    <text class="section-title">养护信息</text>
+    <view class="care-grid">
+      <view class="care-item">
+        <view class="care-icon">☀️</view>
+        <text class="care-text">{{currentPlant.care.light}}</text>
+      </view>
+      <view class="care-item">
+        <view class="care-icon">💧</view>
+        <text class="care-text">{{currentPlant.care.water}}</text>
+      </view>
+    </view>
+  </view>
+  
+  <!-- 底部操作按钮 -->
+  <view class="action-section">
+    <button class="add-reminder-btn" bindtap="addReminder">加入养护提醒</button>
+  </view>
 
-  <!-- Floating Action Button moved outside container to fix position issue -->
-</view>
-
-<!-- FAB outside container -->
-<view class="fab-btn" bindtap="onPost" style="bottom: 120px;">
-  <text class="fab-icon">+</text>
 </view>

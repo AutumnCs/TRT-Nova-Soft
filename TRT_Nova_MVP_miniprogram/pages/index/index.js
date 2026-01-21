@@ -54,7 +54,7 @@ Page({
   },
 
   onShow: function() {
-    // 设置导航栏和执行动画
+    // 设置导航栏和执行动画 - 根据custom-tab-bar配置，首页是第1个tab，索引为0
     if (typeof this.getTabBar === 'function' &&
       this.getTabBar()) {
       this.getTabBar().setData({
