@@ -4,6 +4,9 @@
     
     <!-- User Header -->
     <view class="user-header">
+      <view class="edit-profile-btn" bindtap="onEditProfile">
+        <text class="edit-profile-text">编辑资料</text>
+      </view>
       <view class="avatar-ring">
         <image src="{{user.avatar}}" mode="aspectFill" class="avatar-lg"></image>
       </view>

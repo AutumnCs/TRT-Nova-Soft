@@ -2,8 +2,10 @@
   "pages": [
     "pages/index/index",
     "pages/auth/auth",
+    "pages/profileEdit/profileEdit",
     "pages/wiki/wiki",
-    "pages/profile/profile"
+    "pages/profile/profile",
+    "pages/about/about"
   ],
   "window": {
     "backgroundColor": "#F6F6F6",

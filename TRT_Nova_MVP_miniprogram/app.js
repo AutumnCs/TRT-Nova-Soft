@@ -53,7 +53,7 @@ App({
     }
     
     wx.redirectTo({
-      url: '/pages/auth/auth11122'
+      url: '/pages/auth/auth'
     });
   }
 });

@@ -7,7 +7,7 @@ Page({
     statusBarHeight: 20, // 默认值，会被 onLoad 覆盖
     navBarHeight: 44,
     plantName: "Nova (办公室)",
-    plantImage: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?q=80&w=600&auto=format&fit=crop",
+    //plantImage: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?q=80&w=600&auto=format&fit=crop",
     userImage: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop",
     dialogue: "主人，我的土壤有点干了，可以给我喝点水吗？💧",
     todos: [],// 初始化为空，等待从数据库加载
@@ -17,7 +17,20 @@ Page({
       humidity: { value: "47.7", unit: "%", label: "环境湿度", status: "normal" },
       soil: { value: "15.2", unit: "%", label: "土壤过干", status: "warning" }
     },
-    fan: { id: 'fan', name: '通风扇', icon: '🌪️', isOn: false, desc: '已关闭' }
+    fan: { id: 'fan', name: '通风扇', icon: '🌪️', isOn: false, desc: '已关闭' },
+    // 历史数据模态框
+    showHistoryModal: false,
+    // 历史数据
+    historyData: {
+      temp: [25.4, 25.2, 25.5, 25.1, 25.3, 25.0],
+      humidity: [47.7, 48.1, 47.5, 48.0, 47.8, 47.6],
+      light: [1200, 1180, 1220, 1250, 1230, 1210],
+      soil: [15.2, 15.5, 15.1, 14.8, 15.0, 15.3]
+    },
+    // 归一化后的历史数据高度（百分比）
+    normalizedHistoryData: {},
+    // 当前查看的历史数据类型
+    currentHistoryType: 'temp'
   },
 
   refreshSensor: function(e) {
@@ -45,12 +58,52 @@ Page({
   onLoad: function (options) {
     // 获取系统信息以适配状态栏
     const sysInfo = wx.getSystemInfoSync();
-    this.setData({
-      statusBarHeight: sysInfo.statusBarHeight
-    });
     
+    // 计算归一化高度
+    const normalizedData = this.calculateNormalizedHeight();
+    
+    this.setData({
+      statusBarHeight: sysInfo.statusBarHeight,
+      normalizedHistoryData: normalizedData
+    });
+    // 加载植物图片
+    this.loadPlantImage();
     // 立即检查登录状态
     this.checkLoginStatus();
+  },
+
+  // 加载植物图片（适合免费版云开发）
+  loadPlantImage: function() {
+    // 免费版云开发无法设置图片为公开可读，使用网络图片替代
+    const plantImages = [
+      "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=green%20plant%20in%20white%20pot%20minimal%20style&image_size=square",
+      "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=indoor%20plant%20succulent%20in%20pot&image_size=square",
+      "https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=small%20bamboo%20plant%20in%20ceramic%20pot&image_size=square"
+    ];
+    
+    // 随机选择一张图片，增加多样性
+    const randomIndex = Math.floor(Math.random() * plantImages.length);
+    const selectedImage = plantImages[randomIndex];
+    
+    wx.showLoading({ title: '加载图片中...' });
+    
+    // 验证图片是否可访问
+    wx.getImageInfo({
+      src: selectedImage,
+      success: (res) => {
+        console.log('网络图片加载成功');
+        this.setData({ plantImage: selectedImage });
+      },
+      fail: (err) => {
+        console.error('网络图片加载失败，使用默认图片', err);
+        // 使用默认图片作为最终备用
+        const defaultImage = "https://images.unsplash.com/photo-1485955900006-10f4d324d411?q=80&w=600&auto=format&fit=crop";
+        this.setData({ plantImage: defaultImage });
+      },
+      complete: () => {
+        wx.hideLoading();
+      }
+    });
   },
 
   onShow: function() {
@@ -141,7 +194,7 @@ Page({
     }, 2000);
   },
 
-addTodo: function() {
+addTodo: async function() {
     wx.vibrateShort({ type: 'light' });
     wx.showModal({
       title: '添加待办',
@@ -158,7 +211,7 @@ addTodo: function() {
           } catch (err) {
             wx.hideLoading();
             wx.showToast({ title: '添加失败', icon: 'none' });
-            console.error(err);
+            console.error('添加待办失败:', err);
           }
         }
       }
@@ -245,5 +298,65 @@ addTodo: function() {
       'fan.desc': !this.data.fan.isOn ? '持续通风中' : '已关闭'
     });
     wx.vibrateShort(); // 触感反馈
+  },
+
+  // 显示历史数据模态框
+  showHistory: function(e) {
+    const type = e.currentTarget.dataset.type;
+    wx.vibrateShort({ type: 'light' });
+    
+    // 计算归一化高度
+    const normalizedData = this.calculateNormalizedHeight();
+    
+    this.setData({
+      showHistoryModal: true,
+      currentHistoryType: type,
+      normalizedHistoryData: normalizedData
+    });
+  },
+
+  // 关闭历史数据模态框
+  closeHistoryModal: function() {
+    wx.vibrateShort({ type: 'light' });
+    this.setData({
+      showHistoryModal: false
+    });
+  },
+
+  // 停止事件冒泡
+  stopPropagation: function() {},
+
+  // 切换历史数据类型
+  switchHistoryType: function(e) {
+    const type = e.currentTarget.dataset.type;
+    wx.vibrateShort({ type: 'light' });
+    this.setData({
+      currentHistoryType: type
+    });
+  },
+
+  // 计算所有数据类型的归一化高度
+  calculateNormalizedHeight: function() {
+    const maxValues = {
+      temp: 40,       // 温度最大值40°C
+      humidity: 100,   // 湿度最大值100%
+      light: 1500,     // 光照最大值1500lx
+      soil: 100        // 土壤湿度最大值100%
+    };
+    
+    const normalized = {};
+    
+    // 遍历所有数据类型
+    for (const type in this.data.historyData) {
+      normalized[type] = this.data.historyData[type].map(value => {
+        const maxValue = maxValues[type] || 100;
+        let height = (value / maxValue) * 100;
+        // 限制在5-100%之间
+        height = Math.max(5, Math.min(100, height));
+        return height;
+      });
+    }
+    
+    return normalized;
   }
 });

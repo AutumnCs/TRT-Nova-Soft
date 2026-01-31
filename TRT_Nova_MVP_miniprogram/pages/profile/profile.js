@@ -1,4 +1,5 @@
 const app = getApp()
+const userProfileService = require('../../services/modules/UserProfileService');
 
 Page({
   data: {
@@ -12,7 +13,8 @@ Page({
       { icon: "🌿", title: "我的花园", desc: "管理植物" },
       { icon: "📦", title: "设备管理", desc: "2个在线" },
       { icon: "🔔", title: "通知设置", desc: "已开启" },
-      { icon: "⚙️", title: "系统设置", desc: "" }
+      { icon: "⚙️", title: "系统设置", desc: "" },
+      { icon: "ℹ️", title: "关于我们", desc: "小程序信息" }
     ]
   },
 
@@ -24,18 +26,8 @@ Page({
     
     // 检查登录状态
     this.checkLoginStatus();
-    
-    // 如果已登录，显示用户信息
-    const { userInfo } = app.globalData;
-    if (userInfo) {
-      this.setData({
-        user: {
-          name: userInfo.nickName,
-          level: "LV.1 新手指南",
-          avatar: userInfo.avatarUrl
-        }
-      });
-    }
+
+    this.loadUserProfile();
   },
 
   onShow: function() {
@@ -43,21 +35,10 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 2 })
     }
-    
-    // 同步用户信息
-    const { userInfo } = app.globalData;
-    if (userInfo) {
-      this.setData({
-        user: {
-          name: userInfo.nickName,
-          level: "LV.1 新手指南",
-          avatar: userInfo.avatarUrl
-        }
-      });
-    }
-    
+
     // 每次显示页面都检查登录状态
     this.checkLoginStatus();
+    this.loadUserProfile();
   },
   
   // 检查登录状态
@@ -78,15 +59,67 @@ Page({
     }
     return true;
   },
+
+  /**
+   * 加载用户资料（优先云端资料，其次本地 userInfo）
+   */
+  loadUserProfile: async function() {
+    if (!this.checkLoginStatus()) return;
+
+    try {
+      const profile = await userProfileService.getMyProfile();
+      if (profile) {
+        this.setData({
+          user: {
+            name: profile.nickName || '未命名用户',
+            level: "LV.1 新手指南",
+            avatar: profile.avatarUrl || this.data.user.avatar
+          }
+        });
+        return;
+      }
+    } catch (err) {
+      // ignore，降级到本地 userInfo
+    }
+
+    const { userInfo } = app.globalData;
+    if (userInfo) {
+      this.setData({
+        user: {
+          name: userInfo.nickName,
+          level: "LV.1 新手指南",
+          avatar: userInfo.avatarUrl
+        }
+      });
+    }
+  },
+
+  /**
+   * 跳转到个人资料编辑页
+   */
+  onEditProfile: function() {
+    wx.vibrateShort({ type: 'light' });
+    wx.navigateTo({
+      url: '/pages/profileEdit/profileEdit'
+    });
+  },
   
   onMenuItemTap: function(e) {
     const index = e.currentTarget.dataset.index;
     const item = this.data.menu[index];
     wx.vibrateShort({ type: 'light' });
-    wx.showToast({
-      title: item.title + ' 开发中',
-      icon: 'none'
-    });
+    
+    if (item.title === '关于我们') {
+      // 导航到关于我们页面
+      wx.navigateTo({
+        url: '/pages/about/about'
+      });
+    } else {
+      wx.showToast({
+        title: item.title + ' 开发中',
+        icon: 'none'
+      });
+    }
   },
   
   // 退出登录
