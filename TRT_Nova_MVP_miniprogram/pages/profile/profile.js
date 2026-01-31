@@ -12,7 +12,8 @@ Page({
       { icon: "🌿", title: "我的花园", desc: "管理植物" },
       { icon: "📦", title: "设备管理", desc: "2个在线" },
       { icon: "🔔", title: "通知设置", desc: "已开启" },
-      { icon: "⚙️", title: "系统设置", desc: "" }
+      { icon: "⚙️", title: "系统设置", desc: "" },
+      { icon: "ℹ️", title: "关于我们", desc: "小程序信息" }
     ]
   },
 
@@ -83,10 +84,18 @@ Page({
     const index = e.currentTarget.dataset.index;
     const item = this.data.menu[index];
     wx.vibrateShort({ type: 'light' });
-    wx.showToast({
-      title: item.title + ' 开发中',
-      icon: 'none'
-    });
+    
+    if (item.title === '关于我们') {
+      // 导航到关于我们页面
+      wx.navigateTo({
+        url: '/pages/about/about'
+      });
+    } else {
+      wx.showToast({
+        title: item.title + ' 开发中',
+        icon: 'none'
+      });
+    }
   },
   
   // 退出登录

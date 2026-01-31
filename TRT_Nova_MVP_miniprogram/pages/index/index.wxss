@@ -479,9 +479,6 @@ page {
 
 .device-card {
   width: 100%;
-}
-
-.device-card {
   background-color: white;
   padding: 16px;
   border-radius: 20px;
@@ -573,3 +570,164 @@ page {
 .device-card.active .toggle-dot {
   background-color: #10B981;
 }
+
+/* 历史数据模态框样式 */
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 400px;
+  padding: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.modal-close {
+  font-size: 24px;
+  color: #9CA3AF;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.modal-close:active {
+  background-color: #F3F4F6;
+  transform: scale(0.9);
+}
+
+/* 数据类型切换标签 */
+.history-type-tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.history-type-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  background-color: #F3F4F6;
+  border-radius: 12px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.tab:active {
+  transform: scale(0.95);
+}
+
+.tab.active {
+  background-color: #10B981;
+  color: white;
+}
+
+.tab-icon {
+  font-size: 18px;
+}
+
+.tab-text {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 历史数据图表 */
+.history-chart {
+  margin-bottom: 20px;
+}
+
+.chart-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.label {
+  font-size: 12px;
+  color: #9CA3AF;
+  text-align: center;
+  flex: 1;
+}
+
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 8px;
+  height: 150px;
+}
+
+.bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  max-width: 40px;
+}
+
+.bar {
+  width: 100%;
+  background-color: #10B981;
+  border-radius: 8px 8px 0 0;
+  transition: all 0.3s ease;
+}
+
+.bar-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* 数据说明 */
+.data-info {
+  padding-top: 16px;
+  border-top: 1px solid #F3F4F6;
+}
+
+.info-text {
+  font-size: 12px;
+  color: #9CA3AF;
+  text-align: center;
+  display: block;
+  line-height: 1.5;
+}
+
+

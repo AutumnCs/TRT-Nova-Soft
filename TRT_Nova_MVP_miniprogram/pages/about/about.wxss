@@ -1,0 +1,264 @@
+/* pages/about/about.wxss */
+page {
+  background-color: #F3F4F6;
+  font-family: -apple-system, sans-serif;
+  color: #1F2937;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background-color: white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.back-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.back-btn:active {
+  background-color: #F3F4F6;
+  transform: scale(0.9);
+}
+
+.back-icon {
+  font-size: 20px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+}
+
+.share-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.share-btn:active {
+  background-color: #F3F4F6;
+  transform: scale(0.9);
+}
+
+.share-icon {
+  font-size: 16px;
+}
+
+/* Scroll Content */
+.scroll-content {
+  flex: 1;
+  box-sizing: border-box;
+}
+
+/* App Info Section */
+.app-info-section {
+  background-color: white;
+  padding: 32px 24px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.app-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background-color: #D1FAE5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.logo-icon {
+  font-size: 32px;
+}
+
+.app-name {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1F2937;
+}
+
+.app-version {
+  font-size: 14px;
+  color: #9CA3AF;
+}
+
+.app-description {
+  font-size: 14px;
+  color: #6B7280;
+  line-height: 1.5;
+  max-width: 80%;
+}
+
+/* Section Styles */
+.section {
+  background-color: white;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1F2937;
+  margin-bottom: 16px;
+  display: block;
+}
+
+/* Feature List */
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feature-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #10B981;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.feature-text {
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.4;
+}
+
+/* Info Items */
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #F3F4F6;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 14px;
+  color: #6B7280;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #1F2937;
+  font-weight: 500;
+  text-align: right;
+}
+
+/* Legal List */
+.legal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.legal-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  background-color: white;
+  transition: all 0.2s;
+}
+
+.legal-item:active {
+  background-color: #F3F4F6;
+}
+
+.legal-text {
+  font-size: 14px;
+  color: #374151;
+}
+
+.arrow {
+  font-size: 16px;
+  color: #9CA3AF;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.footer-text {
+  font-size: 12px;
+  color: #9CA3AF;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.footer-subtext {
+  font-size: 11px;
+  color: #D1D5DB;
+  display: block;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 375px) {
+  .app-description {
+    max-width: 90%;
+  }
+  
+  .section {
+    padding: 16px 20px;
+  }
+}

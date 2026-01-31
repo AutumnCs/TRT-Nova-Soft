@@ -14,7 +14,7 @@
     <view class="plant-section">
       <view class="glow-bg"></view>
       <view class="plant-circle">
-        <image src="{{plantImage}}" mode="aspectFill" class="plant-img"></image>
+        <image src="{{plantImage}}" mode="aspectFit" class="plant-img"></image>
       </view>
       
       <!-- Weather Widget (Centered Bottom) -->
@@ -90,25 +90,25 @@
       </view>
       <view class="grid">
         <!-- Temp -->
-        <view class="grid-item" bindtap="refreshSensor" data-type="temp">
+        <view class="grid-item" bindtap="showHistory" data-type="temp">
           <text class="grid-icon text-green">🌡️</text>
           <view class="grid-value">{{sensors.temp.value}}<text class="unit">{{sensors.temp.unit}}</text></view>
           <text class="grid-label">{{sensors.temp.label}}</text>
         </view>
         <!-- Light -->
-        <view class="grid-item" bindtap="refreshSensor" data-type="light">
+        <view class="grid-item" bindtap="showHistory" data-type="light">
           <text class="grid-icon text-amber">☀️</text>
           <view class="grid-value text-amber">{{sensors.light.value}}<text class="unit">{{sensors.light.unit}}</text></view>
           <text class="grid-label">{{sensors.light.label}}</text>
         </view>
         <!-- Humidity -->
-        <view class="grid-item" bindtap="refreshSensor" data-type="humidity">
+        <view class="grid-item" bindtap="showHistory" data-type="humidity">
           <text class="grid-icon text-blue">💧</text>
           <view class="grid-value">{{sensors.humidity.value}}<text class="unit">{{sensors.humidity.unit}}</text></view>
           <text class="grid-label">{{sensors.humidity.label}}</text>
         </view>
         <!-- Soil -->
-        <view class="grid-item" bindtap="refreshSensor" data-type="soil">
+        <view class="grid-item" bindtap="showHistory" data-type="soil">
           <text class="grid-icon text-blue-dark">🌊</text>
           <view class="grid-value text-red">{{sensors.soil.value}}<text class="unit">{{sensors.soil.unit}}</text></view>
           <text class="grid-label text-red">{{sensors.soil.label}}</text>
@@ -138,6 +138,59 @@
     </view>
 
   </scroll-view>
+
+  <!-- 历史数据模态框 -->
+  <view wx:if="{{showHistoryModal}}" class="modal-mask" bindtap="closeHistoryModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">历史数据</text>
+        <view class="modal-close" bindtap="closeHistoryModal">×</view>
+      </view>
+      
+      <!-- 数据类型切换 -->
+      <view class="history-type-tabs">
+        <view class="tab {{currentHistoryType === 'temp' ? 'active' : ''}}" bindtap="switchHistoryType" data-type="temp">
+          <text class="tab-icon">🌡️</text>
+          <text class="tab-text">温度</text>
+        </view>
+        <view class="tab {{currentHistoryType === 'humidity' ? 'active' : ''}}" bindtap="switchHistoryType" data-type="humidity">
+          <text class="tab-icon">💧</text>
+          <text class="tab-text">湿度</text>
+        </view>
+        <view class="tab {{currentHistoryType === 'light' ? 'active' : ''}}" bindtap="switchHistoryType" data-type="light">
+          <text class="tab-icon">☀️</text>
+          <text class="tab-text">光照</text>
+        </view>
+        <view class="tab {{currentHistoryType === 'soil' ? 'active' : ''}}" bindtap="switchHistoryType" data-type="soil">
+          <text class="tab-icon">🌊</text>
+          <text class="tab-text">土壤</text>
+        </view>
+      </view>
+      
+      <!-- 历史数据图表 -->
+      <view class="history-chart">
+        <view class="chart-labels">
+          <text class="label">6h</text>
+          <text class="label">12h</text>
+          <text class="label">18h</text>
+          <text class="label">1d</text>
+          <text class="label">3d</text>
+          <text class="label">7d</text>
+        </view>
+        <view class="chart-bars">
+          <view wx:for="{{historyData[currentHistoryType]}}" wx:for-index="index" wx:key="index" class="bar-item">
+            <view class="bar" style="height: {{normalizedHistoryData[currentHistoryType][index]}}%;"></view>
+            <text class="bar-value">{{item}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 数据说明 -->
+      <view class="data-info">
+        <text class="info-text">数据每小时更新一次，显示最近7天的变化趋势</text>
+      </view>
+    </view>
+  </view>
 
   <!-- Custom Tab Bar is now handled by miniprogram/custom-tab-bar/ -->
 </view>

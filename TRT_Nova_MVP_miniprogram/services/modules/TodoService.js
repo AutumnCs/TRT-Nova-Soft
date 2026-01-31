@@ -14,8 +14,17 @@ class TodoService {
    * @returns {Promise<Array>}
    */
   async getTodos() {
-    // 这里可以添加特定的查询条件，例如 status: 'pending'
-    return await db.query(COLLECTION_NAME, {});
+    try {
+      console.log('开始获取待办事项');
+      // 直接查询，云开发会自动根据用户身份过滤
+      const todos = await db.query(COLLECTION_NAME, {});
+      console.log('获取到待办事项:', todos);
+      return todos;
+    } catch (err) {
+      console.error('获取待办事项失败', err);
+      // 错误时返回空数组，避免页面崩溃
+      return [];
+    }
   }
 
   /**
@@ -24,16 +33,29 @@ class TodoService {
    * @returns {Promise<Object>}
    */
   async addTodo(content) {
-    const newTodo = {
-      title: content,
-      urgent: false,
-      icon: "📝",
-      iconColor: "text-blue-500",
-      iconBg: "bg-blue-50",
-      desc: "长按切换优先级",
-      status: "pending"
-    };
-    return await db.add(COLLECTION_NAME, newTodo);
+    try {
+      console.log('开始添加待办事项:', content);
+      
+      // 移除手动添加的_openid字段，让系统自动管理
+      const newTodo = {
+        title: content,
+        urgent: false,
+        icon: "📝",
+        iconColor: "text-blue-500",
+        iconBg: "bg-blue-50",
+        desc: "长按切换优先级",
+        status: "pending"
+      };
+      
+      console.log('准备添加的待办事项:', newTodo);
+      const result = await db.add(COLLECTION_NAME, newTodo);
+      console.log('添加待办事项成功:', result);
+      return result;
+    } catch (err) {
+      console.error('添加待办事项失败', err);
+      // 重新抛出错误，带上更详细的信息
+      throw new Error(`添加待办事项失败: ${err.message}`);
+    }
   }
 
   /**
