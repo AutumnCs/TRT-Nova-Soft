@@ -116,6 +116,29 @@
       </view>
     </view>
 
+    <!-- 设备切换 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">设备管理</text>
+        <text class="section-subtitle">选择设备</text>
+      </view>
+      <scroll-view scroll-x="true" class="device-scroll" show-scrollbar="{{false}}">
+        <view class="device-list">
+          <block wx:for="{{devices}}" wx:key="id">
+            <view class="device-item {{currentDeviceId === item.id ? 'active' : ''}}" bindtap="switchDevice" data-id="{{item.id}}">
+              <view class="device-item-icon">{{item.icon}}</view>
+              <text class="device-item-name">{{item.name}}</text>
+              <text class="device-item-status">{{item.isOnline ? '在线' : '离线'}}</text>
+            </view>
+          </block>
+          <view class="device-item add-device" bindtap="addDevice">
+            <text class="add-device-icon">+</text>
+            <text class="add-device-text">添加设备</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
     <!-- Ventilation Fan Control -->
     <view class="section" style="padding-bottom: 120px;">
       <view class="section-header">

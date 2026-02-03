@@ -114,6 +114,11 @@ Page({
       wx.navigateTo({
         url: '/pages/about/about'
       });
+    } else if (item.title === '设备管理') {
+      // 导航到设备管理页面
+      wx.navigateTo({
+        url: '/pages/device/device'
+      });
     } else {
       wx.showToast({
         title: item.title + ' 开发中',

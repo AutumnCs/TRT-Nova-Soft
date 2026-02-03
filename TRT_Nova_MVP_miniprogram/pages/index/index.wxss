@@ -470,6 +470,94 @@ page {
 
 /* Tab Bar styles removed, using custom-tab-bar component */
 
+/* Device Scroll Styles */
+.device-scroll {
+  margin-top: 12px;
+  padding-bottom: 10px;
+}
+
+.device-list {
+  display: flex;
+  gap: 16px;
+  padding: 0 8px;
+}
+
+.device-item {
+  flex: 0 0 140px;
+  background-color: white;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.device-item:active {
+  transform: scale(0.96);
+}
+
+.device-item.active {
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.device-item-icon {
+  font-size: 24px;
+}
+
+.device-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2937;
+  text-align: center;
+}
+
+.device-item-status {
+  font-size: 12px;
+  color: #9CA3AF;
+}
+
+.device-item.active .device-item-status {
+  color: #10B981;
+  font-weight: 600;
+}
+
+/* Add Device Button */
+.add-device {
+  flex: 0 0 140px;
+  background-color: #F3F4F6;
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 2px dashed #D1D5DB;
+  transition: all 0.2s ease;
+}
+
+.add-device:active {
+  background-color: #E5E7EB;
+  transform: scale(0.96);
+}
+
+.add-device-icon {
+  font-size: 28px;
+  color: #9CA3AF;
+  font-weight: 300;
+}
+
+.add-device-text {
+  font-size: 14px;
+  color: #6B7280;
+  text-align: center;
+}
+
 /* Device Control Styles */
 .device-grid {
   display: flex;
@@ -729,5 +817,4 @@ page {
   display: block;
   line-height: 1.5;
 }
-
 

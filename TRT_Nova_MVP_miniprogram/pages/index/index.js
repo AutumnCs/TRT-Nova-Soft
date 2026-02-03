@@ -17,6 +17,12 @@ Page({
       humidity: { value: "47.7", unit: "%", label: "环境湿度", status: "normal" },
       soil: { value: "15.2", unit: "%", label: "土壤过干", status: "warning" }
     },
+    devices: [
+      { id: 'device1', name: '智能花盆1', icon: '🌱', isOnline: true },
+      { id: 'device2', name: '智能花盆2', icon: '🌿', isOnline: false },
+      { id: 'device3', name: '智能花盆3', icon: '🌹', isOnline: true }
+    ],
+    currentDeviceId: 'device1',
     fan: { id: 'fan', name: '通风扇', icon: '🌪️', isOn: false, desc: '已关闭' },
     // 历史数据模态框
     showHistoryModal: false,
@@ -300,6 +306,28 @@ addTodo: async function() {
     wx.vibrateShort(); // 触感反馈
   },
 
+    // 切换设备
+  switchDevice: function(e) {
+    const deviceId = e.currentTarget.dataset.id;
+    this.setData({
+      currentDeviceId: deviceId
+    });
+    wx.vibrateShort({ type: 'light' });
+    wx.showToast({
+      title: '已切换设备',
+      icon: 'success',
+      duration: 1000
+    });
+  },
+
+  // 添加设备
+  addDevice: function() {
+    wx.vibrateShort({ type: 'light' });
+    wx.navigateTo({
+      url: '/pages/device/device'
+    });
+  },
+  
   // 显示历史数据模态框
   showHistory: function(e) {
     const type = e.currentTarget.dataset.type;
