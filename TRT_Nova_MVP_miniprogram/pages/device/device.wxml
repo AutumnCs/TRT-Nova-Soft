@@ -87,6 +87,46 @@
         </button>
       </view>
     </view>
+    
+    <!-- 已绑定设备 -->
+    <view class="section">
+      <text class="section-title">已绑定设备</text>
+      
+      <!-- 加载中 -->
+      <view wx:if="{{isLoading}}" class="loading-state">
+        <text>加载中...</text>
+      </view>
+      
+      <!-- 空状态 -->
+      <view wx:elif="{{devices.length === 0}}" class="empty-state">
+        <text class="empty-icon">📦</text>
+        <text class="empty-text">暂无绑定设备</text>
+        <text class="empty-desc">点击上方按钮添加设备</text>
+      </view>
+      
+      <!-- 设备列表 -->
+      <view wx:else class="devices-list">
+        <view wx:for="{{devices}}" wx:key="_id" class="device-card">
+          <view class="device-info">
+            <text class="device-icon">{{item.icon}}</text>
+            <view class="device-details">
+              <text class="device-name">{{item.name}}</text>
+              <text class="device-code">编码: {{item.code}}</text>
+              <text class="device-type">{{item.typeLabel}}</text>
+              <text class="device-status">{{item.status}}</text>
+            </view>
+          </view>
+          <view class="device-actions">
+            <view class="action-btn edit-btn" bindtap="editDevice" data-device="{{item}}">
+              <text>编辑</text>
+            </view>
+            <view class="action-btn delete-btn" bindtap="deleteDevice" data-id="{{item._id}}" data-name="{{item.name}}">
+              <text>删除</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
 
   </scroll-view>
 </view>

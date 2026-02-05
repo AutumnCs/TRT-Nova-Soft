@@ -473,31 +473,68 @@ page {
 /* Device Scroll Styles */
 .device-scroll {
   margin-top: 12px;
-  padding-bottom: 10px;
+  padding-bottom: 16px;
+  width: 100%;
+  overflow: hidden;
 }
 
 .device-list {
-  display: flex;
-  gap: 16px;
-  padding: 0 8px;
+  width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 0 4px;
+}
+
+.device-list::-webkit-scrollbar {
+  display: none;
+}
+
+.device-list > view {
+  display: inline-block;
+  margin-right: 12px;
+}
+
+.device-list > view:last-child {
+  margin-right: 0;
 }
 
 .device-item {
-  flex: 0 0 140px;
+  width: 130px;
   background-color: white;
   border-radius: 16px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  padding: 14px;
+  display: inline-block;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
   border: 2px solid transparent;
+  white-space: normal;
+}
+
+.device-item-icon {
+  font-size: 26px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.device-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F2937;
+  display: block;
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.device-item-status {
+  font-size: 12px;
+  color: #9CA3AF;
+  display: block;
 }
 
 .device-item:active {
   transform: scale(0.96);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .device-item.active {
@@ -506,7 +543,7 @@ page {
 }
 
 .device-item-icon {
-  font-size: 24px;
+  font-size: 26px;
 }
 
 .device-item-name {
@@ -514,6 +551,7 @@ page {
   font-weight: 600;
   color: #1F2937;
   text-align: center;
+  line-height: 1.2;
 }
 
 .device-item-status {
@@ -528,17 +566,15 @@ page {
 
 /* Add Device Button */
 .add-device {
-  flex: 0 0 140px;
+  width: 130px;
   background-color: #F3F4F6;
   border-radius: 16px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  padding: 14px;
+  display: inline-block;
+  text-align: center;
   border: 2px dashed #D1D5DB;
   transition: all 0.2s ease;
+  vertical-align: top;
 }
 
 .add-device:active {
@@ -550,12 +586,15 @@ page {
   font-size: 28px;
   color: #9CA3AF;
   font-weight: 300;
+  display: block;
+  margin-bottom: 6px;
 }
 
 .add-device-text {
   font-size: 14px;
   color: #6B7280;
   text-align: center;
+  display: block;
 }
 
 /* Device Control Styles */

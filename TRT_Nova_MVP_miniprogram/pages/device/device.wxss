@@ -268,3 +268,143 @@ page {
     font-size: 12px;
   }
 }
+
+/* 已绑定设备列表样式 */
+.loading-state {
+  padding: 40px 0;
+  text-align: center;
+  color: #9CA3AF;
+  font-size: 14px;
+}
+
+.empty-state {
+  padding: 40px 0;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.empty-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.empty-desc {
+  font-size: 14px;
+  color: #9CA3AF;
+  display: block;
+}
+
+.devices-list {
+  margin-top: 16px;
+}
+
+.device-card {
+  background-color: #F9FAFB;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+  border: 1px solid #E5E7EB;
+}
+
+.device-card:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.device-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.device-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.device-details {
+  flex: 1;
+}
+
+.device-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1F2937;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.device-code {
+  font-size: 14px;
+  color: #6B7280;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.device-type {
+  font-size: 14px;
+  color: #6B7280;
+  display: block;
+  margin-bottom: 2px;
+}
+
+.device-status {
+  font-size: 14px;
+  color: #10B981;
+  font-weight: 500;
+  display: block;
+}
+
+.device-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #E5E7EB;
+}
+
+.action-btn {
+  flex: 1;
+  height: 36px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: 1px solid #E5E7EB;
+}
+
+.action-btn:active {
+  transform: scale(0.96);
+}
+
+.edit-btn {
+  background-color: white;
+  color: #374151;
+}
+
+.edit-btn:active {
+  background-color: #F3F4F6;
+}
+
+.delete-btn {
+  background-color: white;
+  color: #EF4444;
+  border-color: #FEE2E2;
+}
+
+.delete-btn:active {
+  background-color: #FEF2F2;
+}

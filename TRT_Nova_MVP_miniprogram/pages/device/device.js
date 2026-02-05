@@ -1,5 +1,6 @@
 // pages/device/device.js
 const app = getApp()
+const deviceService = require('../../services/modules/DeviceService')
 
 Page({
   data: {
@@ -15,7 +16,9 @@ Page({
       { value: 'light_system', label: '补光系统' },
       { value: 'other', label: '其他设备' }
     ],
-    isBinding: false
+    isBinding: false,
+    devices: [],
+    isLoading: false
   },
 
   onLoad: function (options) {
@@ -31,6 +34,28 @@ Page({
   onShow: function() {
     // 设置导航栏
     wx.setNavigationBarTitle({ title: '设备管理' });
+    // 加载设备列表
+    this.loadDevices();
+  },
+  
+  // 加载设备列表
+  loadDevices: async function() {
+    this.setData({ isLoading: true });
+    try {
+      console.log('开始加载设备列表');
+      const devices = await deviceService.getDevices();
+      console.log('加载设备列表成功:', devices);
+      this.setData({ devices });
+    } catch (error) {
+      console.error('加载设备列表失败:', error);
+      this.setData({ devices: [] });
+      wx.showToast({
+        title: '加载设备失败',
+        icon: 'none'
+      });
+    } finally {
+      this.setData({ isLoading: false });
+    }
   },
   
   // 检查登录状态
@@ -91,8 +116,8 @@ Page({
   },
 
   // 确认绑定设备
-  confirmBindDevice: function() {
-    const { deviceCode, deviceName, deviceType } = this.data;
+  confirmBindDevice: async function() {
+    const { deviceCode, deviceName, deviceType, deviceTypeLabel } = this.data;
     
     if (!deviceCode) {
       wx.showToast({
@@ -113,8 +138,15 @@ Page({
     this.setData({ isBinding: true });
     wx.showLoading({ title: '绑定中...', mask: true });
     
-    // 模拟设备绑定过程
-    setTimeout(() => {
+    try {
+      // 调用设备服务添加设备
+      await deviceService.addDevice({
+        code: deviceCode,
+        name: deviceName,
+        type: deviceType,
+        typeLabel: deviceTypeLabel
+      });
+      
       wx.hideLoading();
       this.setData({ isBinding: false });
       
@@ -128,7 +160,17 @@ Page({
       setTimeout(() => {
         wx.navigateBack();
       }, 1500);
-    }, 2000);
+    } catch (error) {
+      wx.hideLoading();
+      this.setData({ isBinding: false });
+      
+      wx.showToast({
+        title: '设备绑定失败',
+        icon: 'none',
+        duration: 1500
+      });
+      console.error('设备绑定失败:', error);
+    }
   },
 
   // 返回到上一页
@@ -142,6 +184,46 @@ Page({
     wx.showToast({
       title: '自动发现功能开发中',
       icon: 'none'
+    });
+  },
+  
+  // 编辑设备
+  editDevice: function(e) {
+    const device = e.currentTarget.dataset.device;
+    wx.showModal({
+      title: '编辑设备',
+      content: `编辑功能开发中，设备名称：${device.name}`,
+      showCancel: false
+    });
+  },
+  
+  // 删除设备
+  deleteDevice: function(e) {
+    const deviceId = e.currentTarget.dataset.id;
+    const deviceName = e.currentTarget.dataset.name;
+    
+    wx.showModal({
+      title: '删除设备',
+      content: `确定要删除设备 "${deviceName}" 吗？`,
+      confirmText: '删除',
+      cancelText: '取消',
+      confirmColor: '#FF4D4F',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            wx.showLoading({ title: '删除中...' });
+            await deviceService.deleteDevice(deviceId);
+            wx.hideLoading();
+            wx.showToast({ title: '删除成功', icon: 'success' });
+            // 重新加载设备列表
+            this.loadDevices();
+          } catch (error) {
+            wx.hideLoading();
+            wx.showToast({ title: '删除失败', icon: 'none' });
+            console.error('删除设备失败:', error);
+          }
+        }
+      }
     });
   }
 });

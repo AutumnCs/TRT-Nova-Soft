@@ -1,5 +1,6 @@
 const app = getApp()
 const todoService = require('../../services/modules/TodoService');
+const deviceService = require('../../services/modules/DeviceService');
 
 
 Page({
@@ -17,13 +18,9 @@ Page({
       humidity: { value: "47.7", unit: "%", label: "环境湿度", status: "normal" },
       soil: { value: "15.2", unit: "%", label: "土壤过干", status: "warning" }
     },
-    devices: [
-      { id: 'device1', name: '智能花盆1', icon: '🌱', isOnline: true },
-      { id: 'device2', name: '智能花盆2', icon: '🌿', isOnline: false },
-      { id: 'device3', name: '智能花盆3', icon: '🌹', isOnline: true }
-    ],
-    currentDeviceId: 'device1',
     fan: { id: 'fan', name: '通风扇', icon: '🌪️', isOn: false, desc: '已关闭' },
+    // 设备数据
+    devices: [],
     // 历史数据模态框
     showHistoryModal: false,
     // 历史数据
@@ -125,6 +122,20 @@ Page({
     // 每次显示页面都检查登录状态
     this.checkLoginStatus();
     this.loadTodos();
+    this.loadDevices();
+  },
+  
+  // 加载设备列表
+  loadDevices: async function() {
+    try {
+      console.log('开始加载设备列表');
+      const devices = await deviceService.getDevices();
+      console.log('加载设备列表成功:', devices);
+      this.setData({ devices });
+    } catch (error) {
+      console.error('加载设备列表失败:', error);
+      this.setData({ devices: [] });
+    }
   },
   
   // 检查登录状态
@@ -306,28 +317,6 @@ addTodo: async function() {
     wx.vibrateShort(); // 触感反馈
   },
 
-    // 切换设备
-  switchDevice: function(e) {
-    const deviceId = e.currentTarget.dataset.id;
-    this.setData({
-      currentDeviceId: deviceId
-    });
-    wx.vibrateShort({ type: 'light' });
-    wx.showToast({
-      title: '已切换设备',
-      icon: 'success',
-      duration: 1000
-    });
-  },
-
-  // 添加设备
-  addDevice: function() {
-    wx.vibrateShort({ type: 'light' });
-    wx.navigateTo({
-      url: '/pages/device/device'
-    });
-  },
-  
   // 显示历史数据模态框
   showHistory: function(e) {
     const type = e.currentTarget.dataset.type;
@@ -386,5 +375,51 @@ addTodo: async function() {
     }
     
     return normalized;
+  },
+
+  // 切换设备
+  switchDevice: async function(e) {
+    const deviceIndex = e.currentTarget.dataset.index;
+    const device = this.data.devices[deviceIndex];
+    
+    if (!device) return;
+    
+    wx.vibrateShort({ type: 'light' });
+    
+    try {
+      // 调用设备服务激活设备
+      await deviceService.activateDevice(device._id);
+      
+      // 更新本地设备状态
+      const devices = [...this.data.devices];
+      devices.forEach((d, index) => {
+        d.active = index === deviceIndex;
+      });
+      
+      this.setData({ devices });
+      
+      // 显示切换成功提示
+      wx.showModal({
+        title: '切换成功',
+        content: `已切换到 ${device.name}`,
+        showCancel: false,
+        confirmText: '确定',
+        confirmColor: '#10B981'
+      });
+    } catch (error) {
+      console.error('切换设备失败:', error);
+      wx.showToast({
+        title: '切换设备失败',
+        icon: 'none'
+      });
+    }
+  },
+
+  // 跳转到设备管理页面
+  goToDeviceManagement: function() {
+    wx.vibrateShort({ type: 'light' });
+    wx.navigateTo({
+      url: '/pages/device/device'
+    });
   }
 });

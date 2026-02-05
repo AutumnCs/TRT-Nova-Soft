@@ -39,11 +39,43 @@ class CloudAdapter extends BaseAdapter {
    * 查询列表
    * @param {string} collectionName 
    * @param {Object} query 
+   * @param {boolean} requireUserIsolation - 是否需要用户隔离，默认true
    */
-  async query(collectionName, query = {}) {
+  async query(collectionName, query = {}, requireUserIsolation = true) {
     this._checkDb();
     try {
-      const res = await this.db.collection(collectionName).where(query).get();
+      console.log('查询条件:', query);
+      
+      let finalQuery = query;
+      
+      // 获取当前用户的openid
+      const openid = await this.getOpenid();
+      console.log('查询数据时使用的openid:', openid);
+      
+      // 如果需要用户隔离，添加用户身份过滤
+      if (requireUserIsolation) {
+        // 显式添加_openid过滤，确保只返回当前用户的数据
+        finalQuery = {
+          ...query
+          // 注意：不要显式添加_openid字段，云开发会自动处理
+          // _openid: openid
+        };
+        console.log('启用用户隔离，只返回当前用户的数据');
+      }
+      
+      const res = await this.db.collection(collectionName).where(finalQuery).get();
+      console.log('查询结果:', res.data);
+      
+      // 过滤结果，只返回当前用户的数据
+      if (requireUserIsolation) {
+        const filteredData = res.data.filter(item => {
+          // 检查数据是否属于当前用户
+          return item._openid === openid;
+        });
+        console.log('过滤后的结果:', filteredData);
+        return filteredData;
+      }
+      
       return res.data;
     } catch (err) {
       console.error(`[CloudAdapter] Query Error in ${collectionName}:`, err);
@@ -75,13 +107,16 @@ class CloudAdapter extends BaseAdapter {
   async add(collectionName, data) {
     this._checkDb();
     try {
-      // 自动添加创建时间和更新时间
+      // 自动添加创建时间和更新时间，_openid由系统自动管理
       const payload = {
         ...data,
         createTime: this.db.serverDate(),
         updateTime: this.db.serverDate()
       };
+      console.log('添加的数据:', payload);
+      
       const res = await this.db.collection(collectionName).add({ data: payload });
+      console.log('添加结果:', res);
       return { _id: res._id, ...payload };
     } catch (err) {
       console.error(`[CloudAdapter] Add Error in ${collectionName}:`, err);
@@ -102,7 +137,10 @@ class CloudAdapter extends BaseAdapter {
         ...data,
         updateTime: this.db.serverDate()
       };
+      console.log('更新的数据:', payload);
+      
       const res = await this.db.collection(collectionName).doc(id).update({ data: payload });
+      console.log('更新结果:', res);
       return res.stats.updated > 0;
     } catch (err) {
       console.error(`[CloudAdapter] Update Error in ${collectionName}:`, err);
@@ -118,7 +156,9 @@ class CloudAdapter extends BaseAdapter {
   async delete(collectionName, id) {
     this._checkDb();
     try {
+      console.log('准备删除文档:', id);
       const res = await this.db.collection(collectionName).doc(id).remove();
+      console.log('删除结果:', res);
       return res.stats.removed > 0;
     } catch (err) {
       console.error(`[CloudAdapter] Delete Error in ${collectionName}:`, err);
