@@ -1,5 +1,6 @@
 {
   "compileType": "miniprogram",
+  "cloudfunctionRoot": "cloudfunctions/",
   "setting": {
     "coverView": true,
     "es6": true,
@@ -20,6 +21,7 @@
     "tabIndent": "insertSpaces",
     "tabSize": 2
   },
+  "cloudfunctionTemplateRoot": "cloudfunctionTemplate/",
   "libVersion": "3.13.1",
   "packOptions": {
     "ignore": [],

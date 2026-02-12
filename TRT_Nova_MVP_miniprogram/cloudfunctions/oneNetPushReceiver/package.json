@@ -1,0 +1,10 @@
+{
+    "name": "onenet-push-receiver",
+    "version": "1.0.0",
+    "description": "Receive OneNET HTTP Push",
+    "main": "index.js",
+    "dependencies": {
+        "wx-server-sdk": "latest"
+    },
+    "author": ""
+}

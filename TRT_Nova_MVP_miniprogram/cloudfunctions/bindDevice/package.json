@@ -1,0 +1,10 @@
+{
+    "name": "bind-device",
+    "version": "1.0.0",
+    "description": "Bind Device to User",
+    "main": "index.js",
+    "dependencies": {
+        "wx-server-sdk": "latest"
+    },
+    "author": ""
+}

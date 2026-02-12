@@ -1,0 +1,10 @@
+{
+    "name": "get-device-data",
+    "version": "1.0.0",
+    "description": "Get Device Data",
+    "main": "index.js",
+    "dependencies": {
+        "wx-server-sdk": "latest"
+    },
+    "author": ""
+}
