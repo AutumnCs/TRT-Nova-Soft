@@ -1,0 +1,9 @@
+﻿{
+  "name": "onenet-webhook-scf",
+  "version": "1.0.0",
+  "private": true,
+  "main": "app.js",
+  "dependencies": {
+    "wx-server-sdk": "^2.6.3"
+  }
+}
