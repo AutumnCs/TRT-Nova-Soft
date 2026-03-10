@@ -2,6 +2,7 @@
   "pages": [
     "pages/index/index",
     "pages/device/device",
+    "pages/deviceAdmin/deviceAdmin",
     "pages/auth/auth",
     "pages/profileEdit/profileEdit",
     "pages/wiki/wiki",
@@ -27,7 +28,7 @@
       },
       {
         "pagePath": "pages/wiki/wiki",
-        "text": "百科"
+        "text": "社区"
       },
       {
         "pagePath": "pages/profile/profile",

@@ -857,3 +857,41 @@ page {
   line-height: 1.5;
 }
 
+.extra-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.extra-item {
+  width: calc(50% - 5px);
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  box-sizing: border-box;
+  border: 1px solid #eef2f7;
+}
+
+.extra-item.full {
+  width: 100%;
+}
+
+.extra-label {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.extra-value {
+  display: block;
+  font-size: 14px;
+  color: #111827;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.extra-value.uid {
+  font-family: Consolas, Monaco, monospace;
+}
+

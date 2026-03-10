@@ -3,12 +3,9 @@
   "version": "1.0.0",
   "description": "获取用户openid的云函数",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "dependencies": {
+    "wx-server-sdk": "latest"
   },
   "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "wx-server-sdk": "~2.11.0"
-  }
+  "license": "ISC"
 }

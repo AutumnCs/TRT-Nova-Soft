@@ -1,39 +1,37 @@
-<!-- pages/device/device.wxml -->
 <view class="container fade-in">
-  <!-- Header Section -->
   <view class="header-section">
     <view class="header-content">
       <view class="title-large">设备管理</view>
-      <view class="subtitle">连接并控制您的智能设备</view>
+      <view class="subtitle">绑定并查看你的设备</view>
     </view>
     <view class="header-icon-bg">
       <text class="header-icon">📱</text>
     </view>
   </view>
 
-  <!-- Bind Device Card -->
   <view class="section">
     <view class="card bind-card">
       <view class="card-header">
-        <text class="card-title">添加新设备</text>
+        <text class="card-title">绑定设备</text>
       </view>
       <view class="input-group">
         <view class="input-wrapper">
           <text class="input-icon">🆔</text>
-          <input class="modern-input" placeholder="输入设备 ID" placeholder-class="input-placeholder" bindinput="onIdInput" value="{{deviceId}}" />
-        </view>
-        <view class="input-wrapper">
-          <text class="input-icon">🏷️</text>
-          <input class="modern-input" placeholder="设备名称 (可选)" placeholder-class="input-placeholder" bindinput="onNameInput" value="{{deviceName}}" />
+          <input
+            class="modern-input"
+            placeholder="请输入实体设备码"
+            placeholder-class="input-placeholder"
+            bindinput="onDeviceCodeInput"
+            value="{{deviceCode}}"
+          />
         </view>
       </view>
       <button class="primary-btn" bindtap="bindDevice" hover-class="btn-hover">
-        <text>✨ 立即绑定</text>
+        <text>立即绑定</text>
       </button>
     </view>
   </view>
 
-  <!-- Device List Section -->
   <view class="section">
     <view class="section-header">
       <text class="section-title">我的设备</text>
@@ -51,27 +49,40 @@
               <text>📟</text>
             </view>
             <view class="device-info">
-              <text class="device-name">{{item.deviceName || '未命名设备'}}</text>
-              <text class="device-id">ID: {{item.deviceId}}</text>
+              <text class="device-name">{{item.alias || item.deviceName || '未命名设备'}}</text>
+              <text class="device-id">设备已绑定</text>
             </view>
             <view class="device-status-badge">
               <text class="status-dot"></text>
               <text>在线</text>
             </view>
           </view>
-          
+
           <view class="device-data-area">
-             <text class="data-label">最新数据:</text>
-             <text class="data-value">{{item.datapoints ? '已接收数据' : '暂无数据'}}</text>
-             <view class="time-tag">{{item.updateTime || '刚刚'}}</view>
+            <text class="data-label">最新状态</text>
+            <text class="data-value">{{item.hasData ? '已有上报数据' : '暂无上报数据'}}</text>
+            <view class="time-tag">{{item.updatedAt || '刚刚'}}</view>
           </view>
 
           <view class="device-actions">
             <view class="cmd-input-wrapper">
-              <input class="cmd-input" placeholder="输入指令..." bindinput="onCmdInput" data-index="{{index}}" />
+              <input class="cmd-input" placeholder="输入命令..." bindinput="onCmdInput" data-index="{{index}}" />
             </view>
-            <button class="send-btn" bindtap="sendCmd" data-id="{{item.deviceId}}" hover-class="send-btn-hover">
+            <button
+              class="send-btn"
+              bindtap="sendCmd"
+              data-logicalkey="{{item.logicalKey}}"
+              hover-class="send-btn-hover"
+            >
               <text>发送</text>
+            </button>
+            <button
+              class="send-btn"
+              bindtap="unbindDevice"
+              data-logicalkey="{{item.logicalKey}}"
+              hover-class="send-btn-hover"
+            >
+              <text>解绑</text>
             </button>
           </view>
         </view>
@@ -79,7 +90,7 @@
 
       <view wx:if="{{deviceList.length === 0}}" class="empty-state">
         <view class="empty-icon">🍃</view>
-        <text class="empty-text">暂无设备，快去绑定一个吧~</text>
+        <text class="empty-text">还没有绑定设备</text>
       </view>
     </view>
   </view>

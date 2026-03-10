@@ -7,10 +7,15 @@ cloud.init({
 });
 
 const db = cloud.database();
-// TODO: Replace with your actual Token configured in OneNET
-const ONE_NET_TOKEN = 'oneNetPush123';
-// TODO: Replace with your actual AES Key if using secure mode
-const ONE_NET_AES_KEY = ''; // Empty for plaintext mode, set for secure mode
+const ONE_NET_TOKEN = process.env.ONE_NET_TOKEN || 'oneNetPush123';
+const ONE_NET_AES_KEY = process.env.ONE_NET_AES_KEY || '';
+const DEVICES = 'devices';
+const DEVICE_LATEST = 'device_latest';
+const DEVICE_DATA = 'device_data';
+
+function buildLogicalKey(productId, deviceName) {
+  return `${productId}::${deviceName}`;
+}
 
 /**
  * Verify signature
@@ -27,7 +32,7 @@ function verifySignature(msg, nonce, signature, token) {
   
   const strA = token + nonce + msg;
   const md5 = crypto.createHash('md5').update(strA).digest('hex');
-  const calSignature = Buffer.from(md5).toString('base64');
+  const calSignature = Buffer.from(md5, 'hex').toString('base64');
   
   return calSignature === signature;
 }
@@ -67,40 +72,130 @@ function decryptMsg(cryptedMsg, aesKey) {
  * @returns {Promise<void>}
  */
 async function processDeviceData(pushData, aesKey, db) {
-  // Extract message ID for deduplication
-  const msgId = pushData.id || Date.now().toString();
-  
-  // Parse device data from 'msg' field
-  let deviceData = {};
-  if (pushData.msg) {
-    try {
-      // Decrypt if secure mode is enabled
-      const decryptedMsg = decryptMsg(pushData.msg, aesKey);
-      // Parse the decrypted message
-      deviceData = JSON.parse(decryptedMsg);
-    } catch (e) {
-      console.warn('Could not parse msg field, using raw', e);
-      deviceData = { raw: pushData.msg };
-    }
+  const pushId = pushData.id || '';
+  const pushTime = pushData.time || Date.now();
+  const nonce = pushData.nonce || '';
+  const signature = pushData.signature || '';
+
+  if (!pushData.msg || typeof pushData.msg !== 'string') {
+    throw new Error('msg missing');
   }
-  
-  // Store in Cloud Database
-  await db.collection('device_data').add({
-    data: {
-      _id: msgId, // Use message ID as document ID for deduplication
-      deviceId: deviceData.device_id || 'unknown',
-      datapoints: deviceData.datapoints || {},
-      rawPush: pushData,
-      timestamp: pushData.time || Date.now(),
+
+  // 1) parse OneNET inner payload
+  const decryptedMsg = decryptMsg(pushData.msg, aesKey);
+  const innerMsg = JSON.parse(decryptedMsg);
+
+  const notifyType = innerMsg.notifyType || '';
+  const messageType = innerMsg.messageType || '';
+  const productId = innerMsg.productId || '';
+  const deviceName = innerMsg.deviceName || '';
+  const dataId = innerMsg?.data?.id || '';
+  const params = innerMsg?.data?.params || {};
+
+  if (!productId || !deviceName) {
+    throw new Error('productId/deviceName missing');
+  }
+
+  const logicalKey = buildLogicalKey(productId, deviceName);
+
+  // strict pre-registration: unknown device data should not enter business tables
+  const deviceRes = await db.collection(DEVICES).where({
+    logicalKey
+  }).limit(1).get();
+  if (deviceRes.data.length === 0) {
+    return {
+      ignored: true,
+      reason: 'Device not registered',
+      productId,
+      deviceName,
+      logicalKey
+    };
+  }
+
+  // 2) normalize latest snapshot
+  const latestRecord = {
+    logicalKey,
+    productId,
+    deviceName,
+    notifyType,
+    messageType,
+    dataId,
+    updatedAt: pushTime,
+    params: {},
+    pushMeta: {
+      pushId,
+      pushTime,
+      nonce,
+      signature
+    },
+    updateTime: db.serverDate()
+  };
+
+  // 3) normalize history rows
+  const historyRecords = [];
+  for (const [paramKey, item] of Object.entries(params)) {
+    const value = item?.value;
+    const time = item?.time || pushTime;
+
+    latestRecord.params[paramKey] = { value, time };
+    historyRecords.push({
+      logicalKey,
+      productId,
+      deviceName,
+      paramKey,
+      value,
+      time,
+      dataId,
+      pushId,
+      receivedAt: pushTime,
       createTime: db.serverDate()
-    }
-  });
+    });
+  }
+
+  // 4) upsert latest
+  const latestRes = await db.collection(DEVICE_LATEST).where({
+    logicalKey
+  }).limit(1).get();
+
+  if (latestRes.data.length > 0) {
+    await db.collection(DEVICE_LATEST).doc(latestRes.data[0]._id).update({
+      data: latestRecord
+    });
+  } else {
+    await db.collection(DEVICE_LATEST).add({
+      data: {
+        ...latestRecord,
+        createTime: db.serverDate()
+      }
+    });
+  }
+
+  // 5) append history
+  for (const row of historyRecords) {
+    // deduplicate webhook retries by deterministic record id
+    const dedupId = crypto
+      .createHash('md5')
+      .update(`${row.logicalKey}|${row.pushId}|${row.paramKey}|${row.time}`)
+      .digest('hex');
+    await db.collection(DEVICE_DATA).doc(dedupId).set({
+      data: {
+        ...row
+      }
+    });
+  }
+
+  return {
+    productId,
+    deviceName,
+    logicalKey,
+    recordCount: historyRecords.length
+  };
 }
 
 exports.main = async (event, context) => {
   const {
     httpMethod,
-    queryStringParameters,
+    queryStringParameters = {},
     body
   } = event;
 
@@ -150,25 +245,32 @@ exports.main = async (event, context) => {
       console.log('Received Push Data:', pushData);
 
       // Verify signature for security
-      if (pushData.msg && pushData.nonce && pushData.signature) {
-        if (!verifySignature(pushData.msg, pushData.nonce, pushData.signature, ONE_NET_TOKEN)) {
-          console.warn('Signature verification failed for POST request');
-          return {
-            statusCode: 403,
-            body: 'Signature verification failed'
-          };
-        }
-        console.log('POST request signature verified successfully');
-      } else {
-        console.warn('Missing signature parameters in POST request');
+      if (!pushData.msg || !pushData.nonce || !pushData.signature) {
+        return {
+          statusCode: 403,
+          body: 'Missing signature parameters'
+        };
       }
 
+      if (!verifySignature(pushData.msg, pushData.nonce, pushData.signature, ONE_NET_TOKEN)) {
+        console.warn('Signature verification failed for POST request');
+        return {
+          statusCode: 403,
+          body: 'Signature verification failed'
+        };
+      }
+      console.log('POST request signature verified successfully');
+
       // Process and store device data
-      await processDeviceData(pushData, ONE_NET_AES_KEY, db);
+      const result = await processDeviceData(pushData, ONE_NET_AES_KEY, db);
 
       return {
         statusCode: 200,
-        body: 'success'
+        body: JSON.stringify({
+          code: 0,
+          message: 'success',
+          ...result
+        })
       };
     } catch (err) {
       console.error('Error processing push:', {
@@ -179,7 +281,11 @@ exports.main = async (event, context) => {
       // Return 200 to prevent OneNET from retrying indefinitely on logic errors
       return {
         statusCode: 200,
-        body: 'success (error caught)'
+        body: JSON.stringify({
+          code: 1,
+          message: 'success (error caught)',
+          error: err.message
+        })
       };
     }
   }

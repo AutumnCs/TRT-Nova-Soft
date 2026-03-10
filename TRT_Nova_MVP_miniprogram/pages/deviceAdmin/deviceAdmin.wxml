@@ -1,0 +1,25 @@
+<view class="container">
+  <view class="title">{{labels.title}}</view>
+
+  <input class="input" placeholder="{{labels.physicalCode}}" bindinput="onPhysicalCodeInput" value="{{physicalCode}}" />
+  <input class="input" placeholder="productId" bindinput="onProductIdInput" value="{{productId}}" />
+  <input class="input" placeholder="deviceName" bindinput="onDeviceNameInput" value="{{deviceName}}" />
+  <input class="input" placeholder="{{labels.alias}}" bindinput="onAliasInput" value="{{alias}}" />
+  <input class="input" placeholder="{{labels.externalDeviceId}}" bindinput="onExternalDeviceIdInput" value="{{externalDeviceId}}" />
+  <input class="input" placeholder="{{labels.adminKey}}" bindinput="onAdminKeyInput" value="{{adminKey}}" password="true" />
+
+  <button class="btn" bindtap="registerDevice">{{labels.submit}}</button>
+
+  <view class="registry-title">{{labels.registryTitle}}</view>
+  <view class="registry-list">
+    <block wx:for="{{deviceRegistry}}" wx:key="_id">
+      <view class="registry-item">
+        <text class="registry-line">{{labels.rowPhysicalCode}}：{{item.physicalCode || '-'}}</text>
+        <text class="registry-line">{{labels.rowProductId}}：{{item.productId || '-'}}</text>
+        <text class="registry-line">{{labels.rowDeviceName}}：{{item.deviceName || '-'}}</text>
+        <text class="registry-line">{{labels.rowLogicalKey}}：{{item.logicalKey || '-'}}</text>
+      </view>
+    </block>
+    <view wx:if="{{deviceRegistry.length === 0}}" class="registry-empty">{{labels.empty}}</view>
+  </view>
+</view>

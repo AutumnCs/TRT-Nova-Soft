@@ -1,133 +1,112 @@
-// auth.js
-const app = getApp()
-const defaultAvatarUrl = 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0'
+const app = getApp();
+const userProfileService = require('../../services/modules/UserProfileService');
+
+const defaultAvatarUrl =
+  'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0';
 
 Page({
   data: {
     statusBarHeight: 20,
     userInfo: {
       avatarUrl: defaultAvatarUrl,
-      nickName: '',
+      nickName: ''
     },
     hasUserInfo: false
   },
-  
-  onLoad: function (options) {
-    // 获取系统信息以适配状态栏
+
+  onLoad() {
     const sysInfo = wx.getSystemInfoSync();
-    this.setData({
-      statusBarHeight: sysInfo.statusBarHeight
-    });
+    this.setData({ statusBarHeight: sysInfo.statusBarHeight || 20 });
   },
-  
-  // 选择头像
+
   onChooseAvatar(e) {
-    const avatarUrl = e.detail.avatarUrl;
     this.setData({
-      "userInfo.avatarUrl": avatarUrl
+      'userInfo.avatarUrl': e.detail.avatarUrl
     });
     this.checkAndLogin();
   },
-  
-  // 输入昵称
+
   onInputChange(e) {
-    const nickName = e.detail.value;
     this.setData({
-      "userInfo.nickName": nickName
+      'userInfo.nickName': (e.detail.value || '').trim()
     });
     this.checkAndLogin();
   },
-  
-  // 检查信息完整性并登录
+
   checkAndLogin() {
     const { avatarUrl, nickName } = this.data.userInfo;
-    if (nickName && avatarUrl && avatarUrl !== defaultAvatarUrl) {
-      this.setData({ hasUserInfo: true });
-      // 信息完整，执行登录
-      this.loginSuccess();
-    }
+    const ok = Boolean(nickName && avatarUrl && avatarUrl !== defaultAvatarUrl);
+    this.setData({ hasUserInfo: ok });
+    if (ok) this.loginSuccess();
   },
-  
 
-  
-  // 登录成功处理
   async loginSuccess() {
-    // 显示加载提示
     wx.showLoading({
       title: '登录中',
       mask: true
     });
-    
+
     try {
-      // 调用登录云函数获取真实的openid
       const loginRes = await wx.cloud.callFunction({
         name: 'login',
         data: {}
       });
-      
-      console.log('登录云函数返回结果:', loginRes);
-      
-      // 提取openid
+
       let openid = '';
-      if (loginRes && loginRes.result && loginRes.result.userInfo && (loginRes.result.userInfo.openId || loginRes.result.userInfo.openid)) {
-        openid = loginRes.result.userInfo.openId || loginRes.result.userInfo.openid;
-      } else if (loginRes && loginRes.result && loginRes.result.openid) {
+      if (loginRes?.result?.openid) {
         openid = loginRes.result.openid;
-      } else if (loginRes && loginRes.result && loginRes.result.result && loginRes.result.result.openid) {
+      } else if (loginRes?.result?.userInfo?.openId || loginRes?.result?.userInfo?.openid) {
+        openid = loginRes.result.userInfo.openId || loginRes.result.userInfo.openid;
+      } else if (loginRes?.result?.result?.openid) {
         openid = loginRes.result.result.openid;
-      } else if (loginRes && loginRes.result && loginRes.result.result && loginRes.result.result.userInfo && (loginRes.result.result.userInfo.openId || loginRes.result.result.userInfo.openid)) {
+      } else if (loginRes?.result?.result?.userInfo?.openId || loginRes?.result?.result?.userInfo?.openid) {
         openid = loginRes.result.result.userInfo.openId || loginRes.result.result.userInfo.openid;
-      } else {
-        throw new Error('无法获取openid');
       }
-      
-      console.log('获取到的真实openid:', openid);
-      
-      // 保存用户信息
+
+      if (!openid) {
+        throw new Error('无法获取 openid');
+      }
+
       const userInfo = {
         avatarUrl: this.data.userInfo.avatarUrl,
         nickName: this.data.userInfo.nickName,
         openId: openid,
-        loginTime: new Date().getTime()
+        loginTime: Date.now()
       };
-      
-      // 保存到本地存储
+
       wx.setStorageSync('userInfo', userInfo);
-      
-      // 保存到全局状态
       app.globalData.userInfo = userInfo;
       app.globalData.hasLogin = true;
-      
-      // 隐藏加载提示
+
+      // Sync login avatar/nickname to canonical users collection.
+      try {
+        await userProfileService.saveMyProfile({
+          nickName: userInfo.nickName,
+          avatarUrl: userInfo.avatarUrl
+        });
+      } catch (err) {
+        // Keep login successful even if profile sync fails.
+      }
+
       wx.hideLoading();
-      
-      // 登录成功提示
       wx.showToast({
         title: '登录成功',
         icon: 'success',
-        duration: 1000
+        duration: 800
       });
-      
-      // 跳转到首页
+
       setTimeout(() => {
         wx.switchTab({
           url: '/pages/index/index'
         });
-      }, 1000);
+      }, 850);
     } catch (error) {
-      console.error('登录失败:', error);
-      
-      // 隐藏加载提示
       wx.hideLoading();
-      
-      // 显示错误提示
       wx.showToast({
         title: '登录失败，请重试',
         icon: 'none',
-        duration: 2000
+        duration: 1800
       });
     }
-  },
-  
-
-})
+  }
+});

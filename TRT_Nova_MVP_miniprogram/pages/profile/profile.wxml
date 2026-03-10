@@ -1,38 +1,16 @@
 <view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
-  
   <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}">
-    
-    <!-- User Header -->
     <view class="user-header">
       <view class="edit-profile-btn" bindtap="onEditProfile">
         <text class="edit-profile-text">编辑资料</text>
       </view>
       <view class="avatar-ring">
-        <image src="{{user.avatar}}" mode="aspectFill" class="avatar-lg"></image>
+        <image src="{{user.avatar}}" mode="aspectFill" class="avatar-lg" binderror="onAvatarError"></image>
       </view>
       <text class="user-name">{{user.name}}</text>
       <text class="user-level">{{user.level}}</text>
     </view>
 
-    <!-- Stats Row -->
-    <view class="stats-row">
-      <view class="stats-col">
-        <text class="stats-num">128</text>
-        <text class="stats-lbl">养护天数</text>
-      </view>
-      <view class="stats-divider"></view>
-      <view class="stats-col">
-        <text class="stats-num">3</text>
-        <text class="stats-lbl">植物数量</text>
-      </view>
-      <view class="stats-divider"></view>
-      <view class="stats-col">
-        <text class="stats-num">12</text>
-        <text class="stats-lbl">获得勋章</text>
-      </view>
-    </view>
-
-    <!-- Menu List -->
     <view class="menu-list" style="padding-bottom: 120px;">
       <block wx:for="{{menu}}" wx:key="index">
         <view class="menu-item" bindtap="onMenuItemTap" data-index="{{index}}">
@@ -46,8 +24,18 @@
           </view>
         </view>
       </block>
-      
-      <!-- Logout Button -->
+
+      <view wx:if="{{isDeveloper}}" class="menu-item" bindtap="onOpenDeviceAdmin">
+        <view class="menu-left">
+          <text class="menu-icon">🛠️</text>
+          <text class="menu-title">设备登记（开发者）</text>
+        </view>
+        <view class="menu-right">
+          <text class="menu-desc">内部入口</text>
+          <text class="arrow">›</text>
+        </view>
+      </view>
+
       <view class="menu-item logout-item" bindtap="onLogout">
         <view class="menu-left">
           <text class="menu-icon logout-icon">🔓</text>
@@ -58,6 +46,5 @@
         </view>
       </view>
     </view>
-
   </scroll-view>
 </view>
