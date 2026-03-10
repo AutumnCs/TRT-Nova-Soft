@@ -1,0 +1,92 @@
+<view class="container" style="padding-top: {{statusBarHeight}}px;">
+  
+  <!-- Header with Back Button -->
+  <view class="header">
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+    </view>
+    <text class="header-title">设备管理</text>
+    <view class="header-right">
+      <text class="header-right-text"></text>
+    </view>
+  </view>
+
+  <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}">
+    
+    <!-- 设备绑定 -->
+    <view class="section">
+      <text class="section-title">设备绑定</text>
+      
+      <!-- 绑定方式选择 -->
+      <view class="bind-method-section">
+        <text class="bind-method-title">绑定方式</text>
+        <view class="bind-methods">
+          <view class="bind-method {{bindMethod === 'manual' ? 'active' : ''}}" bindtap="chooseBindMethod" data-method="manual">
+            <text class="bind-method-text">手动输入编码</text>
+          </view>
+          <view class="bind-method {{bindMethod === 'auto' ? 'active' : ''}}" bindtap="chooseBindMethod" data-method="auto">
+            <text class="bind-method-text">WiFi自动发现</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 设备编码输入 -->
+      <view class="input-section">
+        <text class="input-label">设备编码</text>
+        <input 
+          class="input" 
+          placeholder="请输入设备编码" 
+          value="{{deviceCode}}" 
+          bindinput="inputDeviceCode"
+          placeholder-class="input-placeholder"
+        />
+      </view>
+      
+      <!-- 设备名称输入 -->
+      <view class="input-section">
+        <text class="input-label">设备名称（可选）</text>
+        <input 
+          class="input" 
+          placeholder="请输入设备名称" 
+          value="{{deviceName}}" 
+          bindinput="inputDeviceName"
+          placeholder-class="input-placeholder"
+        />
+      </view>
+      
+      <!-- 设备类型选择 -->
+      <view class="input-section">
+        <text class="input-label">设备类型</text>
+        <picker 
+          class="picker" 
+          value="{{0}}" 
+          range="{{deviceTypes}}" 
+          range-key="label"
+          bindchange="selectDeviceType"
+        >
+          <view class="picker-text">
+            {{deviceTypeLabel}}
+          </view>
+        </picker>
+      </view>
+      
+      <!-- 提示信息 -->
+      <view class="tips-section">
+        <text class="tips-icon">💡</text>
+        <text class="tips-text">设备编码可在设备底部/说明书上查找，为8-16位数字字母组合</text>
+      </view>
+      
+      <!-- 确认绑定按钮 -->
+      <view class="button-section">
+        <button 
+          class="bind-button" 
+          bindtap="confirmBindDevice"
+          disabled="{{isBinding || !deviceCode}}"
+        >
+          {{isBinding ? '绑定中...' : '确认绑定设备'}}
+        </button>
+      </view>
+    </view>
+
+  </scroll-view>
+</view>

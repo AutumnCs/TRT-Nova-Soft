@@ -1,0 +1,219 @@
+<view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
+  
+  <!-- Header with Plant Switcher -->
+  <view class="header-bar">
+    <view class="plant-picker" bindtap="switchPlant">
+      <text class="plant-name">{{plantName}}</text>
+      <text class="chevron">▼</text>
+    </view>
+  </view>
+
+  <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}" style="padding-top: 10px;">
+    
+    <!-- Plant Visualization -->
+    <view class="plant-section">
+      <view class="glow-bg"></view>
+      <view class="plant-circle">
+        <image src="{{plantImage}}" mode="aspectFit" class="plant-img"></image>
+      </view>
+      
+      <!-- Weather Widget (Centered Bottom) -->
+      <view class="weather-widget">
+        <text class="weather-icon">🌤️</text>
+        <text class="weather-temp">26°C</text>
+      </view>
+      
+      <!-- Status Bubbles -->
+      <view class="bubble bubble-warning" animation="{{bubbleAnimation}}" style="top: 20rpx; right: 120rpx;">
+        <text class="bubble-icon">🌡️</text>
+        <text class="bubble-text">温度偏低</text>
+      </view>
+      <view class="bubble bubble-success" animation="{{bubbleAnimation}}" style="bottom: 40rpx; left: 40rpx;">
+        <text class="bubble-icon">☀️</text>
+        <text class="bubble-text">光照适宜</text>
+      </view>
+      
+      <!-- Mood Icon -->
+      <view class="mood-icon">
+        <text>😊</text>
+      </view>
+    </view>
+
+    <!-- Dialogue -->
+    <view class="dialogue-section">
+      <view class="chat-bubble">
+        <text class="chat-text">"{{dialogue}}"</text>
+      </view>
+    </view>
+
+    <!-- Todo Cards -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">今日待办</text>
+        <view class="todo-header-right">
+          <view class="tag"><text>{{todos.length}} 项</text></view>
+          <view class="add-todo-btn" bindtap="addTodo">
+            <text>+</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="card-list">
+        <block wx:for="{{todos}}" wx:key="id">
+          <view class="card {{item.urgent ? 'border-l-red' : 'border-l-blue'}}" bindtap="onTaskDone" data-id="{{item.id}}">
+            <view class="card-left">
+              <view class="icon-circle {{item.iconBg}}">
+                <text>{{item.icon}}</text>
+              </view>
+              <view class="card-info">
+                <text class="card-title">{{item.title}}</text>
+                <text class="card-desc {{item.urgent ? 'text-red' : 'text-gray'}}">{{item.desc}}</text>
+              </view>
+            </view>
+            <view class="check-btn">
+              <text>⭕</text>
+            </view>
+          </view>
+        </block>
+        <view wx:if="{{todos.length === 0}}" class="empty-state">
+           <text class="text-gray">🎉 暂无任务，享受生活吧！</text>
+           <text class="text-xs text-gray-light" style="display: block; margin-top: 10rpx;">点击右上角 + 号添加</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- Sensor Grid -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">实时监测</text>
+        <text class="section-subtitle">刚刚更新</text>
+      </view>
+      <view class="grid">
+        <!-- Temp -->
+        <view class="grid-item" bindtap="showHistory" data-type="temp">
+          <text class="grid-icon text-green">🌡️</text>
+          <view class="grid-value">{{sensors.temp.value}}<text class="unit">{{sensors.temp.unit}}</text></view>
+          <text class="grid-label">{{sensors.temp.label}}</text>
+        </view>
+        <!-- Light -->
+        <view class="grid-item" bindtap="showHistory" data-type="light">
+          <text class="grid-icon text-amber">☀️</text>
+          <view class="grid-value text-amber">{{sensors.light.value}}<text class="unit">{{sensors.light.unit}}</text></view>
+          <text class="grid-label">{{sensors.light.label}}</text>
+        </view>
+        <!-- Humidity -->
+        <view class="grid-item" bindtap="showHistory" data-type="humidity">
+          <text class="grid-icon text-blue">💧</text>
+          <view class="grid-value">{{sensors.humidity.value}}<text class="unit">{{sensors.humidity.unit}}</text></view>
+          <text class="grid-label">{{sensors.humidity.label}}</text>
+        </view>
+        <!-- Soil -->
+        <view class="grid-item" bindtap="showHistory" data-type="soil">
+          <text class="grid-icon text-blue-dark">🌊</text>
+          <view class="grid-value text-red">{{sensors.soil.value}}<text class="unit">{{sensors.soil.unit}}</text></view>
+          <text class="grid-label text-red">{{sensors.soil.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 设备切换 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">设备管理</text>
+        <text class="section-subtitle">选择设备</text>
+      </view>
+      <scroll-view scroll-x="true" class="device-scroll" show-scrollbar="{{false}}">
+        <view class="device-list">
+          <block wx:for="{{devices}}" wx:key="id">
+            <view class="device-item {{currentDeviceId === item.id ? 'active' : ''}}" bindtap="switchDevice" data-id="{{item.id}}">
+              <view class="device-item-icon">{{item.icon}}</view>
+              <text class="device-item-name">{{item.name}}</text>
+              <text class="device-item-status">{{item.isOnline ? '在线' : '离线'}}</text>
+            </view>
+          </block>
+          <view class="device-item add-device" bindtap="addDevice">
+            <text class="add-device-icon">+</text>
+            <text class="add-device-text">添加设备</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- Ventilation Fan Control -->
+    <view class="section" style="padding-bottom: 120px;">
+      <view class="section-header">
+        <text class="section-title">设备控制</text>
+      </view>
+      <view class="device-grid">
+        <view class="device-card {{fan.isOn ? 'active' : ''}}" bindtap="toggleFan">
+          <view class="device-icon-box">
+            <text class="device-icon">{{fan.icon}}</text>
+          </view>
+          <view class="device-info">
+            <text class="device-name">{{fan.name}}</text>
+            <text class="device-status">{{fan.isOn ? '已开启' : '已关闭'}}</text>
+          </view>
+          <view class="toggle-indicator">
+            <view class="toggle-dot"></view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+  </scroll-view>
+
+  <!-- 历史数据模态框 -->
+  <view wx:if="{{showHistoryModal}}" class="modal-mask" bindtap="closeHistoryModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">历史数据</text>
+        <view class="modal-close" bindtap="closeHistoryModal">×</view>
+      </view>
+      
+      <!-- 数据类型切换 -->
+      <view class="history-type-tabs">
+        <view class="tab {{currentHistoryType === 'temp' ? 'active' : ''}}" bindtap="switchHistoryType" data-type="temp">
+          <text class="tab-icon">🌡️</text>
+          <text class="tab-text">温度</text>
+        </view>
+        <view class="tab {{currentHistoryType === 'humidity' ? 'active' : ''}}" bindtap="switchHistoryType" data-type="humidity">
+          <text class="tab-icon">💧</text>
+          <text class="tab-text">湿度</text>
+        </view>
+        <view class="tab {{currentHistoryType === 'light' ? 'active' : ''}}" bindtap="switchHistoryType" data-type="light">
+          <text class="tab-icon">☀️</text>
+          <text class="tab-text">光照</text>
+        </view>
+        <view class="tab {{currentHistoryType === 'soil' ? 'active' : ''}}" bindtap="switchHistoryType" data-type="soil">
+          <text class="tab-icon">🌊</text>
+          <text class="tab-text">土壤</text>
+        </view>
+      </view>
+      
+      <!-- 历史数据图表 -->
+      <view class="history-chart">
+        <view class="chart-labels">
+          <text class="label">6h</text>
+          <text class="label">12h</text>
+          <text class="label">18h</text>
+          <text class="label">1d</text>
+          <text class="label">3d</text>
+          <text class="label">7d</text>
+        </view>
+        <view class="chart-bars">
+          <view wx:for="{{historyData[currentHistoryType]}}" wx:for-index="index" wx:key="index" class="bar-item">
+            <view class="bar" style="height: {{normalizedHistoryData[currentHistoryType][index]}}%;"></view>
+            <text class="bar-value">{{item}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 数据说明 -->
+      <view class="data-info">
+        <text class="info-text">数据每小时更新一次，显示最近7天的变化趋势</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- Custom Tab Bar is now handled by miniprogram/custom-tab-bar/ -->
+</view>

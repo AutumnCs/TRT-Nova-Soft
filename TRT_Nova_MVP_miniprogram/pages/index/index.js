@@ -1,5 +1,6 @@
 const app = getApp();
 const todoService = require('../../services/modules/TodoService');
+const deviceService = require('../../services/modules/DeviceService');
 
 const DEFAULT_SENSORS = {
   temp: { value: '--', unit: '℃', label: '环境温度' },
@@ -83,8 +84,8 @@ Page({
     if (this._loadingDevices) return;
     this._loadingDevices = true;
     try {
-      const res = await wx.cloud.callFunction({ name: 'getDeviceData' });
-      const raw = (res.result && res.result.deviceData) || [];
+      const result = await deviceService.getDeviceData();
+      const raw = result.deviceData || [];
       const mapped = raw.map((item, index) => ({
         _id: item.logicalKey || String(index),
         name: item.alias || item.deviceName || '未命名设备',
@@ -163,6 +164,7 @@ Page({
     if (runStateNode && typeof runStateNode.value === 'boolean') patch['extraMetrics.runState'] = runStateNode.value;
     if (irStatusNode && typeof irStatusNode.value === 'boolean') patch['extraMetrics.irStatus'] = irStatusNode.value;
     if (first && first.updatedAt) patch['extraMetrics.updatedAt'] = this.formatTs(first.updatedAt);
+
     if (Object.keys(patch).length > 0) this.setData(patch);
   },
 

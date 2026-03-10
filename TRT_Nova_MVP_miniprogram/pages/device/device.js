@@ -1,3 +1,5 @@
+const deviceService = require('../../services/modules/DeviceService');
+
 Page({
   _refreshTimer: null,
   _refreshing: false,
@@ -39,18 +41,14 @@ Page({
 
     wx.showLoading({ title: '绑定中...' });
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'bindDevice',
-        data: { deviceCode: this.data.deviceCode }
-      });
-
+      const result = await deviceService.bindDevice(this.data.deviceCode);
       wx.hideLoading();
-      if (res.result.success) {
+      if (result.success) {
         wx.showToast({ title: '绑定成功' });
         this.setData({ deviceCode: '' });
         this.refreshData({ silent: true });
       } else {
-        wx.showToast({ title: res.result.msg || '绑定失败', icon: 'none' });
+        wx.showToast({ title: result.msg || '绑定失败', icon: 'none' });
       }
     } catch (err) {
       wx.hideLoading();
@@ -70,23 +68,18 @@ Page({
       content: '确认解绑该设备吗？',
       success: async (res) => {
         if (!res.confirm) return;
-
         wx.showLoading({ title: '解绑中...' });
         try {
-          const resp = await wx.cloud.callFunction({
-            name: 'unbindDevice',
-            data: { logicalKey }
-          });
+          const result = await deviceService.unbindDevice(logicalKey);
           wx.hideLoading();
-
-          if (resp?.result?.success) {
+          if (result.success) {
             wx.showToast({ title: '解绑成功' });
             this.setData({
               deviceList: this.data.deviceList.filter((item) => item.logicalKey !== logicalKey)
             });
             this.refreshData({ silent: true });
           } else {
-            wx.showToast({ title: resp?.result?.msg || '解绑失败', icon: 'none' });
+            wx.showToast({ title: result.msg || '解绑失败', icon: 'none' });
           }
         } catch (err) {
           wx.hideLoading();
@@ -100,12 +93,12 @@ Page({
   async refreshData(options = {}) {
     const { silent = false } = options;
     if (this._refreshing) return;
-
     this._refreshing = true;
+
     if (!silent) wx.showLoading({ title: '加载中...' });
     try {
-      const res = await wx.cloud.callFunction({ name: 'getDeviceData' });
-      const list = ((res.result && res.result.deviceData) || []).map((item) => ({
+      const result = await deviceService.getDeviceData();
+      const list = (result.deviceData || []).map((item) => ({
         ...item,
         hasData: !!item.hasLatest
       }));
@@ -139,12 +132,9 @@ Page({
 
     wx.showLoading({ title: '发送中...' });
     try {
-      const res = await wx.cloud.callFunction({
-        name: 'sendDeviceCmd',
-        data: { logicalKey, cmd }
-      });
+      const result = await deviceService.sendDeviceCmd(logicalKey, cmd);
       wx.hideLoading();
-      if (res.result.success) {
+      if (result.success) {
         wx.showToast({ title: '已发送' });
       } else {
         wx.showToast({ title: '发送失败', icon: 'none' });
