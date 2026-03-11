@@ -15,17 +15,20 @@ exports.main = async (event, context) => {
     const wxContext = cloud.getWXContext();
     const {
         withHistory = false,
-        historyLimit = 50
+        historyLimit = 50,
+        logicalKey = ''
     } = event || {};
 
     try {
         // 1) query ACL devices for current user
-        const aclRes = await db.collection(DEVICE_ACL)
-            .where({
-                openid: wxContext.OPENID,
-                status: 'active'
-            })
-            .get();
+        const aclWhere = {
+            openid: wxContext.OPENID,
+            status: 'active'
+        };
+        if (logicalKey && typeof logicalKey === 'string') {
+            aclWhere.logicalKey = logicalKey.trim();
+        }
+        const aclRes = await db.collection(DEVICE_ACL).where(aclWhere).get();
 
         if (aclRes.data.length === 0) {
             return {
@@ -75,7 +78,9 @@ exports.main = async (event, context) => {
                 logicalKey,
                 productId: latest.productId || device.productId || '',
                 deviceName: latest.deviceName || device.deviceName || '',
-                alias: acl.alias || device.alias || latest.deviceName || device.deviceName || logicalKey,
+                alias: acl.alias || latest.deviceName || device.deviceName || logicalKey,
+                location: acl.location || '',
+                plantType: acl.plantType || '',
                 role: acl.role || '',
                 aclStatus: acl.status || '',
                 params: latest.params || {},

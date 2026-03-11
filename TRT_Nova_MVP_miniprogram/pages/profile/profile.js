@@ -15,7 +15,6 @@ Page({
     },
     menu: [
       { key: 'garden', icon: '🌿', title: '我的花园', desc: '植物管理' },
-      { key: 'device', icon: '📦', title: '设备管理', desc: '绑定与查看设备' },
       { key: 'notice', icon: '🔔', title: '通知设置', desc: '已开启' },
       { key: 'setting', icon: '⚙️', title: '系统设置', desc: '' },
       { key: 'about', icon: 'ℹ️', title: '关于我们', desc: '小程序信息' }
@@ -63,7 +62,6 @@ Page({
 
   async loadUserProfile() {
     if (!this.checkLoginStatus()) return;
-
     const localUser = app.globalData.userInfo || wx.getStorageSync('userInfo') || {};
 
     try {
@@ -77,7 +75,7 @@ Page({
       });
       return;
     } catch (err) {
-      // 云端读取失败则回退本地缓存
+      // 云端失败回退本地
     }
 
     this.setData({
@@ -107,8 +105,8 @@ Page({
       return;
     }
 
-    if (item.key === 'device') {
-      wx.navigateTo({ url: '/pages/device/device' });
+    if (item.key === 'garden') {
+      wx.navigateTo({ url: '/pages/garden/garden' });
       return;
     }
 

@@ -23,19 +23,14 @@ exports.main = async (event) => {
     physicalCode,
     productId,
     deviceName,
-    externalDeviceId = '',
     status = 'active',
-    alias = '',
     adminKey = ''
   } = event || {};
 
   // Developer list API: return current device registry.
   if (action === 'list') {
     try {
-      const listRes = await db.collection(DEVICES)
-        .orderBy('updateTime', 'desc')
-        .limit(200)
-        .get();
+      const listRes = await db.collection(DEVICES).orderBy('updateTime', 'desc').limit(200).get();
       return {
         success: true,
         action: 'list',
@@ -54,8 +49,6 @@ exports.main = async (event) => {
   const cleanPhysicalCode = trimString(physicalCode);
   const cleanProductId = trimString(productId);
   const cleanDeviceName = trimString(deviceName);
-  const cleanExternalDeviceId = trimString(externalDeviceId);
-  const cleanAlias = trimString(alias);
 
   if (!cleanPhysicalCode || !cleanProductId || !cleanDeviceName) {
     return {
@@ -77,13 +70,8 @@ exports.main = async (event) => {
 
   try {
     // Enforce unique physical code -> logical device mapping.
-    const byPhysicalRes = await db.collection(DEVICES).where({
-      physicalCode: cleanPhysicalCode
-    }).limit(1).get();
-
-    const byLogicalRes = await db.collection(DEVICES).where({
-      logicalKey
-    }).limit(1).get();
+    const byPhysicalRes = await db.collection(DEVICES).where({ physicalCode: cleanPhysicalCode }).limit(1).get();
+    const byLogicalRes = await db.collection(DEVICES).where({ logicalKey }).limit(1).get();
 
     if (
       byPhysicalRes.data.length > 0 &&
@@ -96,13 +84,12 @@ exports.main = async (event) => {
       };
     }
 
+    // Developer side keeps only physical/device mapping fields.
     const payload = {
       physicalCode: cleanPhysicalCode,
       logicalKey,
       productId: cleanProductId,
       deviceName: cleanDeviceName,
-      alias: cleanAlias || cleanDeviceName,
-      externalDeviceId: cleanExternalDeviceId,
       status,
       source: 'manual_register_cloudfunction',
       updateTime: db.serverDate(),
@@ -111,9 +98,7 @@ exports.main = async (event) => {
 
     const existed = byPhysicalRes.data[0] || byLogicalRes.data[0];
     if (existed) {
-      await db.collection(DEVICES).doc(existed._id).update({
-        data: payload
-      });
+      await db.collection(DEVICES).doc(existed._id).update({ data: payload });
       return {
         success: true,
         action: 'updated',

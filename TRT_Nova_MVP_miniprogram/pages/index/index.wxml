@@ -1,6 +1,6 @@
 <view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
   <view class="header-bar">
-    <view class="plant-picker" bindtap="switchPlant">
+    <view class="plant-picker">
       <text class="plant-name">{{plantName}}</text>
     </view>
   </view>
@@ -9,7 +9,7 @@
     <view class="plant-section">
       <view class="glow-bg"></view>
       <view class="plant-circle">
-        <image src="{{plantImage}}" mode="aspectFit" class="plant-img"></image>
+        <image src="{{plantImage}}" mode="aspectFill" class="plant-img" binderror="onPlantImageError"></image>
       </view>
 
       <view class="weather-widget">

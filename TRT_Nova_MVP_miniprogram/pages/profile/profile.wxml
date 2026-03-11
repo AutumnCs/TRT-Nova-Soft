@@ -20,7 +20,7 @@
           </view>
           <view class="menu-right">
             <text class="menu-desc">{{item.desc}}</text>
-            <text class="arrow">›</text>
+            <text class="arrow">></text>
           </view>
         </view>
       </block>
@@ -32,17 +32,17 @@
         </view>
         <view class="menu-right">
           <text class="menu-desc">内部入口</text>
-          <text class="arrow">›</text>
+          <text class="arrow">></text>
         </view>
       </view>
 
       <view class="menu-item logout-item" bindtap="onLogout">
         <view class="menu-left">
-          <text class="menu-icon logout-icon">🔓</text>
+          <text class="menu-icon logout-icon">🔁</text>
           <text class="menu-title logout-title">退出登录</text>
         </view>
         <view class="menu-right">
-          <text class="arrow">›</text>
+          <text class="arrow">></text>
         </view>
       </view>
     </view>

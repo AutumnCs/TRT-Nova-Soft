@@ -14,7 +14,19 @@
       "disablePlugins": [],
       "outputPath": ""
     },
-    "ignoreUploadUnusedFiles": true
+    "ignoreUploadUnusedFiles": true,
+    "compileWorklet": false,
+    "uglifyFileName": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true
   },
   "condition": {},
   "editorSetting": {
@@ -27,5 +39,6 @@
     "ignore": [],
     "include": []
   },
-  "appid": "wxdc477b4c865f11cb"
+  "appid": "wxdc477b4c865f11cb",
+  "simulatorPluginLibVersion": {}
 }

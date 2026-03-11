@@ -1,6 +1,9 @@
-const app = getApp();
+﻿const app = getApp();
 const todoService = require('../../services/modules/TodoService');
 const deviceService = require('../../services/modules/DeviceService');
+
+const DEFAULT_PLANT_IMAGE =
+  '/images/plant-default.jpg';
 
 const DEFAULT_SENSORS = {
   temp: { value: '--', unit: '℃', label: '环境温度' },
@@ -20,19 +23,22 @@ const DEFAULT_EXTRA = {
 Page({
   _refreshTimer: null,
   _loadingDevices: false,
+  _deviceRows: [],
 
   data: {
     statusBarHeight: 20,
-    plantName: 'Nova',
-    plantImage: 'https://images.unsplash.com/photo-1485955900006-10f4d324d411?q=80&w=600&auto=format&fit=crop',
+    plantName: '未选择设备',
+    plantImageSource: '',
+    plantImage: DEFAULT_PLANT_IMAGE,
     dialogue: '主人，记得给我按时浇水哦。',
     todos: [],
     devices: [],
+    selectedLogicalKey: '',
     sensors: { ...DEFAULT_SENSORS },
     extraMetrics: { ...DEFAULT_EXTRA },
     fan: {
       name: '通风风扇',
-      icon: '🌪️',
+      icon: '🌬️',
       isOn: false
     }
   },
@@ -40,6 +46,7 @@ Page({
   onLoad() {
     const sysInfo = wx.getSystemInfoSync();
     this.setData({ statusBarHeight: sysInfo.statusBarHeight || 20 });
+    this.resolvePlantImage();
     this.checkLoginStatus();
   },
 
@@ -48,7 +55,6 @@ Page({
       this.getTabBar().setData({ selected: 0 });
     }
     if (!this.checkLoginStatus()) return;
-    this.loadTodos();
     this.loadDevices();
     this.startAutoRefresh();
   },
@@ -70,12 +76,53 @@ Page({
     return true;
   },
 
-  async loadTodos() {
+  async resolveAnySource(source) {
+    const src = (source || '').trim();
+    if (!src) return '';
+    if (src.startsWith('cloud://')) {
+      try {
+        const res = await wx.cloud.getTempFileURL({ fileList: [src] });
+        const first = res?.fileList?.[0];
+        const ok = first && (first.status === 0 || first.status === '0');
+        return ok ? first.tempFileURL || '' : '';
+      } catch (err) {
+        console.error('resolveAnySource failed:', err);
+        return '';
+      }
+    }
+    return src;
+  },
+
+  async resolvePlantImage() {
+    const primary =
+      (this.data.plantImageSource || '').trim() ||
+      (typeof this.data.plantImage === 'string' ? this.data.plantImage.trim() : '');
+    const primaryUrl = await this.resolveAnySource(primary);
+    if (primaryUrl) {
+      this.setData({ plantImage: primaryUrl });
+      return;
+    }
+
+    const fallbackUrl = await this.resolveAnySource(DEFAULT_PLANT_IMAGE);
+    this.setData({ plantImage: fallbackUrl || DEFAULT_PLANT_IMAGE });
+  },
+
+  async onPlantImageError() {
+    const fallbackUrl = await this.resolveAnySource(DEFAULT_PLANT_IMAGE);
+    this.setData({ plantImage: fallbackUrl || DEFAULT_PLANT_IMAGE });
+  },
+
+  async loadTodos(logicalKey = '') {
     try {
-      const todos = await todoService.getTodos();
+      if (!logicalKey) {
+        this.setData({ todos: [] });
+        return;
+      }
+      const todos = await todoService.getTodos(logicalKey);
       todos.sort((a, b) => (a.urgent === b.urgent ? 0 : a.urgent ? -1 : 1));
       this.setData({ todos });
     } catch (error) {
+      console.error(error);
       this.setData({ todos: [] });
     }
   },
@@ -86,22 +133,51 @@ Page({
     try {
       const result = await deviceService.getDeviceData();
       const raw = result.deviceData || [];
-      const mapped = raw.map((item, index) => ({
-        _id: item.logicalKey || String(index),
+      this._deviceRows = raw;
+      const prevSelected = this.data.selectedLogicalKey;
+
+      const mapped = raw.map((item) => ({
+        _id: item.logicalKey || '',
+        logicalKey: item.logicalKey || '',
         name: item.alias || item.deviceName || '未命名设备',
-        status: item.hasLatest ? '在线' : '已绑定',
-        icon: '📟',
-        active: index === 0
+        status: item.hasLatest ? '在线' : '离线',
+        icon: '📕',
+        active: false
       }));
-      this.setData({ devices: mapped });
+
+      let activeIndex = 0;
+      if (prevSelected) {
+        const found = mapped.findIndex((x) => x.logicalKey === prevSelected);
+        activeIndex = found >= 0 ? found : 0;
+      }
+      if (mapped.length > 0) mapped[activeIndex].active = true;
+
+      const selected = mapped[activeIndex];
+      const selectedLogicalKey = selected ? selected.logicalKey : '';
+      const selectedAlias = selected ? selected.name : '未选择设备';
+
+      this.setData({
+        devices: mapped,
+        selectedLogicalKey,
+        plantName: selectedAlias
+      });
 
       if (!raw.length) {
         this.resetTelemetryDefaults();
+        await this.loadTodos('');
       } else {
-        this.applyLatestParams(raw);
+        this.applyLatestParams(raw, selectedLogicalKey);
+        await this.loadTodos(selectedLogicalKey);
       }
     } catch (error) {
-      this.setData({ devices: [] });
+      console.error(error);
+      this._deviceRows = [];
+      this.setData({
+        devices: [],
+        selectedLogicalKey: '',
+        plantName: '未选择设备',
+        todos: []
+      });
       this.resetTelemetryDefaults();
     } finally {
       this._loadingDevices = false;
@@ -129,10 +205,13 @@ Page({
     });
   },
 
-  applyLatestParams(deviceRows) {
+  applyLatestParams(deviceRows, selectedLogicalKey = '') {
     if (!Array.isArray(deviceRows) || deviceRows.length === 0) return;
-    const first = deviceRows.find((d) => d && d.hasLatest && d.params) || deviceRows[0];
-    const params = first && first.params ? first.params : {};
+    const selected =
+      deviceRows.find((d) => d && d.logicalKey === selectedLogicalKey) ||
+      deviceRows.find((d) => d && d.hasLatest && d.params) ||
+      deviceRows[0];
+    const params = selected && selected.params ? selected.params : {};
 
     const getValue = (keys) => {
       for (const key of keys) {
@@ -163,7 +242,7 @@ Page({
     if (dsbTemp !== null) patch['extraMetrics.dsbTemp'] = dsbTemp;
     if (runStateNode && typeof runStateNode.value === 'boolean') patch['extraMetrics.runState'] = runStateNode.value;
     if (irStatusNode && typeof irStatusNode.value === 'boolean') patch['extraMetrics.irStatus'] = irStatusNode.value;
-    if (first && first.updatedAt) patch['extraMetrics.updatedAt'] = this.formatTs(first.updatedAt);
+    if (selected && selected.updatedAt) patch['extraMetrics.updatedAt'] = this.formatTs(selected.updatedAt);
 
     if (Object.keys(patch).length > 0) this.setData(patch);
   },
@@ -178,6 +257,10 @@ Page({
   },
 
   addTodo() {
+    if (!this.data.selectedLogicalKey) {
+      wx.showToast({ title: '请先绑定并选择设备', icon: 'none' });
+      return;
+    }
     wx.showModal({
       title: '添加待办',
       editable: true,
@@ -185,10 +268,11 @@ Page({
       success: async (res) => {
         if (!res.confirm || !res.content) return;
         try {
-          await todoService.addTodo(res.content.trim());
-          await this.loadTodos();
+          await todoService.addTodo(res.content.trim(), this.data.selectedLogicalKey);
+          await this.loadTodos(this.data.selectedLogicalKey);
           wx.showToast({ title: '添加成功', icon: 'success' });
         } catch (error) {
+          console.error(error);
           wx.showToast({ title: '添加失败', icon: 'none' });
         }
       }
@@ -200,10 +284,11 @@ Page({
     const todo = this.data.todos.find((t) => t._id === id || t.id === id);
     if (!todo) return;
     try {
-      if (todo._id) await todoService.completeTodo(todo._id);
-      await this.loadTodos();
+      if (todo._id) await todoService.completeTodo(todo._id, this.data.selectedLogicalKey);
+      await this.loadTodos(this.data.selectedLogicalKey);
       wx.showToast({ title: '任务已完成', icon: 'success' });
     } catch (error) {
+      console.error(error);
       wx.showToast({ title: '操作失败', icon: 'none' });
     }
   },
@@ -213,29 +298,27 @@ Page({
     const todo = this.data.todos.find((t) => t._id === id || t.id === id);
     if (!todo || !todo._id) return;
     try {
-      await todoService.toggleUrgency(todo);
-      await this.loadTodos();
+      await todoService.toggleUrgency(todo, this.data.selectedLogicalKey);
+      await this.loadTodos(this.data.selectedLogicalKey);
       wx.showToast({ title: '已更新优先级', icon: 'none' });
     } catch (error) {
+      console.error(error);
       wx.showToast({ title: '操作失败', icon: 'none' });
     }
-  },
-
-  switchPlant() {
-    wx.showActionSheet({
-      itemList: ['Nova（办公室）', 'Luna（客厅）'],
-      success: (res) => {
-        this.setData({
-          plantName: res.tapIndex === 0 ? 'Nova（办公室）' : 'Luna（客厅）'
-        });
-      }
-    });
   },
 
   switchDevice(e) {
     const index = e.currentTarget.dataset.index;
     const devices = this.data.devices.map((item, i) => ({ ...item, active: i === index }));
-    this.setData({ devices });
+    const selected = devices[index];
+    const selectedLogicalKey = selected ? selected.logicalKey : '';
+    this.setData({
+      devices,
+      selectedLogicalKey,
+      plantName: selected ? selected.name : '未选择设备'
+    });
+    this.applyLatestParams(this._deviceRows, selectedLogicalKey);
+    this.loadTodos(selectedLogicalKey);
   },
 
   toggleFan() {

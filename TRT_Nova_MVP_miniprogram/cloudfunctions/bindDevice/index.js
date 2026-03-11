@@ -17,7 +17,9 @@ exports.main = async (event, context) => {
     const wxContext = cloud.getWXContext();
     const {
         deviceCode,
-        alias
+        alias,
+        location,
+        plantType
     } = event;
 
     const cleanDeviceCode = typeof deviceCode === 'string' ? deviceCode.trim() : '';
@@ -29,6 +31,7 @@ exports.main = async (event, context) => {
         };
     }
 
+    let resolvedLogicalKey = '';
     try {
         const tx = await db.startTransaction();
 
@@ -54,6 +57,7 @@ exports.main = async (event, context) => {
                     msg: 'Device mapping is incomplete'
                 };
             }
+            resolvedLogicalKey = logicalKey;
 
             // 2) one-device-one-user (check by logicalKey only)
             const aclRes = await tx.collection(DEVICE_ACL).where({
@@ -81,19 +85,44 @@ exports.main = async (event, context) => {
                 };
             }
 
-            // 3) write minimal ACL fields + alias
-            await tx.collection(DEVICE_ACL).add({
-                data: {
-                    openid: wxContext.OPENID,
-                    logicalKey,
-                    alias: alias || deviceDoc.alias || deviceDoc.deviceName || cleanDeviceCode,
-                    role: 'owner',
-                    status: 'active',
-                    bindTime: db.serverDate(),
-                    createTime: db.serverDate(),
-                    updateTime: db.serverDate()
-                }
-            });
+            // 3) try revive existing inactive ACL for same user + same device
+            const inactiveRes = await tx.collection(DEVICE_ACL).where({
+                openid: wxContext.OPENID,
+                logicalKey,
+                status: 'inactive'
+            }).orderBy('updateTime', 'desc').limit(1).get();
+
+            if (inactiveRes.data.length > 0) {
+                const prev = inactiveRes.data[0];
+                await tx.collection(DEVICE_ACL).doc(prev._id).update({
+                    data: {
+                        alias: alias || prev.alias || deviceDoc.deviceName || cleanDeviceCode,
+                        location: typeof location === 'string' ? location.trim() : (prev.location || ''),
+                        plantType: typeof plantType === 'string' ? plantType.trim() : (prev.plantType || ''),
+                        role: prev.role || 'owner',
+                        status: 'active',
+                        bindTime: db.serverDate(),
+                        unbindTime: db.command.remove(),
+                        updateTime: db.serverDate()
+                    }
+                });
+            } else {
+                // 4) first bind: create new ACL
+                await tx.collection(DEVICE_ACL).add({
+                    data: {
+                        openid: wxContext.OPENID,
+                        logicalKey,
+                        alias: alias || deviceDoc.deviceName || cleanDeviceCode,
+                        location: typeof location === 'string' ? location.trim() : '',
+                        plantType: typeof plantType === 'string' ? plantType.trim() : '',
+                        role: 'owner',
+                        status: 'active',
+                        bindTime: db.serverDate(),
+                        createTime: db.serverDate(),
+                        updateTime: db.serverDate()
+                    }
+                });
+            }
 
             await tx.commit();
         } catch (err) {
@@ -109,7 +138,7 @@ exports.main = async (event, context) => {
             success: true,
             msg: 'Binding successful',
             deviceCode: cleanDeviceCode,
-            logicalKey
+            logicalKey: resolvedLogicalKey
         };
     } catch (err) {
         console.error(err);

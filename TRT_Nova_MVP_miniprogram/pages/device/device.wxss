@@ -142,6 +142,15 @@ page {
   color: #1F2937;
 }
 
+.picker {
+  flex: 1;
+}
+
+.picker-text {
+  font-size: 28rpx;
+  color: #1F2937;
+}
+
 .input-placeholder {
   color: #9CA3AF;
 }

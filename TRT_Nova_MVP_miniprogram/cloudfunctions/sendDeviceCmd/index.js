@@ -60,13 +60,20 @@ exports.main = async (event, context) => {
             logicalKey: finalLogicalKey
         }).limit(1).get();
 
-        if (deviceRes.data.length === 0 || !deviceRes.data[0].externalDeviceId) {
+        if (deviceRes.data.length === 0) {
             return {
                 success: false,
                 msg: 'Device command channel not configured'
             };
         }
-        const externalDeviceId = deviceRes.data[0].externalDeviceId;
+        const deviceDoc = deviceRes.data[0];
+        const externalDeviceId = deviceDoc.externalDeviceId || deviceDoc.physicalCode || '';
+        if (!externalDeviceId) {
+            return {
+                success: false,
+                msg: 'Device command channel not configured'
+            };
+        }
 
         // Send command to OneNET
         // Note: URL might differ based on OneNET region/version (EDP/MQTT vs Studio)

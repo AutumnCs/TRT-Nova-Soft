@@ -4,8 +4,6 @@
   <input class="input" placeholder="{{labels.physicalCode}}" bindinput="onPhysicalCodeInput" value="{{physicalCode}}" />
   <input class="input" placeholder="productId" bindinput="onProductIdInput" value="{{productId}}" />
   <input class="input" placeholder="deviceName" bindinput="onDeviceNameInput" value="{{deviceName}}" />
-  <input class="input" placeholder="{{labels.alias}}" bindinput="onAliasInput" value="{{alias}}" />
-  <input class="input" placeholder="{{labels.externalDeviceId}}" bindinput="onExternalDeviceIdInput" value="{{externalDeviceId}}" />
   <input class="input" placeholder="{{labels.adminKey}}" bindinput="onAdminKeyInput" value="{{adminKey}}" password="true" />
 
   <button class="btn" bindtap="registerDevice">{{labels.submit}}</button>

@@ -1,0 +1,201 @@
+.page {
+  min-height: 100vh;
+  background: #f5f6f8;
+}
+
+.nav {
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24rpx;
+  background: #f5f6f8;
+}
+
+.nav-btn {
+  width: 64rpx;
+  text-align: center;
+  font-size: 34rpx;
+  color: #111827;
+}
+
+.nav-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.loading {
+  text-align: center;
+  color: #6b7280;
+  margin-top: 120rpx;
+}
+
+.content {
+  height: calc(100vh - 88rpx);
+  padding: 12rpx 24rpx 120rpx;
+  box-sizing: border-box;
+}
+
+.device-card {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 16rpx;
+  display: flex;
+  align-items: center;
+}
+
+.device-img {
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 18rpx;
+}
+
+.device-main {
+  margin-left: 16rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.device-name {
+  font-size: 38rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.device-meta {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #6b7280;
+}
+
+.device-online {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+}
+
+.device-online.ok {
+  color: #16a34a;
+}
+
+.device-online.offline {
+  color: #6b7280;
+}
+
+.metric-scroll {
+  margin-top: 20rpx;
+  white-space: nowrap;
+}
+
+.metric-row {
+  display: inline-flex;
+  gap: 14rpx;
+  padding-bottom: 4rpx;
+}
+
+.metric-card {
+  width: 190rpx;
+  padding: 18rpx 16rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  box-sizing: border-box;
+}
+
+.metric-card.active {
+  background: #e9f0ff;
+}
+
+.metric-value {
+  font-size: 42rpx;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.metric-unit {
+  font-size: 24rpx;
+  margin-left: 4rpx;
+}
+
+.metric-label {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #6b7280;
+  display: block;
+}
+
+.trend-card {
+  margin-top: 20rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 20rpx;
+}
+
+.trend-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.trend-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.trend-tip {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #9ca3af;
+}
+
+.range-switch {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 999rpx;
+  padding: 4rpx;
+}
+
+.range-item {
+  width: 52rpx;
+  text-align: center;
+  line-height: 40rpx;
+  border-radius: 999rpx;
+  color: #6b7280;
+  font-size: 22rpx;
+}
+
+.range-item.active {
+  background: #fff;
+  color: #111827;
+}
+
+.chart {
+  margin-top: 16rpx;
+  width: 100%;
+  height: 360rpx;
+  border-radius: 14rpx;
+}
+
+.stat-row {
+  margin-top: 18rpx;
+  display: flex;
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 42rpx;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.stat-label {
+  display: block;
+  margin-top: 6rpx;
+  color: #9ca3af;
+  font-size: 22rpx;
+}

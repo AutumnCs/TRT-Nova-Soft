@@ -1,11 +1,17 @@
 const deviceService = require('../../services/modules/DeviceService');
 
+const PLANT_OPTIONS = ['龟背竹', '绿萝', '多肉', '薄荷', '番茄', '其他'];
+
 Page({
   _refreshTimer: null,
   _refreshing: false,
 
   data: {
     deviceCode: '',
+    alias: '',
+    location: '',
+    plantTypeIndex: 0,
+    plantOptions: PLANT_OPTIONS,
     deviceList: [],
     cmdInput: ''
   },
@@ -30,6 +36,23 @@ Page({
     this.setData({ deviceCode: e.detail.value });
   },
 
+  onAliasInput(e) {
+    this.setData({ alias: e.detail.value });
+  },
+
+  onLocationInput(e) {
+    this.setData({ location: e.detail.value });
+  },
+
+  choosePlantType() {
+    wx.showActionSheet({
+      itemList: this.data.plantOptions,
+      success: (res) => {
+        this.setData({ plantTypeIndex: res.tapIndex });
+      }
+    });
+  },
+
   onCmdInput(e) {
     this.setData({ cmdInput: e.detail.value });
   },
@@ -41,11 +64,21 @@ Page({
 
     wx.showLoading({ title: '绑定中...' });
     try {
-      const result = await deviceService.bindDevice(this.data.deviceCode);
+      const result = await deviceService.bindDeviceWithProfile({
+        deviceCode: this.data.deviceCode,
+        alias: this.data.alias,
+        location: this.data.location,
+        plantType: this.data.plantOptions[this.data.plantTypeIndex] || ''
+      });
       wx.hideLoading();
       if (result.success) {
         wx.showToast({ title: '绑定成功' });
-        this.setData({ deviceCode: '' });
+        this.setData({
+          deviceCode: '',
+          alias: '',
+          location: '',
+          plantTypeIndex: 0
+        });
         this.refreshData({ silent: true });
       } else {
         wx.showToast({ title: result.msg || '绑定失败', icon: 'none' });

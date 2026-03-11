@@ -5,15 +5,11 @@ Page({
     physicalCode: '',
     productId: '',
     deviceName: '',
-    externalDeviceId: '',
-    alias: '',
     adminKey: '',
     deviceRegistry: [],
     labels: {
       title: '开发者设备登记',
       physicalCode: '实体设备码',
-      alias: '别名(可选)',
-      externalDeviceId: 'externalDeviceId(可选)',
       adminKey: 'adminKey(如启用)',
       submit: '登记 / 更新设备',
       registryTitle: '已登记设备',
@@ -45,14 +41,6 @@ Page({
     this.setData({ deviceName: e.detail.value });
   },
 
-  onExternalDeviceIdInput(e) {
-    this.setData({ externalDeviceId: e.detail.value });
-  },
-
-  onAliasInput(e) {
-    this.setData({ alias: e.detail.value });
-  },
-
   onAdminKeyInput(e) {
     this.setData({ adminKey: e.detail.value });
   },
@@ -67,7 +55,7 @@ Page({
   },
 
   async registerDevice() {
-    const { physicalCode, productId, deviceName, externalDeviceId, alias, adminKey } = this.data;
+    const { physicalCode, productId, deviceName, adminKey } = this.data;
 
     if (!physicalCode || !productId || !deviceName) {
       wx.showToast({
@@ -83,8 +71,6 @@ Page({
         physicalCode,
         productId,
         deviceName,
-        externalDeviceId,
-        alias,
         adminKey
       });
       wx.hideLoading();
