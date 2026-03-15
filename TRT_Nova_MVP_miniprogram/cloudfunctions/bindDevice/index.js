@@ -8,21 +8,16 @@ cloud.init({
 const db = cloud.database();
 const DEVICES = 'devices';
 const DEVICE_ACL = 'device_acl';
-
-function buildLogicalKey(productId, deviceName) {
-    return `${productId}::${deviceName}`;
-}
+const {
+    buildLogicalKey,
+    normalizeBindInput,
+    buildRevivePatch,
+    buildNewAclDoc
+} = require('./policy');
 
 exports.main = async (event, context) => {
     const wxContext = cloud.getWXContext();
-    const {
-        deviceCode,
-        alias,
-        location,
-        plantType
-    } = event;
-
-    const cleanDeviceCode = typeof deviceCode === 'string' ? deviceCode.trim() : '';
+    const { deviceCode: cleanDeviceCode, alias, location, plantType } = normalizeBindInput(event);
 
     if (!cleanDeviceCode) {
         return {
@@ -95,32 +90,30 @@ exports.main = async (event, context) => {
             if (inactiveRes.data.length > 0) {
                 const prev = inactiveRes.data[0];
                 await tx.collection(DEVICE_ACL).doc(prev._id).update({
-                    data: {
-                        alias: alias || prev.alias || deviceDoc.deviceName || cleanDeviceCode,
-                        location: typeof location === 'string' ? location.trim() : (prev.location || ''),
-                        plantType: typeof plantType === 'string' ? plantType.trim() : (prev.plantType || ''),
-                        role: prev.role || 'owner',
-                        status: 'active',
-                        bindTime: db.serverDate(),
-                        unbindTime: db.command.remove(),
-                        updateTime: db.serverDate()
-                    }
+                    data: buildRevivePatch({
+                        alias,
+                        location,
+                        plantType,
+                        prev,
+                        deviceDoc,
+                        cleanDeviceCode,
+                        serverDate: db.serverDate(),
+                        removeValue: db.command.remove()
+                    })
                 });
             } else {
                 // 4) first bind: create new ACL
                 await tx.collection(DEVICE_ACL).add({
-                    data: {
+                    data: buildNewAclDoc({
                         openid: wxContext.OPENID,
                         logicalKey,
-                        alias: alias || deviceDoc.deviceName || cleanDeviceCode,
-                        location: typeof location === 'string' ? location.trim() : '',
-                        plantType: typeof plantType === 'string' ? plantType.trim() : '',
-                        role: 'owner',
-                        status: 'active',
-                        bindTime: db.serverDate(),
-                        createTime: db.serverDate(),
-                        updateTime: db.serverDate()
-                    }
+                        alias,
+                        location,
+                        plantType,
+                        deviceDoc,
+                        cleanDeviceCode,
+                        serverDate: db.serverDate()
+                    })
                 });
             }
 

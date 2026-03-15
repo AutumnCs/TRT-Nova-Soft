@@ -6,13 +6,11 @@ cloud.init({
 
 const db = cloud.database();
 const DEVICE_ACL = 'device_acl';
+const { normalizeUpdateInput, buildPatch, buildResult } = require('./policy');
 
 exports.main = async (event) => {
   const wxContext = cloud.getWXContext();
-  const logicalKey = typeof event?.logicalKey === 'string' ? event.logicalKey.trim() : '';
-  const alias = typeof event?.alias === 'string' ? event.alias.trim() : '';
-  const location = typeof event?.location === 'string' ? event.location.trim() : '';
-  const plantType = typeof event?.plantType === 'string' ? event.plantType.trim() : '';
+  const { logicalKey, alias, location, plantType } = normalizeUpdateInput(event);
 
   if (!logicalKey) {
     return { success: false, msg: 'logicalKey is required' };
@@ -33,24 +31,18 @@ exports.main = async (event) => {
       return { success: false, msg: 'Binding record not found' };
     }
 
-    const patch = {
-      updateTime: db.serverDate()
-    };
-    if (alias) patch.alias = alias;
-    if (location !== undefined) patch.location = location;
-    if (plantType !== undefined) patch.plantType = plantType;
+    const patch = buildPatch({
+      alias,
+      location,
+      plantType,
+      serverDate: db.serverDate()
+    });
 
     await db.collection(DEVICE_ACL).doc(aclRes.data[0]._id).update({
       data: patch
     });
 
-    return {
-      success: true,
-      logicalKey,
-      alias: patch.alias || aclRes.data[0].alias || '',
-      location: patch.location !== undefined ? patch.location : aclRes.data[0].location || '',
-      plantType: patch.plantType !== undefined ? patch.plantType : aclRes.data[0].plantType || ''
-    };
+    return buildResult({ logicalKey, patch, prev: aclRes.data[0] });
   } catch (err) {
     console.error(err);
     return { success: false, msg: 'Database error', error: err.message };

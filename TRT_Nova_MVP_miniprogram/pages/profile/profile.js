@@ -1,17 +1,14 @@
 const app = getApp();
 const userProfileService = require('../../services/modules/UserProfileService');
 
-const DEFAULT_AVATAR =
-  'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0';
-
 Page({
   data: {
     statusBarHeight: 20,
     isDeveloper: true,
     user: {
-      name: '',
-      level: '',
-      avatar: DEFAULT_AVATAR
+      name: '园艺大师',
+      level: 'LV.1 新手指南',
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop'
     },
     menu: [
       { key: 'garden', icon: '🌿', title: '我的花园', desc: '植物管理' },
@@ -39,74 +36,62 @@ Page({
   checkLoginStatus() {
     app.checkLoginStatus();
     if (!app.globalData.hasLogin) {
-      setTimeout(() => wx.redirectTo({ url: '/pages/auth/auth' }), 80);
+      setTimeout(() => {
+        wx.redirectTo({ url: '/pages/auth/auth' });
+      }, 100);
       return false;
     }
     return true;
   },
 
-  normalizeAvatar(url) {
-    if (!url || typeof url !== 'string') return DEFAULT_AVATAR;
-    return url;
-  },
-
-  resolveUserName(cloudProfile, localUser) {
-    return (cloudProfile && cloudProfile.nickName) || (localUser && localUser.nickName) || '';
-  },
-
-  resolveAvatar(cloudProfile, localUser) {
-    const cloudAvatar = cloudProfile && cloudProfile.avatarUrl;
-    const localAvatar = localUser && localUser.avatarUrl;
-    return this.normalizeAvatar(cloudAvatar || localAvatar || DEFAULT_AVATAR);
-  },
-
   async loadUserProfile() {
     if (!this.checkLoginStatus()) return;
-    const localUser = app.globalData.userInfo || wx.getStorageSync('userInfo') || {};
 
     try {
       const profile = await userProfileService.getMyProfile();
-      this.setData({
-        user: {
-          name: this.resolveUserName(profile, localUser),
-          level: '',
-          avatar: this.resolveAvatar(profile, localUser)
-        }
-      });
-      return;
+      if (profile) {
+        this.setData({
+          user: {
+            name: profile.nickName || '未命名用户',
+            level: 'LV.1 新手指南',
+            avatar: profile.avatarUrl || this.data.user.avatar
+          }
+        });
+        return;
+      }
     } catch (err) {
-      // 云端失败回退本地
+      console.error('loadUserProfile failed:', err);
     }
 
+    const localUser = app.globalData.userInfo || wx.getStorageSync('userInfo') || {};
     this.setData({
       user: {
-        name: this.resolveUserName(null, localUser),
-        level: '',
-        avatar: this.resolveAvatar(null, localUser)
+        name: localUser.nickName || '未命名用户',
+        level: 'LV.1 新手指南',
+        avatar: localUser.avatarUrl || this.data.user.avatar
       }
     });
   },
 
-  onAvatarError() {
-    this.setData({ 'user.avatar': DEFAULT_AVATAR });
-  },
-
   onEditProfile() {
+    wx.vibrateShort({ type: 'light' });
     wx.navigateTo({ url: '/pages/profileEdit/profileEdit' });
   },
 
   onMenuItemTap(e) {
-    const index = e.currentTarget.dataset.index;
+    const { index } = e.currentTarget.dataset;
     const item = this.data.menu[index];
-    if (!item) return;
+    wx.vibrateShort({ type: 'light' });
 
-    if (item.key === 'about') {
-      wx.navigateTo({ url: '/pages/about/about' });
-      return;
-    }
+    if (!item) return;
 
     if (item.key === 'garden') {
       wx.navigateTo({ url: '/pages/garden/garden' });
+      return;
+    }
+
+    if (item.key === 'about') {
+      wx.navigateTo({ url: '/pages/about/about' });
       return;
     }
 
@@ -117,6 +102,7 @@ Page({
   },
 
   onOpenDeviceAdmin() {
+    wx.vibrateShort({ type: 'light' });
     wx.navigateTo({ url: '/pages/deviceAdmin/deviceAdmin' });
   },
 
@@ -124,16 +110,32 @@ Page({
     wx.showModal({
       title: '退出登录',
       content: '确认退出登录吗？',
+      cancelText: '取消',
+      confirmText: '确认',
       success: (res) => {
         if (!res.confirm) return;
+
         wx.removeStorageSync('userInfo');
         app.globalData.userInfo = null;
         app.globalData.hasLogin = false;
+
         this.setData({
-          user: { name: '', level: '', avatar: DEFAULT_AVATAR }
+          user: {
+            name: '',
+            level: '',
+            avatar: ''
+          }
         });
-        wx.showToast({ title: '已退出登录', icon: 'success' });
-        setTimeout(() => wx.switchTab({ url: '/pages/index/index' }), 500);
+
+        wx.showToast({
+          title: '已退出登录',
+          icon: 'success',
+          duration: 1000
+        });
+
+        setTimeout(() => {
+          wx.switchTab({ url: '/pages/index/index' });
+        }, 1000);
       }
     });
   }

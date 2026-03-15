@@ -57,7 +57,9 @@ Page({
   checkLoginStatus() {
     app.checkLoginStatus();
     if (!app.globalData.hasLogin) {
-      setTimeout(() => wx.redirectTo({ url: '/pages/auth/auth' }), 80);
+      setTimeout(() => {
+        wx.redirectTo({ url: '/pages/auth/auth' });
+      }, 100);
       return false;
     }
     return true;
@@ -83,10 +85,11 @@ Page({
     const { silent = false } = options;
     this._loading = true;
     if (!silent) wx.showLoading({ title: '加载中...' });
+
     try {
       const result = await deviceService.getDeviceData();
       const rows = result.deviceData || [];
-      const list = rows.map((row) => {
+      const devices = rows.map((row) => {
         const plantType = row.plantType || '其他';
         const status = calcPlantStatus(row.params || {});
         return {
@@ -100,13 +103,16 @@ Page({
           statusType: status.type
         };
       });
-      const needWaterCount = list.filter((x) => x.statusType === 'warn').length;
+
+      const warnCount = devices.filter((item) => item.statusType === 'warn').length;
       this.setData({
-        devices: list,
-        summaryText: needWaterCount > 0 ? `下午好，有 ${needWaterCount} 株植物需要关注` : '下午好，设备运行正常'
+        devices,
+        summaryText: warnCount > 0
+          ? `下午好，有 ${warnCount} 株植物需要关注`
+          : '下午好，设备运行正常'
       });
     } catch (err) {
-      console.error(err);
+      console.error('loadDevices failed:', err);
       this.setData({
         devices: [],
         summaryText: '加载失败，请稍后重试'

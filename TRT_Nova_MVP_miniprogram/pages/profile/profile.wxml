@@ -5,7 +5,7 @@
         <text class="edit-profile-text">编辑资料</text>
       </view>
       <view class="avatar-ring">
-        <image src="{{user.avatar}}" mode="aspectFill" class="avatar-lg" binderror="onAvatarError"></image>
+        <image src="{{user.avatar}}" mode="aspectFill" class="avatar-lg"></image>
       </view>
       <text class="user-name">{{user.name}}</text>
       <text class="user-level">{{user.level}}</text>
@@ -28,17 +28,17 @@
       <view wx:if="{{isDeveloper}}" class="menu-item" bindtap="onOpenDeviceAdmin">
         <view class="menu-left">
           <text class="menu-icon">🛠️</text>
-          <text class="menu-title">设备登记（开发者）</text>
+          <text class="menu-title">开发者平台</text>
         </view>
         <view class="menu-right">
-          <text class="menu-desc">内部入口</text>
+          <text class="menu-desc">设备登记与查看</text>
           <text class="arrow">></text>
         </view>
       </view>
 
       <view class="menu-item logout-item" bindtap="onLogout">
         <view class="menu-left">
-          <text class="menu-icon logout-icon">🔁</text>
+          <text class="menu-icon logout-icon">🚪</text>
           <text class="menu-title logout-title">退出登录</text>
         </view>
         <view class="menu-right">
