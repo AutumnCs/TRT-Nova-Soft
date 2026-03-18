@@ -67,7 +67,7 @@ exports.main = async (event, context) => {
             };
         }
         const deviceDoc = deviceRes.data[0];
-        const externalDeviceId = deviceDoc.externalDeviceId || deviceDoc.physicalCode || '';
+        const externalDeviceId = deviceDoc.externalDeviceId || deviceDoc.deviceName || '';
         if (!externalDeviceId) {
             return {
                 success: false,

@@ -11,6 +11,10 @@
   padding: 20rpx 24rpx;
 }
 
+.provision-card {
+  margin-top: 24rpx;
+}
+
 .row {
   margin-bottom: 24rpx;
 }
@@ -45,4 +49,66 @@
   color: #fff;
   border-radius: 16rpx;
   font-size: 30rpx;
+}
+
+.provision-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16rpx;
+}
+
+.provision-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #111827;
+}
+
+.provision-tip {
+  font-size: 22rpx;
+  color: #166534;
+  background: #e7f8ef;
+  border-radius: 999rpx;
+  padding: 6rpx 14rpx;
+}
+
+.provision-desc {
+  font-size: 25rpx;
+  line-height: 1.7;
+  color: #4b5563;
+}
+
+.provision-url-box {
+  margin-top: 18rpx;
+  border-radius: 16rpx;
+  background: #f5f7f6;
+  padding: 18rpx 20rpx;
+}
+
+.provision-url {
+  font-size: 28rpx;
+  color: #111827;
+}
+
+.provision-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 20rpx;
+}
+
+.ghost-btn,
+.copy-btn {
+  flex: 1;
+  border-radius: 14rpx;
+  font-size: 28rpx;
+}
+
+.ghost-btn {
+  background: #eef2f0;
+  color: #1f2937;
+}
+
+.copy-btn {
+  background: #dff4e5;
+  color: #166534;
 }

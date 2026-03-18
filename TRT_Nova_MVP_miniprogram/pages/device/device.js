@@ -59,7 +59,7 @@ Page({
 
   async bindDevice() {
     if (!this.data.deviceCode) {
-      return wx.showToast({ title: '请输入设备码', icon: 'none' });
+      return wx.showToast({ title: '请输入设备唯一码', icon: 'none' });
     }
 
     wx.showLoading({ title: '绑定中...' });
@@ -71,6 +71,7 @@ Page({
         plantType: this.data.plantOptions[this.data.plantTypeIndex] || ''
       });
       wx.hideLoading();
+
       if (result.success) {
         wx.showToast({ title: '绑定成功' });
         this.setData({
@@ -101,10 +102,12 @@ Page({
       content: '确认解绑该设备吗？',
       success: async (res) => {
         if (!res.confirm) return;
+
         wx.showLoading({ title: '解绑中...' });
         try {
           const result = await deviceService.unbindDevice(logicalKey);
           wx.hideLoading();
+
           if (result.success) {
             wx.showToast({ title: '解绑成功' });
             this.setData({

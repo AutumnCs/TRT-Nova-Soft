@@ -67,28 +67,6 @@ class DeviceService {
     return res?.result || {};
   }
 
-  async listRegistry() {
-    const res = await wx.cloud.callFunction({
-      name: 'registerDevice',
-      data: { action: 'list' }
-    });
-    return res?.result || {};
-  }
-
-  async upsertRegistry(payload = {}) {
-    const res = await wx.cloud.callFunction({
-      name: 'registerDevice',
-      data: {
-        action: 'upsert',
-        physicalCode: payload.physicalCode || '',
-        productId: payload.productId || '',
-        deviceName: payload.deviceName || '',
-        adminKey: payload.adminKey || ''
-      }
-    });
-    return res?.result || {};
-  }
-
   async updateBoundDeviceInfo(payload = {}) {
     const key = typeof payload.logicalKey === 'string' ? payload.logicalKey.trim() : '';
     if (!key) {

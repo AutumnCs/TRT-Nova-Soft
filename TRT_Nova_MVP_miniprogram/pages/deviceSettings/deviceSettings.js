@@ -1,6 +1,7 @@
 const deviceService = require('../../services/modules/DeviceService');
 
 const PLANT_OPTIONS = ['龟背竹', '绿萝', '多肉', '薄荷', '番茄', '其他'];
+const PROVISION_URL = 'http://192.168.4.1';
 
 Page({
   data: {
@@ -9,7 +10,8 @@ Page({
     location: '',
     plantOptions: PLANT_OPTIONS,
     plantTypeIndex: 0,
-    saving: false
+    saving: false,
+    provisionUrl: PROVISION_URL
   },
 
   async onLoad(options) {
@@ -55,6 +57,39 @@ Page({
       itemList: this.data.plantOptions,
       success: (res) => {
         this.setData({ plantTypeIndex: res.tapIndex });
+      }
+    });
+  },
+
+  showProvisionGuide() {
+    wx.showModal({
+      title: '浏览器配网说明',
+      content: [
+        '1. 给设备通电，连接设备发出的 Wi-Fi 热点。',
+        `2. 打开手机浏览器，输入 ${this.data.provisionUrl}。`,
+        '3. 在配网页中选择家里的 Wi-Fi，并输入密码。',
+        '4. 设备联网成功后，再回到小程序继续使用。'
+      ].join('\n'),
+      confirmText: '复制地址',
+      cancelText: '我知道了',
+      success: (res) => {
+        if (res.confirm) {
+          this.copyProvisionUrl();
+        }
+      }
+    });
+  },
+
+  copyProvisionUrl() {
+    wx.setClipboardData({
+      data: this.data.provisionUrl,
+      success: () => {
+        wx.showModal({
+          title: '已复制配网地址',
+          content: '微信小程序不能直接拉起系统浏览器。请退出到浏览器后粘贴打开配网页。',
+          showCancel: false,
+          confirmText: '知道了'
+        });
       }
     });
   },

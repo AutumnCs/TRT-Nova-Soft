@@ -2,7 +2,6 @@
   "pages": [
     "pages/index/index",
     "pages/device/device",
-    "pages/deviceAdmin/deviceAdmin",
     "pages/deviceDetail/deviceDetail",
     "pages/deviceSettings/deviceSettings",
     "pages/garden/garden",

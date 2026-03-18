@@ -8,8 +8,8 @@
 
 当前目标不是做通用平台，而是稳定跑通以下闭环：
 
-1. 开发者登记设备
-2. 用户通过实体设备码绑定设备
+1. 后台维护设备主数据
+2. 用户通过设备唯一码绑定设备
 3. OneNET 推送设备数据
 4. webhook 将数据写入小程序云数据库
 5. 小程序按用户和设备读取并展示数据
@@ -65,9 +65,9 @@ SCF webhook 不负责：
 - `login`
 - `bindDevice`
 - `unbindDevice`
-- `registerDevice`
 - `getDeviceData`
 - `updateBoundDeviceInfo`
+- `sendDeviceCmd`
 
 说明：
 
@@ -87,6 +87,7 @@ SCF webhook 不负责：
 
 - 直接访问 OneNET
 - 保存 OneNET token / aesKey 等敏感信息
+- 配置 OneNET 设备主数据
 
 ## 5. 设备身份设计
 
@@ -100,15 +101,18 @@ SCF webhook 不负责：
 
 ### 5.2 用户侧可见设备标识
 
-用户侧应主要接触：
+用户侧主要接触的是设备唯一码，不直接输入完整 `deviceName`。
 
-- `physicalCode`
+当前约定：
+
+- 用户输入：`设备唯一码`
+- 系统规范化后的 OneNET 设备名：`Nova_设备唯一码`
 
 用户不应直接感知：
 
 - `productId`
-- `deviceName`
-- OneNET 内部标识
+- `logicalKey`
+- OneNET 内部字段
 
 ## 6. 当前数据库集合
 
@@ -134,18 +138,25 @@ SCF webhook 不负责：
 
 ### 6.2 `devices`
 
-开发者登记设备主数据集合。
+设备主数据集合。
 
 典型字段：
 
-- `physicalCode`
 - `productId`
 - `deviceName`
 - `logicalKey`
+- `status`
+- `externalDeviceId`
 
 职责：
 
-- 维护实体设备码与逻辑设备的映射关系
+- 维护 OneNET 设备与业务设备的主数据映射
+- 为绑定、数据展示、设备指令提供设备基础信息
+
+说明：
+
+- `deviceName` 当前使用完整格式：`Nova_设备唯一码`
+- 旧字段 `physicalCode` 已不再是当前主链路必需字段
 
 ### 6.3 `device_acl`
 
@@ -217,7 +228,6 @@ SCF webhook 不负责：
 
 - 用户资料
 - “我的花园”入口
-- 开发者平台入口
 - 通知/设置/关于
 
 ### 7.3 “我的花园”页
@@ -241,6 +251,11 @@ SCF webhook 不负责：
   - `location`
   - `plantType`
 
+绑定输入规则：
+
+- 用户只输入设备唯一码
+- 云函数自动补前缀，按 `Nova_设备唯一码` 匹配后台设备
+
 ### 7.5 设备详情页
 
 职责：
@@ -259,18 +274,6 @@ SCF webhook 不负责：
 - 修改 `plantType`
 
 解绑不在该页处理。
-
-### 7.7 开发者平台页
-
-职责：
-
-- 开发者登记设备
-- 查看已登记设备
-- 建立
-
-`physicalCode <-> productId <-> deviceName <-> logicalKey`
-
-的后台映射关系。
 
 ## 8. 当前环境初始化策略
 
@@ -303,12 +306,13 @@ SCF webhook 不负责：
 
 ### 10.1 绑定逻辑
 
-用户通过 `physicalCode` 绑定设备：
+用户通过设备唯一码绑定设备：
 
-1. 输入实体设备码
-2. 在 `devices` 中查到开发者预登记设备
-3. 建立 `device_acl`
-4. 后续按 ACL 读取该设备数据
+1. 输入设备唯一码
+2. 系统自动补成完整 `deviceName`：`Nova_设备唯一码`
+3. 在 `devices` 中按 `deviceName` 查到对应设备
+4. 建立 `device_acl`
+5. 后续按 ACL 读取该设备数据
 
 ### 10.2 重复绑定逻辑
 
@@ -316,4 +320,3 @@ SCF webhook 不负责：
 
 - 优先复活已有 `inactive` ACL
 - 不再无上限新增重复 ACL
-

@@ -1,3 +1,5 @@
+const DEVICE_NAME_PREFIX = 'Nova_';
+
 function buildLogicalKey(productId, deviceName) {
   const p = typeof productId === 'string' ? productId.trim() : '';
   const d = typeof deviceName === 'string' ? deviceName.trim() : '';
@@ -5,17 +7,56 @@ function buildLogicalKey(productId, deviceName) {
   return `${p}::${d}`;
 }
 
+function trimString(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizeDeviceName(deviceCode) {
+  const raw = trimString(deviceCode);
+  if (!raw) {
+    return {
+      deviceCode: '',
+      fullDeviceName: ''
+    };
+  }
+
+  if (raw.startsWith(DEVICE_NAME_PREFIX)) {
+    return {
+      deviceCode: raw.slice(DEVICE_NAME_PREFIX.length),
+      fullDeviceName: raw
+    };
+  }
+
+  return {
+    deviceCode: raw,
+    fullDeviceName: `${DEVICE_NAME_PREFIX}${raw}`
+  };
+}
+
+function getUserFacingDeviceName(deviceDoc = {}, fallbackCode = '') {
+  const fullName = trimString(deviceDoc.deviceName);
+  if (fullName.startsWith(DEVICE_NAME_PREFIX)) {
+    return fullName.slice(DEVICE_NAME_PREFIX.length) || fallbackCode;
+  }
+  return fullName || fallbackCode;
+}
+
 function normalizeBindInput(event = {}) {
-  const deviceCode = typeof event.deviceCode === 'string' ? event.deviceCode.trim() : '';
-  const alias = typeof event.alias === 'string' ? event.alias.trim() : '';
-  const location = typeof event.location === 'string' ? event.location.trim() : '';
-  const plantType = typeof event.plantType === 'string' ? event.plantType.trim() : '';
-  return { deviceCode, alias, location, plantType };
+  const normalized = normalizeDeviceName(event.deviceCode);
+  const alias = trimString(event.alias);
+  const location = trimString(event.location);
+  const plantType = trimString(event.plantType);
+  return {
+    ...normalized,
+    alias,
+    location,
+    plantType
+  };
 }
 
 function buildRevivePatch({ alias, location, plantType, prev, deviceDoc, cleanDeviceCode, serverDate, removeValue }) {
   return {
-    alias: alias || prev.alias || deviceDoc.deviceName || cleanDeviceCode,
+    alias: alias || prev.alias || getUserFacingDeviceName(deviceDoc, cleanDeviceCode),
     location: location || prev.location || '',
     plantType: plantType || prev.plantType || '',
     role: prev.role || 'owner',
@@ -30,7 +71,7 @@ function buildNewAclDoc({ openid, logicalKey, alias, location, plantType, device
   return {
     openid,
     logicalKey,
-    alias: alias || deviceDoc.deviceName || cleanDeviceCode,
+    alias: alias || getUserFacingDeviceName(deviceDoc, cleanDeviceCode),
     location: location || '',
     plantType: plantType || '',
     role: 'owner',
@@ -45,5 +86,6 @@ module.exports = {
   buildLogicalKey,
   normalizeBindInput,
   buildRevivePatch,
-  buildNewAclDoc
+  buildNewAclDoc,
+  getUserFacingDeviceName
 };

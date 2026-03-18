@@ -19,7 +19,7 @@
           <text class="input-icon">🔽</text>
           <input
             class="modern-input"
-            placeholder="请输入实体设备码"
+            placeholder="请输入设备唯一码"
             placeholder-class="input-placeholder"
             bindinput="onDeviceCodeInput"
             value="{{deviceCode}}"

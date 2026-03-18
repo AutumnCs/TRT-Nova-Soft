@@ -19,6 +19,7 @@
               <text class="online {{item.online ? 'ok' : 'offline'}}">{{item.online ? '在线' : '离线'}}</text>
             </view>
             <text class="meta">{{item.location}} · 智能花盆</text>
+            <text class="plant-type">植物类型：{{item.plantType}}</text>
             <view class="status-chip {{item.statusType}}">
               <text>{{item.statusText}}</text>
             </view>

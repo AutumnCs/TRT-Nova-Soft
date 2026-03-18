@@ -1,21 +1,43 @@
-﻿/**
- * Reference implementation (SCF style): OneNET webhook receiver
- *
- * NOTE:
- * - This file is a reference implementation for deployed SCF webhook code.
- * - It is not executed by mini program runtime directly.
- * - Keep behavior aligned with cloudfunctions/oneNetPushReceiver/index.js.
- */
-
-const cloud = require('wx-server-sdk');
+﻿const cloud = require('wx-server-sdk');
 const crypto = require('crypto');
 
-cloud.init({
-  env: cloud.DYNAMIC_CURRENT_ENV
-});
+// Set default environment variables
+process.env.ONE_NET_TOKEN = process.env.ONE_NET_TOKEN || 'trtnova123';
+process.env.TCB_ENV = process.env.TCB_ENV || 'cloud1-6gfrptied648aa39';
+process.env.TCB_SECRETID = process.env.TCB_SECRETID || 'AKIDtdDconZ9ZmmbEeroY8Wq7FMSSJAqLdlD';
+process.env.TCB_SECRETKEY = process.env.TCB_SECRETKEY || 'PbcR3TkqlV4ThQD0ky2xiIMI3c0BD5l4';
+
+const resolvedEnv =
+  process.env.TCB_ENV ||
+  process.env.WX_CLOUD_ENV ||
+  process.env.CLOUDBASE_ENV ||
+  process.env.SCF_NAMESPACE ||
+  cloud.DYNAMIC_CURRENT_ENV;
+
+const initConfig = {
+  env: resolvedEnv
+};
+
+// In generic SCF runtime, wx-server-sdk may not auto-inject auth key.
+// Use explicit credentials from environment as a fallback.
+if (process.env.TCB_SECRETID && process.env.TCB_SECRETKEY) {
+  initConfig.secretId = process.env.TCB_SECRETID;
+  initConfig.secretKey = process.env.TCB_SECRETKEY;
+  if (process.env.TCB_SESSIONTOKEN) {
+    initConfig.sessionToken = process.env.TCB_SESSIONTOKEN;
+  }
+} else if (process.env.TENCENTCLOUD_SECRETID && process.env.TENCENTCLOUD_SECRETKEY) {
+  initConfig.secretId = process.env.TENCENTCLOUD_SECRETID;
+  initConfig.secretKey = process.env.TENCENTCLOUD_SECRETKEY;
+  if (process.env.TENCENTCLOUD_SESSIONTOKEN) {
+    initConfig.sessionToken = process.env.TENCENTCLOUD_SESSIONTOKEN;
+  }
+}
+
+cloud.init(initConfig);
 
 const db = cloud.database();
-const ONE_NET_TOKEN = process.env.ONE_NET_TOKEN || 'oneNetPush123';
+const ONE_NET_TOKEN = process.env.ONE_NET_TOKEN || '';
 const ONE_NET_AES_KEY = process.env.ONE_NET_AES_KEY || '';
 const DEVICES = 'devices';
 const DEVICE_LATEST = 'device_latest';
@@ -55,6 +77,44 @@ function decryptMsg(cryptedMsg, aesKey) {
   }
 }
 
+function getHttpMethod(event) {
+  return (
+    event?.httpMethod ||
+    event?.requestContext?.http?.method ||
+    event?.requestContext?.httpMethod ||
+    ''
+  ).toUpperCase();
+}
+
+function getQuery(event) {
+  if (event?.queryStringParameters && Object.keys(event.queryStringParameters).length > 0) {
+    return event.queryStringParameters;
+  }
+  if (event?.queryString && typeof event.queryString === 'object') {
+    return event.queryString;
+  }
+  const multi = event?.multiValueQueryStringParameters || {};
+  const q = {};
+  Object.keys(multi).forEach((k) => {
+    const v = multi[k];
+    q[k] = Array.isArray(v) ? v[0] : v;
+  });
+  return q;
+}
+
+function getBody(event) {
+  if (event?.body === undefined || event?.body === null) return {};
+  if (typeof event.body === 'string') {
+    try {
+      return JSON.parse(event.body);
+    } catch (e) {
+      return {};
+    }
+  }
+  if (typeof event.body === 'object') return event.body;
+  return {};
+}
+
 async function processDeviceData(pushData) {
   const pushId = pushData.id || '';
   const pushTime = pushData.time || Date.now();
@@ -81,7 +141,6 @@ async function processDeviceData(pushData) {
 
   const logicalKey = buildLogicalKey(productId, deviceName);
 
-  // Strict pre-registration
   const deviceRes = await db.collection(DEVICES).where({ logicalKey }).limit(1).get();
   if (deviceRes.data.length === 0) {
     return {
@@ -165,14 +224,22 @@ async function processDeviceData(pushData) {
 }
 
 exports.main = async (event) => {
-  const {
-    httpMethod,
-    queryStringParameters = {},
-    body
-  } = event;
+  const method = getHttpMethod(event);
+  const query = getQuery(event);
+  const body = getBody(event);
 
-  if (httpMethod === 'GET') {
-    const { msg, nonce, signature } = queryStringParameters;
+  console.log('method=', method, 'query=', query);
+  console.log('env=', resolvedEnv, 'hasSecret=', !!initConfig.secretId);
+
+  if (!ONE_NET_TOKEN) {
+    return {
+      statusCode: 500,
+      body: 'ONE_NET_TOKEN is required'
+    };
+  }
+
+  if (method === 'GET') {
+    const { msg, nonce, signature } = query;
 
     if (!msg || !nonce || !signature) {
       return {
@@ -194,12 +261,9 @@ exports.main = async (event) => {
     };
   }
 
-  if (httpMethod === 'POST') {
+  if (method === 'POST') {
     try {
-      let pushData = body;
-      if (typeof body === 'string') {
-        pushData = JSON.parse(body);
-      }
+      const pushData = body;
 
       if (!pushData.msg || !pushData.nonce || !pushData.signature) {
         return {
@@ -247,3 +311,7 @@ exports.main = async (event) => {
     body: 'Method Not Allowed'
   };
 };
+
+
+// Handler alias for SCF console misconfig (app.main_handler) 
+exports.main_handler = exports.main;

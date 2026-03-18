@@ -11,6 +11,11 @@ const DEVICE_LATEST = 'device_latest';
 const DEVICE_DATA = 'device_data';
 const DEVICES = 'devices';
 
+function getUserFacingDeviceName(deviceName) {
+    const cleanName = typeof deviceName === 'string' ? deviceName.trim() : '';
+    return cleanName.startsWith('Nova_') ? cleanName.slice(5) : cleanName;
+}
+
 exports.main = async (event, context) => {
     const wxContext = cloud.getWXContext();
     const {
@@ -78,7 +83,7 @@ exports.main = async (event, context) => {
                 logicalKey,
                 productId: latest.productId || device.productId || '',
                 deviceName: latest.deviceName || device.deviceName || '',
-                alias: acl.alias || latest.deviceName || device.deviceName || logicalKey,
+                alias: acl.alias || getUserFacingDeviceName(latest.deviceName || device.deviceName) || logicalKey,
                 location: acl.location || '',
                 plantType: acl.plantType || '',
                 role: acl.role || '',

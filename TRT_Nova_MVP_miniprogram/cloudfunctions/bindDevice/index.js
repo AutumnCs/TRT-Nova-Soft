@@ -17,9 +17,15 @@ const {
 
 exports.main = async (event, context) => {
     const wxContext = cloud.getWXContext();
-    const { deviceCode: cleanDeviceCode, alias, location, plantType } = normalizeBindInput(event);
+    const {
+        deviceCode: cleanDeviceCode,
+        fullDeviceName,
+        alias,
+        location,
+        plantType
+    } = normalizeBindInput(event);
 
-    if (!cleanDeviceCode) {
+    if (!cleanDeviceCode || !fullDeviceName) {
         return {
             success: false,
             msg: 'deviceCode is required'
@@ -31,10 +37,9 @@ exports.main = async (event, context) => {
         const tx = await db.startTransaction();
 
         try {
-            // 1) Resolve pre-registered device by physical device code.
+            // 1) Resolve device by normalized OneNET deviceName.
             const deviceRes = await tx.collection(DEVICES).where({
-                physicalCode: cleanDeviceCode,
-                status: 'active'
+                deviceName: fullDeviceName
             }).limit(1).get();
             if (deviceRes.data.length === 0) {
                 await tx.rollback();
@@ -44,6 +49,13 @@ exports.main = async (event, context) => {
                 };
             }
             const deviceDoc = deviceRes.data[0];
+            if (deviceDoc.status && deviceDoc.status !== 'active') {
+                await tx.rollback();
+                return {
+                    success: false,
+                    msg: 'Device code not found or inactive'
+                };
+            }
             const logicalKey = deviceDoc.logicalKey || buildLogicalKey(deviceDoc.productId, deviceDoc.deviceName);
             if (!logicalKey) {
                 await tx.rollback();
@@ -131,6 +143,7 @@ exports.main = async (event, context) => {
             success: true,
             msg: 'Binding successful',
             deviceCode: cleanDeviceCode,
+            deviceName: fullDeviceName,
             logicalKey: resolvedLogicalKey
         };
     } catch (err) {

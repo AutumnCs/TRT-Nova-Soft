@@ -25,8 +25,7 @@
 ## 当前关键原则
 
 - 小程序前端不直接访问 OneNET
-- 用户只通过实体设备码 `physicalCode` 绑定设备
+- 用户只输入设备唯一码，系统自动补成完整 `deviceName`：`Nova_设备唯一码`
 - `productId + deviceName` 组成逻辑设备键 `logicalKey`
 - `devices` 管设备主数据
 - `device_acl` 管用户绑定关系和用户侧个性化配置
-

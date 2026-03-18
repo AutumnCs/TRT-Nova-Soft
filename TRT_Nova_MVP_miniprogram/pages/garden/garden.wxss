@@ -112,6 +112,12 @@
   color: #6b7280;
 }
 
+.plant-type {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #4b5563;
+}
+
 .status-chip {
   margin-top: 14rpx;
   width: fit-content;

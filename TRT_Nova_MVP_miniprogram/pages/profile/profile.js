@@ -4,7 +4,6 @@ const userProfileService = require('../../services/modules/UserProfileService');
 Page({
   data: {
     statusBarHeight: 20,
-    isDeveloper: true,
     user: {
       name: '园艺大师',
       level: 'LV.1 新手指南',
@@ -99,11 +98,6 @@ Page({
       title: `${item.title}开发中`,
       icon: 'none'
     });
-  },
-
-  onOpenDeviceAdmin() {
-    wx.vibrateShort({ type: 'light' });
-    wx.navigateTo({ url: '/pages/deviceAdmin/deviceAdmin' });
   },
 
   onLogout() {
