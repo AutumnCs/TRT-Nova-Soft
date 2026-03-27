@@ -1,16 +1,23 @@
+const ScfApiAdapter = require('../core/ScfApiAdapter');
+
 /**
  * DeviceService
- * Unifies all device-related cloud function calls.
- * Pages should not call wx.cloud.callFunction directly for device flow.
+ * Device access via SCF API.
+ * Pages should not call transport layers directly.
  */
 class DeviceService {
+  constructor() {
+    this.scfApiAdapter = new ScfApiAdapter();
+  }
+
   async getDeviceData(options = {}) {
     const { withHistory = false, historyLimit = 50, logicalKey = '' } = options;
-    const res = await wx.cloud.callFunction({
-      name: 'getDeviceData',
-      data: { withHistory, historyLimit, logicalKey }
+
+    return this.scfApiAdapter.getDeviceData({
+      withHistory,
+      historyLimit,
+      logicalKey
     });
-    return res?.result || {};
   }
 
   async bindDevice(deviceCode) {
@@ -18,11 +25,8 @@ class DeviceService {
     if (!code) {
       return { success: false, msg: 'deviceCode is required' };
     }
-    const res = await wx.cloud.callFunction({
-      name: 'bindDevice',
-      data: { deviceCode: code }
-    });
-    return res?.result || {};
+
+    return this.scfApiAdapter.bindDevice({ deviceCode: code });
   }
 
   async bindDeviceWithProfile(payload = {}) {
@@ -30,16 +34,15 @@ class DeviceService {
     if (!code) {
       return { success: false, msg: 'deviceCode is required' };
     }
-    const res = await wx.cloud.callFunction({
-      name: 'bindDevice',
-      data: {
-        deviceCode: code,
-        alias: payload.alias || '',
-        location: payload.location || '',
-        plantType: payload.plantType || ''
-      }
-    });
-    return res?.result || {};
+
+    const requestPayload = {
+      deviceCode: code,
+      alias: payload.alias || '',
+      location: payload.location || '',
+      plantType: payload.plantType || ''
+    };
+
+    return this.scfApiAdapter.bindDevice(requestPayload);
   }
 
   async unbindDevice(logicalKey) {
@@ -47,11 +50,8 @@ class DeviceService {
     if (!key) {
       return { success: false, msg: 'logicalKey is required' };
     }
-    const res = await wx.cloud.callFunction({
-      name: 'unbindDevice',
-      data: { logicalKey: key }
-    });
-    return res?.result || {};
+
+    return this.scfApiAdapter.unbindDevice({ logicalKey: key });
   }
 
   async sendDeviceCmd(logicalKey, cmd) {
@@ -60,11 +60,11 @@ class DeviceService {
     if (!key || !command) {
       return { success: false, msg: 'logicalKey and cmd are required' };
     }
-    const res = await wx.cloud.callFunction({
-      name: 'sendDeviceCmd',
-      data: { logicalKey: key, cmd: command }
+
+    return this.scfApiAdapter.sendDeviceCmd({
+      logicalKey: key,
+      cmd: command
     });
-    return res?.result || {};
   }
 
   async updateBoundDeviceInfo(payload = {}) {
@@ -72,16 +72,15 @@ class DeviceService {
     if (!key) {
       return { success: false, msg: 'logicalKey is required' };
     }
-    const res = await wx.cloud.callFunction({
-      name: 'updateBoundDeviceInfo',
-      data: {
-        logicalKey: key,
-        alias: payload.alias || '',
-        location: payload.location || '',
-        plantType: payload.plantType || ''
-      }
-    });
-    return res?.result || {};
+
+    const requestPayload = {
+      logicalKey: key,
+      alias: payload.alias || '',
+      location: payload.location || '',
+      plantType: payload.plantType || ''
+    };
+
+    return this.scfApiAdapter.updateBoundDeviceInfo(requestPayload);
   }
 }
 

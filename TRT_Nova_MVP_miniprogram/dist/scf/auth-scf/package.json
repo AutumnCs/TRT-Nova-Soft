@@ -1,0 +1,10 @@
+{
+  "name": "trt-nova-auth-scf",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "mysql2": "^3.14.0"
+  }
+}

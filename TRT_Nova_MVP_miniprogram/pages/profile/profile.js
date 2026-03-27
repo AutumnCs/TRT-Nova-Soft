@@ -1,5 +1,6 @@
 const app = getApp();
 const userProfileService = require('../../services/modules/UserProfileService');
+const authService = require('../../services/modules/AuthService');
 
 Page({
   data: {
@@ -110,6 +111,7 @@ Page({
         if (!res.confirm) return;
 
         wx.removeStorageSync('userInfo');
+        authService.clearToken();
         app.globalData.userInfo = null;
         app.globalData.hasLogin = false;
 

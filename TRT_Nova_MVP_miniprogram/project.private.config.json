@@ -3,7 +3,7 @@
   "projectname": "TRT_Nova_MVP_miniprogram",
   "setting": {
     "compileHotReLoad": true,
-    "urlCheck": true,
+    "urlCheck": false,
     "coverView": true,
     "lazyloadPlaceholderEnable": false,
     "skylineRenderEnable": false,

@@ -1,16 +1,13 @@
-﻿const db = require('../DB');
+const ScfApiAdapter = require('../core/ScfApiAdapter');
+const authService = require('./AuthService');
 
-const USERS_COLLECTION = 'users';
+const scfApi = new ScfApiAdapter();
 
-/**
- * User profile service.
- * Canonical collection: users
- */
 class UserProfileService {
   async getMyOpenid() {
     try {
-      const openid = await db.getOpenid();
-      if (openid) return openid;
+      const tokenMeta = authService.getTokenMeta();
+      if (tokenMeta?.openid) return tokenMeta.openid;
     } catch (err) {
       // ignore
     }
@@ -25,40 +22,43 @@ class UserProfileService {
     }
   }
 
+  normalizeProfile(profile = {}) {
+    return {
+      openid: profile.openid || '',
+      unionid: profile.unionid || '',
+      nickName: profile.nickName || profile.nick_name || '',
+      avatarUrl: profile.avatarUrl || profile.avatar_url || '',
+      gender: typeof profile.gender === 'number' ? profile.gender : 0,
+      birthday: profile.birthday || '',
+      region: Array.isArray(profile.region)
+        ? profile.region
+        : Array.isArray(profile.region_json)
+          ? profile.region_json
+          : [],
+      experienceLevel: profile.experienceLevel || profile.experience_level || '',
+      signature: profile.signature || '',
+      phone: profile.phone || '',
+      email: profile.email || '',
+      lastLoginAt: profile.lastLoginAt || profile.last_login_at || ''
+    };
+  }
+
   async getMyProfile() {
-    const openid = await this.getMyOpenid();
-    if (!openid) return null;
+    const result = await scfApi.getUserProfile();
+    if (result?.success === false) {
+      throw new Error(result.msg || 'Failed to load profile');
+    }
 
-    const users = await db.query(USERS_COLLECTION, { openid });
-    if (users && users.length > 0) return users[0];
-
-    return null;
+    return result?.profile ? this.normalizeProfile(result.profile) : null;
   }
 
   async saveMyProfile(profile = {}) {
-    const openid = await this.getMyOpenid();
-    if (!openid) throw new Error('Unable to resolve openid');
-
-    const payload = {
-      openid,
-      nickName: profile.nickName || '',
-      avatarUrl: profile.avatarUrl || '',
-      gender: typeof profile.gender === 'number' ? profile.gender : 0,
-      birthday: profile.birthday || '',
-      region: Array.isArray(profile.region) ? profile.region : [],
-      experienceLevel: profile.experienceLevel || '',
-      signature: profile.signature || '',
-      phone: profile.phone || '',
-      email: profile.email || ''
-    };
-
-    const users = await db.query(USERS_COLLECTION, { openid });
-    if (users && users.length > 0 && users[0]._id) {
-      await db.update(USERS_COLLECTION, users[0]._id, payload);
-      return { ...users[0], ...payload };
+    const result = await scfApi.saveUserProfile(profile);
+    if (result?.success === false) {
+      throw new Error(result.msg || 'Failed to save profile');
     }
 
-    return await db.add(USERS_COLLECTION, payload);
+    return result?.profile ? this.normalizeProfile(result.profile) : null;
   }
 }
 

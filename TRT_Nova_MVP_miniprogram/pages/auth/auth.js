@@ -1,5 +1,7 @@
 const app = getApp();
 const userProfileService = require('../../services/modules/UserProfileService');
+const authService = require('../../services/modules/AuthService');
+const { resolveRuntimeConfig } = require('../../services/config/runtime');
 
 const defaultAvatarUrl =
   'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0';
@@ -47,22 +49,14 @@ Page({
     });
 
     try {
-      const loginRes = await wx.cloud.callFunction({
-        name: 'login',
-        data: {}
-      });
-
-      let openid = '';
-      if (loginRes?.result?.openid) {
-        openid = loginRes.result.openid;
-      } else if (loginRes?.result?.userInfo?.openId || loginRes?.result?.userInfo?.openid) {
-        openid = loginRes.result.userInfo.openId || loginRes.result.userInfo.openid;
-      } else if (loginRes?.result?.result?.openid) {
-        openid = loginRes.result.result.openid;
-      } else if (loginRes?.result?.result?.userInfo?.openId || loginRes?.result?.result?.userInfo?.openid) {
-        openid = loginRes.result.result.userInfo.openId || loginRes.result.result.userInfo.openid;
+      const config = resolveRuntimeConfig();
+      const baseUrl = (config.authScfBaseUrl || config.scfApiBaseUrl || '').trim();
+      if (!baseUrl) {
+        throw new Error('authScfBaseUrl is not configured');
       }
 
+      const tokenMeta = await authService.loginWithScf();
+      const openid = tokenMeta?.openid || '';
       if (!openid) {
         throw new Error('无法获取 openid');
       }
@@ -71,6 +65,7 @@ Page({
         avatarUrl: this.data.userInfo.avatarUrl,
         nickName: this.data.userInfo.nickName,
         openId: openid,
+        openid,
         loginTime: Date.now()
       };
 
@@ -78,7 +73,6 @@ Page({
       app.globalData.userInfo = userInfo;
       app.globalData.hasLogin = true;
 
-      // Sync login avatar/nickname to canonical users collection.
       try {
         await userProfileService.saveMyProfile({
           nickName: userInfo.nickName,

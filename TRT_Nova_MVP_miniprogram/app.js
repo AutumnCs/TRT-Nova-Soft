@@ -1,4 +1,6 @@
 const { envList = [] } = require('./envList');
+const { DEFAULT_RUNTIME_CONFIG } = require('./services/config/runtime');
+const authService = require('./services/modules/AuthService');
 
 const EXPLICIT_ENV = envList[0] || '';
 
@@ -6,7 +8,12 @@ App({
   globalData: {
     env: EXPLICIT_ENV,
     userInfo: null,
-    hasLogin: false
+    hasLogin: false,
+    runtimeConfig: {
+      ...DEFAULT_RUNTIME_CONFIG,
+      scfApiBaseUrl: 'https://1395114552-hkiu70pwre.ap-shanghai.tencentscf.com',
+      authScfBaseUrl: 'https://1395114552-0etc4ugmnu.ap-shanghai.tencentscf.com'
+    }
   },
 
   onLaunch() {
@@ -27,7 +34,10 @@ App({
   checkLoginStatus() {
     const userInfo = wx.getStorageSync('userInfo');
     const openId = userInfo && (userInfo.openId || userInfo.openid);
-    if (openId) {
+    const tokenMeta = authService.getTokenMeta();
+    const tokenOpenid = tokenMeta?.openid || '';
+
+    if (openId || tokenOpenid) {
       this.globalData.userInfo = userInfo;
       this.globalData.hasLogin = true;
       return;
