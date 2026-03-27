@@ -1,0 +1,11 @@
+{
+    "name": "send-device-cmd",
+    "version": "1.0.0",
+    "description": "Send Command to OneNET",
+    "main": "index.js",
+    "dependencies": {
+        "wx-server-sdk": "latest",
+        "axios": "^1.6.0"
+    },
+    "author": ""
+}

@@ -1,0 +1,35 @@
+<view class="page">
+  <view class="card">
+    <view class="row">
+      <text class="label">设备名称</text>
+      <input class="input" placeholder="请输入设备别名" value="{{alias}}" bindinput="onAliasInput" />
+    </view>
+
+    <view class="row" bindtap="choosePlantType">
+      <text class="label">植物类型</text>
+      <view class="picker">{{plantOptions[plantTypeIndex]}}</view>
+    </view>
+
+    <view class="row">
+      <text class="label">种植地点</text>
+      <input class="input" placeholder="请输入种植地点" value="{{location}}" bindinput="onLocationInput" />
+    </view>
+  </view>
+
+  <view class="card provision-card">
+    <view class="provision-head">
+      <text class="provision-title">设备配网</text>
+      <text class="provision-tip">浏览器配网</text>
+    </view>
+    <text class="provision-desc">如果设备还没有连上家里的 Wi-Fi，请先连接设备热点，再到浏览器打开配网页。</text>
+    <view class="provision-url-box">
+      <text class="provision-url">{{provisionUrl}}</text>
+    </view>
+    <view class="provision-actions">
+      <button class="ghost-btn" bindtap="showProvisionGuide">查看说明</button>
+      <button class="copy-btn" bindtap="copyProvisionUrl">复制地址</button>
+    </view>
+  </view>
+
+  <button class="save-btn" bindtap="onSave" loading="{{saving}}">保存设置</button>
+</view>
