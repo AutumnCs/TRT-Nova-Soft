@@ -267,11 +267,11 @@ async function healthCheck(db) {
 
 async function getActiveAclRows(db, openid, logicalKey = '') {
   const sql = logicalKey
-    ? `SELECT id, openid, logical_key, role, status, alias, location, plant_type
+    ? `SELECT id, openid, logical_key, role, status, alias, location, plant_type, plant_library_id
        FROM device_acl
        WHERE openid = ? AND status = 'active' AND logical_key = ?
        ORDER BY updated_at DESC`
-    : `SELECT id, openid, logical_key, role, status, alias, location, plant_type
+    : `SELECT id, openid, logical_key, role, status, alias, location, plant_type, plant_library_id
        FROM device_acl
        WHERE openid = ? AND status = 'active'
        ORDER BY updated_at DESC`;
@@ -279,6 +279,98 @@ async function getActiveAclRows(db, openid, logicalKey = '') {
   const params = logicalKey ? [openid, logicalKey] : [openid];
   const [rows] = await db.execute(sql, params);
   return rows;
+}
+
+// 将 plant_library 行映射为前端格式
+function mapPlantRow(row, favoriteIdSet) {
+  const tags = parseJsonField(row.tags_json, []);
+  return {
+    id: row.id,
+    name: row.name || '',
+    family: row.family || '',
+    scientificName: row.scientific_name || '',
+    feature: row.feature || '',
+    featureText: row.feature_text || '',
+    category: row.category || '',
+    image: row.image_url || '',
+    tags: Array.isArray(tags) ? tags : [],
+    description: row.description || '',
+    care: {
+      light: row.care_light || '',
+      water: row.care_water || ''
+    },
+    isFavorite: favoriteIdSet ? favoriteIdSet.has(row.id) : false
+  };
+}
+
+// GET /plant/library — 返回全部植物，并标记当前用户的收藏
+async function getPlantLibrary(db, openid) {
+  const [plantRows] = await db.execute(
+    `SELECT id, name, family, scientific_name, feature, feature_text, category,
+            image_url, tags_json, description, care_light, care_water, sort_order
+     FROM plant_library
+     WHERE is_active = 1
+     ORDER BY sort_order ASC, id ASC`
+  );
+
+  const plantIds = plantRows.map(r => r.id);
+  let favoriteIdSet = new Set();
+
+  if (plantIds.length > 0) {
+    const placeholders = plantIds.map(() => '?').join(', ');
+    const [favRows] = await db.execute(
+      `SELECT plant_id FROM user_plant_favorites WHERE openid = ? AND plant_id IN (${placeholders})`,
+      [openid, ...plantIds]
+    );
+    favoriteIdSet = new Set(favRows.map(r => r.plant_id));
+  }
+
+  return {
+    success: true,
+    plants: plantRows.map(r => mapPlantRow(r, favoriteIdSet))
+  };
+}
+
+// POST /plant/favorite/toggle — 切换收藏状态，返回新的 isFavorite 值
+async function togglePlantFavorite(db, openid, input) {
+  const plantId = Number(input?.plantId);
+  if (!plantId) {
+    return { success: false, msg: 'plantId is required' };
+  }
+
+  // 检查植物存在
+  const [plantRows] = await db.execute(
+    `SELECT id FROM plant_library WHERE id = ? AND is_active = 1 LIMIT 1`,
+    [plantId]
+  );
+  if (!plantRows.length) {
+    return { success: false, msg: 'Plant not found' };
+  }
+
+  // 检查是否已收藏
+  const [favRows] = await db.execute(
+    `SELECT id FROM user_plant_favorites WHERE openid = ? AND plant_id = ? LIMIT 1`,
+    [openid, plantId]
+  );
+
+  let isFavorite;
+  if (favRows.length > 0) {
+    // 已收藏 → 取消
+    await db.execute(
+      `DELETE FROM user_plant_favorites WHERE openid = ? AND plant_id = ?`,
+      [openid, plantId]
+    );
+    isFavorite = false;
+  } else {
+    // 未收藏 → 收藏
+    await db.execute(
+      `INSERT INTO user_plant_favorites (openid, plant_id) VALUES (?, ?)`,
+      [openid, plantId]
+    );
+    isFavorite = true;
+  }
+
+  return { success: true, plantId, isFavorite };
 }
 
 async function queryLatestByUser(db, openid, input) {
@@ -319,11 +411,38 @@ async function queryLatestByUser(db, openid, input) {
     return acc;
   }, {});
 
+  // 批量拉取已关联植物的信息
+  const plantLibraryIds = aclRows
+    .map(a => a.plant_library_id)
+    .filter(Boolean);
+
+  let plantMap = {};
+  if (plantLibraryIds.length > 0) {
+    const placeholders2 = plantLibraryIds.map(() => '?').join(', ');
+    const [plantRows] = await db.execute(
+      `SELECT id, name, family, scientific_name, feature, feature_text, category,
+              image_url, tags_json, description, care_light, care_water
+       FROM plant_library WHERE id IN (${placeholders2}) AND is_active = 1`,
+      plantLibraryIds
+    );
+    // 收藏状态
+    const [favRows] = await db.execute(
+      `SELECT plant_id FROM user_plant_favorites WHERE openid = ? AND plant_id IN (${placeholders2})`,
+      [openid, ...plantLibraryIds]
+    );
+    const favSet = new Set(favRows.map(r => r.plant_id));
+    plantMap = plantRows.reduce((acc, r) => {
+      acc[r.id] = mapPlantRow(r, favSet);
+      return acc;
+    }, {});
+  }
+
   const deviceData = logicalKeys.map((key) => {
     const acl = aclRows.find((item) => item.logical_key === key) || {};
     const latest = latestMap[key] || {};
     const device = deviceMap[key] || {};
     const mergedDeviceName = latest.device_name || device.device_name || '';
+    const plantLibraryId = acl.plant_library_id || null;
 
     return {
       logicalKey: key,
@@ -332,6 +451,8 @@ async function queryLatestByUser(db, openid, input) {
       alias: acl.alias || (mergedDeviceName.startsWith('Nova_') ? mergedDeviceName.slice(5) : mergedDeviceName) || key,
       location: acl.location || '',
       plantType: acl.plant_type || '',
+      plantLibraryId,
+      plant: plantLibraryId ? (plantMap[plantLibraryId] || null) : null,
       role: acl.role || '',
       aclStatus: acl.status || '',
       params: parseJsonField(latest.params_json, {}),
@@ -419,6 +540,7 @@ async function bindDeviceForUser(db, openid, input) {
   const alias = typeof input?.alias === 'string' ? input.alias.trim() : '';
   const location = typeof input?.location === 'string' ? input.location.trim() : '';
   const plantType = typeof input?.plantType === 'string' ? input.plantType.trim() : '';
+  const plantLibraryId = input?.plantLibraryId ? Number(input.plantLibraryId) : null;
 
   const conn = await db.getConnection();
   try {
@@ -486,6 +608,7 @@ async function bindDeviceForUser(db, openid, input) {
              alias = ?,
              location = ?,
              plant_type = ?,
+             plant_library_id = ?,
              unbind_time = NULL,
              bind_time = ?,
              updated_at = ?
@@ -494,6 +617,7 @@ async function bindDeviceForUser(db, openid, input) {
           alias || null,
           location || null,
           plantType || null,
+          plantLibraryId || null,
           now,
           now,
           inactiveRows[0].id
@@ -502,14 +626,15 @@ async function bindDeviceForUser(db, openid, input) {
     } else {
       await conn.execute(
         `INSERT INTO device_acl
-          (openid, logical_key, role, status, alias, location, plant_type, bind_time, created_at, updated_at)
-         VALUES (?, ?, 'owner', 'active', ?, ?, ?, ?, ?, ?)`,
+          (openid, logical_key, role, status, alias, location, plant_type, plant_library_id, bind_time, created_at, updated_at)
+         VALUES (?, ?, 'owner', 'active', ?, ?, ?, ?, ?, ?, ?)`,
         [
           openid,
           logicalKey,
           alias || null,
           location || null,
           plantType || null,
+          plantLibraryId || null,
           now,
           now,
           now
@@ -586,6 +711,7 @@ async function updateDeviceProfileForUser(db, openid, input) {
   const alias = typeof input?.alias === 'string' ? input.alias.trim() : '';
   const location = typeof input?.location === 'string' ? input.location.trim() : '';
   const plantType = typeof input?.plantType === 'string' ? input.plantType.trim() : '';
+  const plantLibraryId = input?.plantLibraryId ? Number(input.plantLibraryId) : null;
 
   const [rows] = await db.execute(
     `SELECT id
@@ -604,12 +730,13 @@ async function updateDeviceProfileForUser(db, openid, input) {
 
   await db.execute(
     `UPDATE device_acl
-     SET alias = ?, location = ?, plant_type = ?, updated_at = ?
+     SET alias = ?, location = ?, plant_type = ?, plant_library_id = ?, updated_at = ?
      WHERE id = ?`,
     [
       alias || null,
       location || null,
       plantType || null,
+      plantLibraryId || null,
       toSqlDateTime(Date.now()),
       rows[0].id
     ]
@@ -741,6 +868,14 @@ exports.main = async (event) => {
 
     if (method === 'POST' && path.endsWith('/user/profile')) {
       return json(200, await saveUserProfile(db, openid, body));
+    }
+
+    if (method === 'GET' && path.endsWith('/plant/library')) {
+      return json(200, await getPlantLibrary(db, openid));
+    }
+
+    if (method === 'POST' && path.endsWith('/plant/favorite/toggle')) {
+      return json(200, await togglePlantFavorite(db, openid, body));
     }
 
     return json(404, {

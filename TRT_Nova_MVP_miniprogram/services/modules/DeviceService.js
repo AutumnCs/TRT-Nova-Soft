@@ -77,7 +77,8 @@ class DeviceService {
       logicalKey: key,
       alias: payload.alias || '',
       location: payload.location || '',
-      plantType: payload.plantType || ''
+      plantType: payload.plantType || '',
+      plantLibraryId: payload.plantLibraryId || null
     };
 
     return this.scfApiAdapter.updateBoundDeviceInfo(requestPayload);

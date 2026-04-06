@@ -13,26 +13,43 @@ page {
   background-color: #F0F9F4;
 }
 
-/* 简化scroll-view样式，避免冲突 */
+/* scroll-view 内容区 */
 .scroll-content {
   flex: 1;
   box-sizing: border-box;
 }
 
-/* 搜索区样式 */
+/* 详情页 scroll-view */
+.detail-scroll {
+  flex: 1;
+  height: 0; /* 让 flex:1 生效 */
+  box-sizing: border-box;
+}
+
+/* 搜索区样式（固定在顶部，横向布局） */
 .search-section {
-  padding: 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 10px;
+  background-color: #F0F9F4;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 .search-box {
+  flex: 1;
   background-color: white;
-  height: 48px;
-  border-radius: 24px;
+  height: 44px;
+  border-radius: 22px;
   display: flex;
   align-items: center;
-  padding: 0 16px;
+  padding: 0 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  margin-bottom: 16px;
+  min-width: 0;
 }
 
 .search-icon {
@@ -52,16 +69,11 @@ page {
   color: #9CA3AF;
 }
 
-/* 分类标签 */
+/* 分类标签（右侧，只有两个，不需要横向滚动） */
 .category-tags {
   display: flex;
-  gap: 12px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-}
-
-.category-tags::-webkit-scrollbar {
-  display: none;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .tag {
@@ -265,6 +277,8 @@ page {
 /* 详情页样式 */
 .detail-page {
   background-color: white;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 详情页导航 */
@@ -275,9 +289,23 @@ page {
   padding: 16px 20px;
   background-color: white;
   border-bottom: 1px solid #F3F4F6;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  flex-shrink: 0;
+}
+
+/* 导航右侧按钮组 */
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 详情页收藏按钮 */
+.fav-btn {
+  transition: all 0.2s;
+}
+
+.fav-btn.fav-active {
+  background-color: rgba(239, 68, 68, 0.1);
 }
 
 .nav-btn {
@@ -430,10 +458,9 @@ page {
   line-height: 1.4;
 }
 
-/* 底部操作按钮 */
+/* 底部操作按钮（加底部内边距，防止被导航栏遮挡） */
 .action-section {
-  padding: 20px;
-  margin-bottom: 20px;
+  padding: 20px 20px 100px;
 }
 
 .add-reminder-btn {

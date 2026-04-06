@@ -1,6 +1,7 @@
 const deviceService = require('../../services/modules/DeviceService');
+const plantService = require('../../services/modules/PlantService');
+const { PLANTS } = require('../../data/plants');
 
-const PLANT_OPTIONS = ['龟背竹', '绿萝', '多肉', '薄荷', '番茄', '其他'];
 const PROVISION_URL = 'http://192.168.4.1';
 
 Page({
@@ -8,10 +9,14 @@ Page({
     logicalKey: '',
     alias: '',
     location: '',
-    plantOptions: PLANT_OPTIONS,
-    plantTypeIndex: 0,
+    selectedPlant: null,
     saving: false,
-    provisionUrl: PROVISION_URL
+    provisionUrl: PROVISION_URL,
+    // 植物选择弹窗
+    showPlantPicker: false,
+    pickerKeyword: '',
+    pickerPlants: [],
+    pickerLoading: false
   },
 
   async onLoad(options) {
@@ -30,11 +35,17 @@ Page({
       });
       const row = (result.deviceData || [])[0];
       if (!row) return;
-      const index = Math.max(0, this.data.plantOptions.indexOf(row.plantType || '其他'));
+
+      // 优先用服务端返回的完整 plant 对象，其次按名称匹配兜底
+      let selectedPlant = row.plant || null;
+      if (!selectedPlant && row.plantType) {
+        selectedPlant = PLANTS.find(p => p.name === row.plantType) || null;
+      }
+
       this.setData({
         alias: row.alias || '',
         location: row.location || '',
-        plantTypeIndex: index
+        selectedPlant
       });
     } catch (err) {
       console.error(err);
@@ -52,14 +63,56 @@ Page({
     this.setData({ location: e.detail.value });
   },
 
-  choosePlantType() {
-    wx.showActionSheet({
-      itemList: this.data.plantOptions,
-      success: (res) => {
-        this.setData({ plantTypeIndex: res.tapIndex });
-      }
-    });
+  // 打开植物选择弹窗
+  async openPlantPicker() {
+    this.setData({ showPlantPicker: true, pickerKeyword: '', pickerLoading: true });
+    try {
+      const res = await plantService.getPlants();
+      this.setData({ pickerPlants: res?.plants || [], pickerLoading: false });
+    } catch (err) {
+      console.error(err);
+      // 兜底本地数据
+      const sorted = [
+        ...PLANTS.filter(p => p.isFavorite),
+        ...PLANTS.filter(p => !p.isFavorite)
+      ];
+      this.setData({ pickerPlants: sorted, pickerLoading: false });
+    }
   },
+
+  closePlantPicker() {
+    this.setData({ showPlantPicker: false, pickerKeyword: '' });
+  },
+
+  // 弹窗内搜索
+  onPickerSearch(e) {
+    const keyword = e.detail.value.toLowerCase().trim();
+    this.setData({ pickerKeyword: keyword });
+    // 直接在已加载的列表上过滤，无需再请求
+    const allPlants = this._cachedPickerPlants || this.data.pickerPlants;
+    if (!this._cachedPickerPlants) {
+      this._cachedPickerPlants = this.data.pickerPlants;
+    }
+    const filtered = keyword
+      ? allPlants.filter(p =>
+          p.name.toLowerCase().includes(keyword) ||
+          p.family.toLowerCase().includes(keyword)
+        )
+      : allPlants;
+    this.setData({ pickerPlants: filtered });
+  },
+
+  // 选择植物
+  selectPlant(e) {
+    const id = Number(e.currentTarget.dataset.id);
+    const plant = (this._cachedPickerPlants || this.data.pickerPlants).find(p => p.id === id);
+    if (!plant) return;
+    wx.vibrateShort({ type: 'light' });
+    this._cachedPickerPlants = null;
+    this.setData({ selectedPlant: plant, showPlantPicker: false, pickerKeyword: '' });
+  },
+
+  stopPropagation() {},
 
   showProvisionGuide() {
     wx.showModal({
@@ -73,9 +126,7 @@ Page({
       confirmText: '复制地址',
       cancelText: '我知道了',
       success: (res) => {
-        if (res.confirm) {
-          this.copyProvisionUrl();
-        }
+        if (res.confirm) this.copyProvisionUrl();
       }
     });
   },
@@ -103,11 +154,13 @@ Page({
     this.setData({ saving: true });
     wx.showLoading({ title: '保存中...' });
     try {
+      const plant = this.data.selectedPlant;
       const result = await deviceService.updateBoundDeviceInfo({
         logicalKey: this.data.logicalKey,
         alias: this.data.alias.trim(),
         location: this.data.location.trim(),
-        plantType: this.data.plantOptions[this.data.plantTypeIndex] || '其他'
+        plantType: plant ? plant.name : '',
+        plantLibraryId: plant ? plant.id : null
       });
       if (result.success) {
         wx.showToast({ title: '已保存', icon: 'success' });

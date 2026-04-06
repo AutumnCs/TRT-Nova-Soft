@@ -112,3 +112,232 @@
   background: #dff4e5;
   color: #166534;
 }
+
+/* 植物选择器 - 当前选中展示 */
+.picker {
+  min-height: 88rpx;
+  height: auto;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.picker-plant-row,
+.picker-empty-row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12rpx 20rpx;
+  box-sizing: border-box;
+}
+
+.picker-thumb {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 12rpx;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.picker-plant-info {
+  flex: 1;
+  margin-left: 16rpx;
+}
+
+.picker-plant-name {
+  font-size: 28rpx;
+  color: #111827;
+  font-weight: 500;
+  display: block;
+}
+
+.picker-plant-family {
+  font-size: 22rpx;
+  color: #9ca3af;
+  display: block;
+  margin-top: 4rpx;
+}
+
+.picker-arrow {
+  font-size: 36rpx;
+  color: #9ca3af;
+  margin-left: 12rpx;
+  flex-shrink: 0;
+}
+
+.picker-placeholder-text {
+  flex: 1;
+  font-size: 28rpx;
+  color: #9ca3af;
+}
+
+/* 弹窗遮罩 */
+.picker-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+}
+
+/* 弹窗面板 */
+.picker-panel {
+  width: 100%;
+  background: #fff;
+  border-radius: 32rpx 32rpx 0 0;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx 32rpx 16rpx;
+  flex-shrink: 0;
+}
+
+.picker-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.picker-close {
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 50%;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  color: #6b7280;
+  line-height: 1;
+}
+
+/* 弹窗搜索框 */
+.picker-search-box {
+  display: flex;
+  align-items: center;
+  margin: 0 24rpx 16rpx;
+  background: #f5f6f8;
+  border-radius: 20rpx;
+  padding: 0 20rpx;
+  height: 76rpx;
+  flex-shrink: 0;
+}
+
+.picker-search-icon {
+  font-size: 28rpx;
+  margin-right: 12rpx;
+  color: #9ca3af;
+}
+
+.picker-search-input {
+  flex: 1;
+  font-size: 26rpx;
+  color: #111827;
+  height: 100%;
+}
+
+.picker-placeholder {
+  color: #9ca3af;
+}
+
+/* 植物列表 */
+.picker-list {
+  flex: 1;
+  overflow: hidden;
+}
+
+.picker-empty {
+  text-align: center;
+  padding: 60rpx 0;
+  color: #9ca3af;
+  font-size: 26rpx;
+}
+
+.picker-item {
+  display: flex;
+  align-items: center;
+  padding: 20rpx 28rpx;
+  border-bottom: 1rpx solid #f3f4f6;
+  transition: background 0.15s;
+}
+
+.picker-item-selected {
+  background: #f0fdf4;
+}
+
+.picker-item-img {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 16rpx;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.picker-item-info {
+  flex: 1;
+  margin-left: 20rpx;
+}
+
+.picker-item-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 6rpx;
+}
+
+.picker-item-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #111827;
+}
+
+.picker-fav-badge {
+  font-size: 20rpx;
+  color: #ef4444;
+}
+
+.picker-item-family {
+  font-size: 22rpx;
+  color: #9ca3af;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.picker-item-tag {
+  display: inline-block;
+  padding: 4rpx 14rpx;
+  border-radius: 20rpx;
+  font-size: 20rpx;
+  font-weight: 600;
+}
+
+.picker-tag-partial-shade { background: #d1fae5; color: #059669; }
+.picker-tag-avoid-sun    { background: #fef3c7; color: #d97706; }
+.picker-tag-sun-loving   { background: #fee2e2; color: #dc2626; }
+.picker-tag-shade-tolerant { background: #dbeafe; color: #2563eb; }
+
+.picker-check {
+  width: 44rpx;
+  height: 44rpx;
+  border-radius: 50%;
+  background: #16a34a;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-left: 12rpx;
+}

@@ -113,6 +113,14 @@ class ScfApiAdapter {
   async saveUserProfile(payload = {}) {
     return this.request('/user/profile', 'POST', payload);
   }
+
+  async getPlantLibrary() {
+    return this.request('/plant/library', 'GET');
+  }
+
+  async togglePlantFavorite(plantId) {
+    return this.request('/plant/favorite/toggle', 'POST', { plantId });
+  }
 }
 
 module.exports = ScfApiAdapter;

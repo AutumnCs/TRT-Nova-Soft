@@ -5,9 +5,22 @@
       <input class="input" placeholder="请输入设备别名" value="{{alias}}" bindinput="onAliasInput" />
     </view>
 
-    <view class="row" bindtap="choosePlantType">
-      <text class="label">植物类型</text>
-      <view class="picker">{{plantOptions[plantTypeIndex]}}</view>
+    <view class="row" bindtap="openPlantPicker">
+      <text class="label">关联植物</text>
+      <view class="picker {{selectedPlant ? '' : 'placeholder'}}">
+        <view wx:if="{{selectedPlant}}" class="picker-plant-row">
+          <image class="picker-thumb" src="{{selectedPlant.image}}" mode="aspectFill"/>
+          <view class="picker-plant-info">
+            <text class="picker-plant-name">{{selectedPlant.name}}</text>
+            <text class="picker-plant-family">{{selectedPlant.family}}</text>
+          </view>
+          <text class="picker-arrow">›</text>
+        </view>
+        <view wx:else class="picker-empty-row">
+          <text class="picker-placeholder-text">请选择植物</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </view>
     </view>
 
     <view class="row">
@@ -32,4 +45,48 @@
   </view>
 
   <button class="save-btn" bindtap="onSave" loading="{{saving}}">保存设置</button>
+</view>
+
+<!-- 植物选择弹窗 -->
+<view wx:if="{{showPlantPicker}}" class="picker-mask" catchtap="closePlantPicker">
+  <view class="picker-panel" catchtap="stopPropagation">
+
+    <!-- 弹窗顶部 -->
+    <view class="picker-header">
+      <text class="picker-title">选择植物</text>
+      <view class="picker-close" bindtap="closePlantPicker">×</view>
+    </view>
+
+    <!-- 搜索框 -->
+    <view class="picker-search-box">
+      <text class="picker-search-icon">🔍</text>
+      <input class="picker-search-input" placeholder="搜索植物名称或科属" placeholder-class="picker-placeholder" bindinput="onPickerSearch" value="{{pickerKeyword}}" focus="{{showPlantPicker}}"/>
+    </view>
+
+    <!-- 植物列表 -->
+    <scroll-view scroll-y="true" class="picker-list" show-scrollbar="{{false}}">
+      <view wx:if="{{pickerPlants.length === 0}}" class="picker-empty">
+        <text>未找到相关植物</text>
+      </view>
+      <view
+        wx:for="{{pickerPlants}}"
+        wx:key="id"
+        class="picker-item {{selectedPlant && selectedPlant.id === item.id ? 'picker-item-selected' : ''}}"
+        bindtap="selectPlant"
+        data-id="{{item.id}}"
+      >
+        <image class="picker-item-img" src="{{item.image}}" mode="aspectFill"/>
+        <view class="picker-item-info">
+          <view class="picker-item-name-row">
+            <text class="picker-item-name">{{item.name}}</text>
+            <text wx:if="{{item.isFavorite}}" class="picker-fav-badge">❤️ 已收藏</text>
+          </view>
+          <text class="picker-item-family">{{item.family}}</text>
+          <view class="picker-item-tag picker-tag-{{item.feature}}">{{item.featureText}}</view>
+        </view>
+        <view wx:if="{{selectedPlant && selectedPlant.id === item.id}}" class="picker-check">✓</view>
+      </view>
+    </scroll-view>
+
+  </view>
 </view>
