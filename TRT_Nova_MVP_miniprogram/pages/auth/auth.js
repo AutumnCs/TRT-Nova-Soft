@@ -13,12 +13,21 @@ Page({
       avatarUrl: defaultAvatarUrl,
       nickName: ''
     },
-    hasUserInfo: false
+    defaultAvatarUrl,
+    canChooseAvatar: false,
+    hasUserInfo: false,
+    loadingLogin: false
   },
 
   onLoad() {
     const sysInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: sysInfo.statusBarHeight || 20 });
+    const canChooseAvatar = typeof wx.canIUse === 'function'
+      ? wx.canIUse('button.open-type.chooseAvatar')
+      : false;
+    this.setData({
+      statusBarHeight: sysInfo.statusBarHeight || 20,
+      canChooseAvatar
+    });
   },
 
   onChooseAvatar(e) {
@@ -26,6 +35,33 @@ Page({
       'userInfo.avatarUrl': e.detail.avatarUrl
     });
     this.checkAndLogin();
+  },
+
+  async onPickAvatar() {
+    try {
+      const result = await new Promise((resolve, reject) => {
+        wx.chooseImage({
+          count: 1,
+          sizeType: ['compressed'],
+          sourceType: ['album', 'camera'],
+          success: resolve,
+          fail: reject
+        });
+      });
+
+      const filePath = result?.tempFilePaths?.[0] || '';
+      if (!filePath) return;
+
+      this.setData({
+        'userInfo.avatarUrl': filePath
+      });
+      this.checkAndLogin();
+    } catch (err) {
+      wx.showToast({
+        title: '请选择头像',
+        icon: 'none'
+      });
+    }
   },
 
   onInputChange(e) {
@@ -43,10 +79,8 @@ Page({
   },
 
   async loginSuccess() {
-    wx.showLoading({
-      title: '登录中',
-      mask: true
-    });
+    if (!this.data.hasUserInfo) return;
+    this.setData({ loadingLogin: true });
 
     try {
       const config = resolveRuntimeConfig();
@@ -82,20 +116,12 @@ Page({
         // Keep login successful even if profile sync fails.
       }
 
-      wx.hideLoading();
-      wx.showToast({
-        title: '登录成功',
-        icon: 'success',
-        duration: 800
-      });
-
+      // 转场动画停留一下再跳转，视觉更流畅
       setTimeout(() => {
-        wx.switchTab({
-          url: '/pages/index/index'
-        });
-      }, 850);
+        wx.switchTab({ url: '/pages/index/index' });
+      }, 800);
     } catch (error) {
-      wx.hideLoading();
+      this.setData({ loadingLogin: false });
       wx.showToast({
         title: '登录失败，请重试',
         icon: 'none',

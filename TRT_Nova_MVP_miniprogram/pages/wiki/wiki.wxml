@@ -45,15 +45,15 @@
       </block>
     </view>
 
-    <!-- 底部模块 -->
+    <!-- 底部模块：动态日历 -->
     <view class="calendar-section">
       <view class="calendar-header">
-        <text class="calendar-title">2026 年 01 月植物日历</text>
+        <text class="calendar-title">{{calendarYear}} 年 {{calendarMonth}} 月植物日历</text>
         <view class="calendar-icon">
-          <text>10</text>
+          <text>{{calendarDay}}</text>
         </view>
       </view>
-      <text class="calendar-desc">今日推荐：春羽・适合室内半阴环</text>
+      <text class="calendar-desc">今日推荐：{{calendarTodayPlant}}・点击卡片查看养护详情</text>
     </view>
 
   </scroll-view>

@@ -1,5 +1,6 @@
 const app = getApp()
 const plantService = require('../../services/modules/PlantService')
+const todoService = require('../../services/modules/TodoService')
 const { PLANTS } = require('../../data/plants')
 
 Page({
@@ -12,13 +13,40 @@ Page({
     showDetail: false,
     currentPlant: null,
     showMore: false,
-    loading: false
+    loading: false,
+    // 动态日历
+    calendarYear: '',
+    calendarMonth: '',
+    calendarDay: '',
+    calendarTodayPlant: ''
   },
 
   onLoad: function (_options) {
     const sysInfo = wx.getSystemInfoSync();
     this.setData({ statusBarHeight: sysInfo.statusBarHeight });
+    this._initCalendar();
     this.checkLoginStatus();
+  },
+
+  // 初始化动态日历（年月 + 今日推荐植物）
+  _initCalendar: function() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const day = now.getDate();
+    // 按月份轮换推荐植物（简单规则，后续可从服务端下发）
+    const monthlyPlants = [
+      '水仙', '梅花', '郁金香', '牡丹', '月季',
+      '栀子花', '荷花', '茉莉', '桂花', '菊花',
+      '山茶花', '腊梅'
+    ];
+    const todayPlant = monthlyPlants[(month - 1) % monthlyPlants.length];
+    this.setData({
+      calendarYear: year,
+      calendarMonth: month,
+      calendarDay: day,
+      calendarTodayPlant: todayPlant
+    });
   },
 
   onShow: function() {
@@ -153,8 +181,23 @@ Page({
     this.setData({ showMore: !this.data.showMore });
   },
 
-  addReminder: function() {
+  addReminder: async function() {
+    const plant = this.data.currentPlant;
+    if (!plant) return;
     wx.vibrateShort({ type: 'medium' });
-    wx.showToast({ title: '已加入养护提醒', icon: 'success' });
+
+    // 构建养护提醒文字
+    const waterTip = plant.care && plant.care.water ? `浇水：${plant.care.water}` : '定期浇水';
+    const lightTip = plant.care && plant.care.light ? `光照：${plant.care.light}` : '注意光照';
+    const content = `【${plant.name}】${waterTip}；${lightTip}`;
+
+    try {
+      // 写入全局养护提醒，logicalKey='global'，首页会一并加载展示
+      await todoService.addTodo(content, 'global');
+      wx.showToast({ title: '已加入养护提醒', icon: 'success' });
+    } catch (err) {
+      console.error('[wiki] addReminder error:', err);
+      wx.showToast({ title: '添加失败，请重试', icon: 'none' });
+    }
   }
 })

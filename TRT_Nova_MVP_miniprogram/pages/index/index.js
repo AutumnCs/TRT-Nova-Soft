@@ -1,9 +1,25 @@
-﻿const app = getApp();
+const app = getApp();
 const todoService = require('../../services/modules/TodoService');
 const deviceService = require('../../services/modules/DeviceService');
+const weatherService = require('../../services/modules/WeatherService');
+const alertService = require('../../services/modules/AlertService');
+const { computeBubbles, computeMoodEmoji } = require('../../services/config/thresholds');
 
-const DEFAULT_PLANT_IMAGE =
-  '/images/plant-default.jpg';
+const DEFAULT_PLANT_IMAGE = '/images/plant-default.jpg';
+
+// 植物类型 → 设备图标 emoji 映射
+const PLANT_ICON_MAP = {
+  '龟背竹': '🌿',
+  '绿萝': '🍃',
+  '多肉': '🌵',
+  '薄荷': '🌱',
+  '番茄': '🍅',
+  '玫瑰': '🌹',
+  '向日葵': '🌻',
+  '兰花': '🌸',
+  '仙人掌': '🌵',
+  '其他': '🪴'
+};
 
 const DEFAULT_SENSORS = {
   temp: { value: '--', unit: '℃', label: '环境温度' },
@@ -40,7 +56,15 @@ Page({
       name: '通风风扇',
       icon: '🌬️',
       isOn: false
-    }
+    },
+    // 天气
+    weather: { icon: '🌤️', temp: '--', desc: '' },
+    // 气泡（由阈值计算，最多 2 条）
+    bubbles: [],
+    // 心情 emoji
+    moodEmoji: '😊',
+    // 是否有设备
+    hasDevices: false
   },
 
   onLoad() {
@@ -56,6 +80,7 @@ Page({
     }
     if (!this.checkLoginStatus()) return;
     this.loadDevices();
+    this.loadWeather(); // fire-and-forget，不 await，不阻塞主流程
     this.startAutoRefresh();
   },
 
@@ -76,10 +101,25 @@ Page({
     return true;
   },
 
+  // ── 天气 ────────────────────────────────────────────────
+
+  async loadWeather() {
+    try {
+      const weather = await weatherService.getCurrentWeather();
+      this.setData({ weather });
+    } catch (err) {
+      // WeatherService 内部已有兜底，这里静默处理
+      console.warn('[index] loadWeather error:', err);
+    }
+  },
+
+  // ── 植物图片 ────────────────────────────────────────────
+
   async resolveAnySource(source) {
     const src = (source || '').trim();
     if (!src) return '';
     if (src.startsWith('cloud://')) {
+      if (!wx.cloud || typeof wx.cloud.getTempFileURL !== 'function') return '';
       try {
         const res = await wx.cloud.getTempFileURL({ fileList: [src] });
         const first = res?.fileList?.[0];
@@ -102,7 +142,6 @@ Page({
       this.setData({ plantImage: primaryUrl });
       return;
     }
-
     const fallbackUrl = await this.resolveAnySource(DEFAULT_PLANT_IMAGE);
     this.setData({ plantImage: fallbackUrl || DEFAULT_PLANT_IMAGE });
   },
@@ -112,20 +151,31 @@ Page({
     this.setData({ plantImage: fallbackUrl || DEFAULT_PLANT_IMAGE });
   },
 
+  // ── Todos ───────────────────────────────────────────────
+
   async loadTodos(logicalKey = '') {
     try {
-      if (!logicalKey) {
-        this.setData({ todos: [] });
-        return;
+      let todos = [];
+      if (logicalKey) {
+        // 合并设备专属 todo + wiki 全局养护提醒
+        const [deviceTodos, globalTodos] = await Promise.all([
+          todoService.getTodos(logicalKey),
+          todoService.getGlobalTodos()
+        ]);
+        todos = [...deviceTodos, ...globalTodos];
+      } else {
+        // 无设备时只展示全局养护提醒
+        todos = await todoService.getGlobalTodos();
       }
-      const todos = await todoService.getTodos(logicalKey);
       todos.sort((a, b) => (a.urgent === b.urgent ? 0 : a.urgent ? -1 : 1));
       this.setData({ todos });
     } catch (error) {
-      console.error(error);
+      console.error('[index] loadTodos error:', error);
       this.setData({ todos: [] });
     }
   },
+
+  // ── 设备加载 ────────────────────────────────────────────
 
   async loadDevices() {
     if (this._loadingDevices) return;
@@ -141,7 +191,8 @@ Page({
         logicalKey: item.logicalKey || '',
         name: item.alias || item.deviceName || '未命名设备',
         status: item.hasLatest ? '在线' : '离线',
-        icon: '📕',
+        // 根据植物类型选择图标
+        icon: PLANT_ICON_MAP[item.plantType] || PLANT_ICON_MAP['其他'],
         active: false
       }));
 
@@ -159,7 +210,8 @@ Page({
       this.setData({
         devices: mapped,
         selectedLogicalKey,
-        plantName: selectedAlias
+        plantName: selectedAlias,
+        hasDevices: mapped.length > 0
       });
 
       if (!raw.length) {
@@ -168,17 +220,28 @@ Page({
       } else {
         this.applyLatestParams(raw, selectedLogicalKey);
         await this.loadTodos(selectedLogicalKey);
+        // 检查设备离线告警
+        const offlineAlerts = alertService.checkDeviceOffline(raw);
+        if (offlineAlerts.length) {
+          alertService.showOfflineAlerts(offlineAlerts);
+        }
       }
     } catch (error) {
-      console.error(error);
+      console.error('[index] loadDevices error:', error);
       this._deviceRows = [];
       this.setData({
         devices: [],
         selectedLogicalKey: '',
         plantName: '未选择设备',
-        todos: []
+        todos: [],
+        hasDevices: false
       });
       this.resetTelemetryDefaults();
+      wx.showToast({
+        title: '设备加载失败，请检查网络',
+        icon: 'none',
+        duration: 2500
+      });
     } finally {
       this._loadingDevices = false;
     }
@@ -186,10 +249,11 @@ Page({
 
   startAutoRefresh() {
     this.stopAutoRefresh();
+    // 5s 轮询，给上一次请求足够的完成时间（网络超时 8s）
     this._refreshTimer = setInterval(() => {
       if (!this.checkLoginStatus()) return;
       this.loadDevices();
-    }, 3000);
+    }, 5000);
   },
 
   stopAutoRefresh() {
@@ -201,7 +265,9 @@ Page({
   resetTelemetryDefaults() {
     this.setData({
       sensors: { ...DEFAULT_SENSORS },
-      extraMetrics: { ...DEFAULT_EXTRA }
+      extraMetrics: { ...DEFAULT_EXTRA },
+      bubbles: [],
+      moodEmoji: '😊'
     });
   },
 
@@ -245,6 +311,25 @@ Page({
     if (selected && selected.updatedAt) patch['extraMetrics.updatedAt'] = this.formatTs(selected.updatedAt);
 
     if (Object.keys(patch).length > 0) this.setData(patch);
+
+    // 计算气泡 & 心情（用 patch 后的最新 sensors 值）
+    const latestSensors = {
+      temp: { value: patch['sensors.temp.value'] ?? this.data.sensors.temp.value },
+      humidity: { value: patch['sensors.humidity.value'] ?? this.data.sensors.humidity.value },
+      light: { value: patch['sensors.light.value'] ?? this.data.sensors.light.value },
+      soil: { value: patch['sensors.soil.value'] ?? this.data.sensors.soil.value }
+    };
+    const bubbles = computeBubbles(latestSensors);
+    const moodEmoji = computeMoodEmoji(latestSensors);
+    this.setData({ bubbles, moodEmoji });
+
+    // 同步 dialogue 文字
+    const warningBubble = bubbles.find(b => b.type === 'warning');
+    if (warningBubble) {
+      this.setData({ dialogue: `主人，${warningBubble.text}，请及时处理哦 ${warningBubble.icon}` });
+    } else {
+      this.setData({ dialogue: '主人，我现在状态很好，继续保持哦 😊' });
+    }
   },
 
   formatTs(ts) {
@@ -255,6 +340,8 @@ Page({
     const p = (x) => String(x).padStart(2, '0');
     return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
   },
+
+  // ── 待办 ────────────────────────────────────────────────
 
   addTodo() {
     if (!this.data.selectedLogicalKey) {
@@ -273,7 +360,7 @@ Page({
           wx.showToast({ title: '添加成功', icon: 'success' });
         } catch (error) {
           console.error(error);
-          wx.showToast({ title: '添加失败', icon: 'none' });
+          wx.showToast({ title: '添加失败，请重试', icon: 'none' });
         }
       }
     });
@@ -284,12 +371,12 @@ Page({
     const todo = this.data.todos.find((t) => t._id === id || t.id === id);
     if (!todo) return;
     try {
-      if (todo._id) await todoService.completeTodo(todo._id, this.data.selectedLogicalKey);
+      if (todo._id) await todoService.completeTodo(todo._id, todo.logicalKey || this.data.selectedLogicalKey);
       await this.loadTodos(this.data.selectedLogicalKey);
       wx.showToast({ title: '任务已完成', icon: 'success' });
     } catch (error) {
       console.error(error);
-      wx.showToast({ title: '操作失败', icon: 'none' });
+      wx.showToast({ title: '操作失败，请重试', icon: 'none' });
     }
   },
 
@@ -298,14 +385,16 @@ Page({
     const todo = this.data.todos.find((t) => t._id === id || t.id === id);
     if (!todo || !todo._id) return;
     try {
-      await todoService.toggleUrgency(todo, this.data.selectedLogicalKey);
+      await todoService.toggleUrgency(todo, todo.logicalKey || this.data.selectedLogicalKey);
       await this.loadTodos(this.data.selectedLogicalKey);
       wx.showToast({ title: '已更新优先级', icon: 'none' });
     } catch (error) {
       console.error(error);
-      wx.showToast({ title: '操作失败', icon: 'none' });
+      wx.showToast({ title: '操作失败，请重试', icon: 'none' });
     }
   },
+
+  // ── 设备切换 ────────────────────────────────────────────
 
   switchDevice(e) {
     const index = e.currentTarget.dataset.index;
@@ -322,7 +411,14 @@ Page({
   },
 
   toggleFan() {
+    // TODO: 接通真实下行指令后，在此处调用 deviceService.sendDeviceCmd
     this.setData({ 'fan.isOn': !this.data.fan.isOn });
+  },
+
+  async onPullDownRefresh() {
+    await this.loadDevices();
+    wx.stopPullDownRefresh();
+    // 天气缓存 30 分钟，下拉刷新仅刷设备数据，不重新定位
   },
 
   goToDeviceManagement() {

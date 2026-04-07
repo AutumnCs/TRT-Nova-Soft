@@ -104,6 +104,25 @@ CREATE TABLE device_history_agg (
   KEY idx_history_agg_lookup (logical_key, granularity, param_key, bucket_start_ms)
 );
 
+CREATE TABLE todos (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  openid VARCHAR(128) NOT NULL,
+  logical_key VARCHAR(191) NOT NULL DEFAULT '',
+  title VARCHAR(255) NOT NULL,
+  urgent TINYINT NOT NULL DEFAULT 0,
+  icon VARCHAR(32) DEFAULT NULL,
+  icon_color VARCHAR(64) DEFAULT NULL,
+  icon_bg VARCHAR(64) DEFAULT NULL,
+  description_text VARCHAR(255) DEFAULT NULL,
+  status VARCHAR(32) NOT NULL DEFAULT 'pending',
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  KEY idx_todos_openid_logical_key (openid, logical_key),
+  KEY idx_todos_openid_status (openid, status),
+  KEY idx_todos_created_at (created_at)
+);
+
 -- ============================================================
 -- 植物库相关表 (2026-04)
 -- ============================================================

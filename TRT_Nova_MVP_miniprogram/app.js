@@ -11,6 +11,7 @@ App({
     hasLogin: false,
     runtimeConfig: {
       ...DEFAULT_RUNTIME_CONFIG,
+      useCloudBase: false,
       scfApiBaseUrl: 'https://1395114552-hkiu70pwre.ap-shanghai.tencentscf.com',
       authScfBaseUrl: 'https://1395114552-0etc4ugmnu.ap-shanghai.tencentscf.com'
     }
@@ -18,6 +19,11 @@ App({
 
   onLaunch() {
     this.checkLoginStatus();
+
+    const runtimeConfig = this.globalData.runtimeConfig || {};
+    if (!runtimeConfig.useCloudBase) {
+      return;
+    }
 
     if (!wx.cloud) {
       console.error('请使用基础库 2.2.3 及以上版本以启用云能力');
@@ -35,7 +41,7 @@ App({
     const userInfo = wx.getStorageSync('userInfo');
     const openId = userInfo && (userInfo.openId || userInfo.openid);
     const tokenMeta = authService.getTokenMeta();
-    const tokenOpenid = tokenMeta?.openid || '';
+    const tokenOpenid = (tokenMeta && tokenMeta.openid) || '';
 
     if (openId || tokenOpenid) {
       this.globalData.userInfo = userInfo;

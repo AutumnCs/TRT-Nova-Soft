@@ -1,6 +1,9 @@
 <view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
   <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}">
     <view class="user-header">
+      <!-- 装饰圆（用 view 代替 ::before/::after，兼容性更好） -->
+      <view class="header-blob blob-tl"></view>
+      <view class="header-blob blob-br"></view>
       <view class="edit-profile-btn" bindtap="onEditProfile">
         <text class="edit-profile-text">编辑资料</text>
       </view>

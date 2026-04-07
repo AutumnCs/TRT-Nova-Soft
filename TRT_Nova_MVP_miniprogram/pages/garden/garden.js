@@ -10,10 +10,19 @@ const PLANT_IMAGE_MAP = {
   其他: 'https://images.unsplash.com/photo-1512428813834-c702c7702b78?q=80&w=600&auto=format&fit=crop'
 };
 
+function getGreeting() {
+  const h = new Date().getHours();
+  if (h < 6)  return '夜深了';
+  if (h < 11) return '早上好';
+  if (h < 14) return '中午好';
+  if (h < 18) return '下午好';
+  if (h < 22) return '晚上好';
+  return '夜深了';
+}
+
 function toNumberParam(params, key) {
-  const node = params?.[key];
-  if (!node) return null;
-  const value = Number(node.value);
+  if (!params || !params[key]) return null;
+  const value = Number(params[key].value);
   return Number.isFinite(value) ? value : null;
 }
 
@@ -32,7 +41,8 @@ Page({
   data: {
     statusBarHeight: 20,
     devices: [],
-    summaryText: '正在同步设备状态...'
+    summaryText: '正在同步设备状态...',
+    hasDevices: true
   },
 
   onLoad() {
@@ -71,7 +81,7 @@ Page({
 
   startAutoRefresh() {
     this.stopAutoRefresh();
-    this._refreshTimer = setInterval(() => this.loadDevices({ silent: true }), 3000);
+    this._refreshTimer = setInterval(() => this.loadDevices({ silent: true }), 5000);
   },
 
   stopAutoRefresh() {
@@ -97,30 +107,39 @@ Page({
           alias: row.alias || row.deviceName || '未命名设备',
           location: row.location || '未设置地点',
           plantType,
-          image: PLANT_IMAGE_MAP[plantType] || PLANT_IMAGE_MAP.其他,
+          image: PLANT_IMAGE_MAP[plantType] || PLANT_IMAGE_MAP['其他'],
           online: !!row.hasLatest,
           statusText: status.text,
           statusType: status.type
         };
       });
 
+      const greeting = getGreeting();
       const warnCount = devices.filter((item) => item.statusType === 'warn').length;
       this.setData({
         devices,
-        summaryText: warnCount > 0
-          ? `下午好，有 ${warnCount} 株植物需要关注`
-          : '下午好，设备运行正常'
+        hasDevices: devices.length > 0,
+        summaryText: devices.length === 0
+          ? `${greeting}，还没有绑定设备`
+          : warnCount > 0
+            ? `${greeting}，有 ${warnCount} 株植物需要关注 🌿`
+            : `${greeting}，所有设备运行正常 ✓`
       });
     } catch (err) {
       console.error('loadDevices failed:', err);
       this.setData({
         devices: [],
-        summaryText: '加载失败，请稍后重试'
+        hasDevices: false,
+        summaryText: '加载失败，请下拉刷新重试'
       });
     } finally {
       if (!silent) wx.hideLoading();
       this._loading = false;
     }
+  },
+
+  onPullDownRefresh() {
+    this.loadDevices().then(() => wx.stopPullDownRefresh());
   },
 
   openDeviceDetail(e) {

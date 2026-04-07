@@ -10,10 +10,12 @@
         <view class="row-left">
           <text class="label">头像</text>
         </view>
-        <view class="row-right">
-          <button class="avatar-uploader" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-            <image class="avatar" src="{{form.avatarUrl}}" mode="aspectFill"></image>
-          </button>
+        <view class="row-right flex-1">
+          <view class="avatar-wrap">
+            <button class="avatar-uploader" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
+              <image class="avatar" src="{{form.avatarUrl}}" mode="aspectFill"></image>
+            </button>
+          </view>
         </view>
       </view>
 

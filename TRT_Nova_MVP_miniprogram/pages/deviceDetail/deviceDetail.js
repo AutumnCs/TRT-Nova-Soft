@@ -234,19 +234,22 @@ Page({
       const ctx = wx.createCanvasContext('trendCanvas', this);
       const w = this._canvasW;
       const h = this._canvasH;
-      const left = 16;
+      // 留边距用于显示坐标轴标签
+      const left = 42;
       const right = w - 12;
-      const top = 12;
-      const bottom = h - 20;
+      const top = 14;
+      const bottom = h - 28;
 
       ctx.clearRect(0, 0, w, h);
       ctx.setFillStyle('#f8fafc');
       ctx.fillRect(0, 0, w, h);
 
+      // ── 网格线 ────────────────────────────────────────
+      const gridCount = 4;
       ctx.setStrokeStyle('#e5e7eb');
       ctx.setLineWidth(1);
-      for (let i = 0; i < 4; i += 1) {
-        const y = top + ((bottom - top) / 3) * i;
+      for (let i = 0; i <= gridCount; i++) {
+        const y = top + ((bottom - top) / gridCount) * i;
         ctx.beginPath();
         ctx.moveTo(left, y);
         ctx.lineTo(right, y);
@@ -254,30 +257,97 @@ Page({
       }
 
       if (!points.length) {
+        // 无数据提示
+        ctx.setFillStyle('#9CA3AF');
+        ctx.setFontSize(13);
+        ctx.setTextAlign('center');
+        ctx.fillText('暂无历史数据', w / 2, h / 2);
         ctx.draw();
         return;
       }
 
       const minTs = points[0].ts;
       const maxTs = points[points.length - 1].ts;
-      const minVal = Math.min(...points.map((p) => p.value));
-      const maxVal = Math.max(...points.map((p) => p.value));
+      const rawMin = Math.min(...points.map((p) => p.value));
+      const rawMax = Math.max(...points.map((p) => p.value));
       const tsSpan = Math.max(1, maxTs - minTs);
+      // 上下各留 10% padding 使曲线不贴边
+      const valPadding = (rawMax - rawMin) * 0.1 || 1;
+      const minVal = rawMin - valPadding;
+      const maxVal = rawMax + valPadding;
       const valSpan = Math.max(0.001, maxVal - minVal);
 
       const mapX = (ts) => left + ((ts - minTs) / tsSpan) * (right - left);
       const mapY = (v) => bottom - ((v - minVal) / valSpan) * (bottom - top);
 
-      ctx.setStrokeStyle('#7da4d8');
-      ctx.setLineWidth(2);
+      // ── Y 轴标签 ───────────────────────────────────────
+      ctx.setFillStyle('#9CA3AF');
+      ctx.setFontSize(10);
+      ctx.setTextAlign('right');
+      for (let i = 0; i <= gridCount; i++) {
+        const v = minVal + (valSpan / gridCount) * (gridCount - i);
+        const y = top + ((bottom - top) / gridCount) * i;
+        ctx.fillText(v.toFixed(1), left - 4, y + 4);
+      }
+
+      // ── X 轴时间标签（首/中/末）────────────────────────
+      ctx.setTextAlign('center');
+      const labelTs = [
+        points[0].ts,
+        points[Math.floor(points.length / 2)].ts,
+        points[points.length - 1].ts
+      ];
+      labelTs.forEach((ts) => {
+        const d = new Date(ts);
+        const label = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        ctx.fillText(label, mapX(ts), bottom + 18);
+      });
+
+      // ── 渐变填充区域 ────────────────────────────────────
+      // 用折线路径闭合后填充（Canvas 2D gradient 在旧版本有兼容问题，用半透明纯色替代）
+      ctx.setFillStyle('rgba(125, 164, 216, 0.15)');
+      ctx.beginPath();
+      ctx.moveTo(mapX(points[0].ts), bottom);
+      points.forEach((p) => {
+        ctx.lineTo(mapX(p.ts), mapY(p.value));
+      });
+      ctx.lineTo(mapX(points[points.length - 1].ts), bottom);
+      ctx.closePath();
+      ctx.fill();
+
+      // ── 平滑曲线（贝塞尔）─────────────────────────────
+      ctx.setStrokeStyle('#4A90D9');
+      ctx.setLineWidth(2.5);
+      ctx.setLineCap('round');
+      ctx.setLineJoin('round');
       ctx.beginPath();
       points.forEach((p, idx) => {
         const x = mapX(p.ts);
         const y = mapY(p.value);
-        if (idx === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
+        if (idx === 0) {
+          ctx.moveTo(x, y);
+          return;
+        }
+        const prev = points[idx - 1];
+        const px = mapX(prev.ts);
+        const py = mapY(prev.value);
+        // 简单三次贝塞尔：控制点取前后点 x 方向 1/3 处
+        const cp1x = px + (x - px) / 3;
+        const cp2x = x - (x - px) / 3;
+        ctx.bezierCurveTo(cp1x, py, cp2x, y, x, y);
       });
       ctx.stroke();
+
+      // ── 数据点圆点（点数较少时才画，避免密集） ──────────
+      if (points.length <= 30) {
+        ctx.setFillStyle('#4A90D9');
+        points.forEach((p) => {
+          ctx.beginPath();
+          ctx.arc(mapX(p.ts), mapY(p.value), 3, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
       ctx.draw();
     });
   },

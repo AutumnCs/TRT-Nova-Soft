@@ -485,6 +485,9 @@ page {
   overflow-x: auto;
   white-space: nowrap;
   padding: 0 4px;
+  /* 滑动整齐停在每张卡片 */
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
 }
 
 .device-list::-webkit-scrollbar {
@@ -511,6 +514,7 @@ page {
   transition: all 0.2s ease;
   border: 2px solid transparent;
   white-space: normal;
+  scroll-snap-align: start;
 }
 
 .device-item-icon {
@@ -895,5 +899,96 @@ page {
 
 .extra-value.uid {
   font-family: Consolas, Monaco, monospace;
+}
+
+/* 在线状态文字颜色 */
+.status-text-online {
+  color: var(--color-online, #10B981);
+  font-weight: 600;
+}
+
+/* 无设备引导卡片 */
+/* ── 传感器格子彩色系统 ─────────────────────── */
+.grid-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.grid-icon-emoji {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* 温度 — 暖橙 */
+.grid-temp { border-top: 3px solid #F97316; }
+.grid-icon-temp { background: #FFF7ED; }
+
+/* 光照 — 暖黄 */
+.grid-light { border-top: 3px solid #F59E0B; }
+.grid-icon-light { background: #FFFBEB; }
+
+/* 湿度 — 天蓝 */
+.grid-humidity { border-top: 3px solid #38BDF8; }
+.grid-icon-humidity { background: #F0F9FF; }
+
+/* 土壤 — 品牌绿 */
+.grid-soil { border-top: 3px solid #10B981; }
+.grid-icon-soil { background: #ECFDF5; }
+
+/* ── 气泡状态颜色 ────────────────────────────── */
+.bubble-warning {
+  background: rgba(255, 247, 237, 0.97) !important;
+  border: 1px solid #FED7AA;
+}
+.bubble-warning .bubble-text { color: #C2410C !important; }
+
+.bubble-success {
+  background: rgba(240, 253, 244, 0.97) !important;
+  border: 1px solid #BBF7D0;
+}
+.bubble-success .bubble-text { color: #15803D !important; }
+
+/* ── 无设备引导卡片 ──────────────────────────── */
+.no-device-guide {
+  background: white;
+  border-radius: 16px;
+  padding: 32px 20px;
+  text-align: center;
+  border: 2px dashed #D1D5DB;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  transition: background-color 0.2s;
+}
+
+.no-device-guide:active {
+  background-color: #F9FAFB;
+}
+
+.no-device-icon {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.no-device-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #374151;
+  display: block;
+}
+
+.no-device-desc {
+  font-size: 13px;
+  color: #9CA3AF;
+  display: block;
+  line-height: 1.5;
 }
 

@@ -1,234 +1,363 @@
 /* pages/auth/auth.wxss */
 page {
-  background-color: #F3F4F6;
-  font-family: -apple-system, sans-serif;
-  color: #1F2937;
-}
-
-.container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  background: linear-gradient(160deg, #064e3b 0%, #065f46 40%, #10b981 100%);
   min-height: 100vh;
-  box-sizing: border-box;
-  padding-bottom: 0;
-  background-color: #F3F4F6;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
 }
 
-.header {
-  padding: 40px 24px 20px;
-  text-align: center;
-}
-
-.title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1F2937;
-  display: block;
-  margin-bottom: 8px;
-}
-
-.subtitle {
-  font-size: 14px;
-  color: #6B7280;
-  display: block;
-}
-
-.scroll-content {
-  flex: 1;
-  padding: 0 24px;
-  box-sizing: border-box;
-}
-
-.auth-section {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.auth-card {
-  background-color: white;
-  padding: 24px;
-  border-radius: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+/* ── 整体容器 ─────────────────────────────────── */
+.page {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
-}
-
-.auth-card-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #374151;
-  margin-bottom: 8px;
-}
-
-/* Avatar Section */
-.avatar-section {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.avatar-uploader {
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
+  box-sizing: border-box;
+  padding-bottom: 48px;
+  position: relative;
   overflow: hidden;
-  background-color: #F3F4F6;
-  border: 2px dashed #D1D5DB;
-  padding: 0;
-  margin: 0;
+}
+
+/* ── 自定义转场遮罩 ───────────────────────────── */
+.transition-mask {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(160deg, #064e3b 0%, #10b981 100%);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 9999;
+  animation: maskIn 0.25s ease forwards;
 }
 
-.avatar-uploader::after {
-  content: "";
+@keyframes maskIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
-.avatar {
+.transition-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.transition-logo {
+  font-size: 64px;
+  animation: logoPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%       { transform: scale(1.12); opacity: 0.85; }
+}
+
+.transition-spinner {
+  width: 44px;
+  height: 44px;
+  position: relative;
+}
+
+.spinner-ring {
+  width: 44px;
+  height: 44px;
+  border: 3px solid rgba(255,255,255,0.25);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.transition-text {
+  color: rgba(255,255,255,0.9);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+/* ── 顶部装饰 Hero ────────────────────────────── */
+.hero {
   width: 100%;
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px 40px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* 背景装饰圆 */
+.hero-blob {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+}
+
+.blob1 {
+  width: 200px;
+  height: 200px;
+  top: -60px;
+  right: -50px;
+}
+
+.blob2 {
+  width: 120px;
+  height: 120px;
+  bottom: 0;
+  left: -30px;
+}
+
+.hero-icon-wrap {
+  width: 80px;
+  height: 80px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(8px);
+  margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+
+.hero-icon {
+  font-size: 40px;
+}
+
+.hero-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: 0.04em;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.hero-subtitle {
+  font-size: 14px;
+  color: rgba(255,255,255,0.7);
+  display: block;
+  letter-spacing: 0.06em;
+}
+
+/* ── 登录卡片 ─────────────────────────────────── */
+.card {
+  width: calc(100% - 32px);
+  max-width: 400px;
+  background: rgba(255,255,255,0.97);
+  border-radius: 28px;
+  padding: 32px 24px 28px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  /* 去掉 opacity 动画，避免动画不触发时卡片不可见 */
+  animation: cardSlide 0.4s ease-out forwards;
+  box-sizing: border-box;
+}
+
+@keyframes cardSlide {
+  from { transform: translateY(32px); }
+  to   { transform: translateY(0); }
+}
+
+.card-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #9CA3AF;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  align-self: flex-start;
+}
+
+/* ── 头像区 ───────────────────────────────────── */
+.avatar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/*
+ * 关键：button 的 width/height 必须和图片相同，
+ * line-height: 0 消除 button 内部的行高撑高，
+ * font-size: 0 消除可能的字符间距影响。
+ */
+.avatar-btn {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  line-height: 0;
+  font-size: 0;
+  background: #F3F4F6;
+  border: 3px solid #10B981;
+  box-shadow: 0 0 0 4px rgba(16,185,129,0.15);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: content-box;
+}
+
+.avatar-btn::after {
+  border: none;
+}
+
+/* 头像图片：明确指定宽高为正方形，消除椭圆问题 */
+.avatar-img {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  display: block;
+  flex-shrink: 0;
+}
+
+.avatar-placeholder {
+  opacity: 0.4;
+}
+
+/* 相机编辑角标 */
+.avatar-edit-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 26px;
+  height: 26px;
+  background: #10B981;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+.avatar-edit-icon {
+  font-size: 12px;
+  line-height: 1;
 }
 
 .avatar-hint {
   font-size: 12px;
+  color: #9CA3AF;
+}
+
+/* ── 昵称输入 ─────────────────────────────────── */
+.input-wrap {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  background: #F9FAFB;
+  border: 1.5px solid #E5E7EB;
+  border-radius: 14px;
+  padding: 0 14px;
+  height: 50px;
+  box-sizing: border-box;
+  gap: 10px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-wrap:focus-within {
+  border-color: #10B981;
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+  background: white;
+}
+
+.input-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.name-input {
+  flex: 1;
+  font-size: 15px;
+  color: #1F2937;
+  height: 50px;
+  line-height: 50px;
+  background: transparent;
+  border: none;
+  outline: none;
+}
+
+.input-placeholder {
+  color: #D1D5DB;
+  font-size: 14px;
+}
+
+/* ── 状态提示行 ───────────────────────────────── */
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-start;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background-color 0.3s;
+}
+
+.dot-pending { background: #D1D5DB; }
+.dot-ok      { background: #10B981; }
+
+.status-text {
+  font-size: 13px;
   color: #6B7280;
 }
 
-/* Nickname Section */
-.nickname-section {
+/* ── 登录按钮 ─────────────────────────────────── */
+.login-btn {
   width: 100%;
-}
-
-.nickname-input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #E5E7EB;
-  border-radius: 12px;
-  font-size: 15px;
-  line-height: 1.5;
-  min-height: 44px;
-  box-sizing: border-box;
-  transition: all 0.2s;
-}
-
-.nickname-input:focus {
-  outline: none;
-  border-color: #10B981;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-}
-
-/* Old Way Button */
-.old-way-btn-container {
-  width: 100%;
-}
-
-.old-way-btn {
-  width: 100%;
-  background-color: #10B981;
-  color: white;
-  padding: 14px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
+  height: 52px;
+  border-radius: 16px;
+  background: #E5E7EB;
   border: none;
   margin: 0;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  transition: all 0.2s;
+  transition: background-color 0.3s, box-shadow 0.3s, transform 0.15s;
 }
 
-.old-way-btn::after {
-  border-radius: 12px;
-}
-
-.old-way-btn:active {
-  background-color: #059669;
-  transform: scale(0.98);
-}
-
-.btn-icon {
-  font-size: 18px;
-}
-
-/* Version Hint */
-.version-hint {
-  text-align: center;
-  color: #9CA3AF;
-  font-size: 14px;
-  padding: 16px;
-  background-color: #F3F4F6;
-  border-radius: 12px;
-}
-
-/* Logged in state */
-.logged-in {
-  gap: 16px;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.user-info {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.user-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-}
-
-.user-nickname {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1F2937;
-}
-
-.enter-btn {
-  width: 100%;
-  background-color: #10B981;
-  color: white;
-  padding: 14px;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
+.login-btn::after {
   border: none;
-  margin: 0;
-  transition: all 0.2s;
 }
 
-.enter-btn::after {
-  border-radius: 12px;
+.login-btn-active {
+  background: linear-gradient(135deg, #059669 0%, #10B981 100%);
+  box-shadow: 0 6px 20px rgba(16,185,129,0.35);
 }
 
-.enter-btn:active {
-  background-color: #059669;
-  transform: scale(0.98);
+.login-btn-active:active {
+  transform: scale(0.97);
+  box-shadow: 0 2px 8px rgba(16,185,129,0.2);
 }
 
-/* 移除动画，避免影响页面渲染 */
-.fade-in {
-  /* 移除动画效果，避免渲染冲突 */
+.login-btn-text {
+  font-size: 16px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.04em;
 }
 
-/* 引导文字样式 */
-.guide-text {
-  margin-top: 16px;
-  text-align: center;
-  font-size: 12px;
+.login-btn[disabled] .login-btn-text {
   color: #9CA3AF;
-  line-height: 1.5;
+}
+
+/* ── 底部说明 ─────────────────────────────────── */
+.footer-hint {
+  font-size: 11px;
+  color: #9CA3AF;
+  text-align: center;
+  line-height: 1.6;
 }

@@ -121,6 +121,28 @@ class ScfApiAdapter {
   async togglePlantFavorite(plantId) {
     return this.request('/plant/favorite/toggle', 'POST', { plantId });
   }
+
+  async getTodos(logicalKey = '') {
+    return this.request('/todo/list', 'POST', {
+      logicalKey
+    });
+  }
+
+  async getGlobalTodos() {
+    return this.request('/todo/global', 'POST', {});
+  }
+
+  async addTodo(payload = {}) {
+    return this.request('/todo/add', 'POST', payload);
+  }
+
+  async completeTodo(payload = {}) {
+    return this.request('/todo/complete', 'POST', payload);
+  }
+
+  async toggleTodoUrgency(payload = {}) {
+    return this.request('/todo/toggle-urgent', 'POST', payload);
+  }
 }
 
 module.exports = ScfApiAdapter;

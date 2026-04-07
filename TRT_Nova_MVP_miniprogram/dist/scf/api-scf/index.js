@@ -373,6 +373,203 @@ async function togglePlantFavorite(db, openid, input) {
   return { success: true, plantId, isFavorite };
 }
 
+function mapTodoRow(row = {}) {
+  return {
+    _id: row.id || row._id || '',
+    id: row.id || row._id || '',
+    openid: row.openid || '',
+    logicalKey: row.logical_key || row.logicalKey || '',
+    title: row.title || '',
+    urgent: Number(row.urgent) === 1 || row.urgent === true,
+    icon: row.icon || '📝',
+    iconColor: row.icon_color || row.iconColor || 'text-blue-500',
+    iconBg: row.icon_bg || row.iconBg || 'bg-blue-50',
+    desc: row.description_text || row.desc || '',
+    status: row.status || 'pending',
+    createdAt: row.created_at || null,
+    updatedAt: row.updated_at || null
+  };
+}
+
+async function listTodosForUser(db, openid, input) {
+  const logicalKey = normalizeLogicalKey(input?.logicalKey);
+  const sql = logicalKey
+    ? `SELECT id, openid, logical_key, title, urgent, icon, icon_color, icon_bg, description_text, status, created_at, updated_at
+       FROM todos
+       WHERE openid = ? AND logical_key = ?
+       ORDER BY urgent DESC, updated_at DESC, id DESC`
+    : `SELECT id, openid, logical_key, title, urgent, icon, icon_color, icon_bg, description_text, status, created_at, updated_at
+       FROM todos
+       WHERE openid = ? AND (logical_key = '' OR logical_key IS NULL)
+       ORDER BY urgent DESC, updated_at DESC, id DESC`;
+  const params = logicalKey ? [openid, logicalKey] : [openid];
+  const [rows] = await db.execute(sql, params);
+  return {
+    success: true,
+    todos: rows.map(mapTodoRow)
+  };
+}
+
+async function listGlobalTodosForUser(db, openid) {
+  const [rows] = await db.execute(
+    `SELECT id, openid, logical_key, title, urgent, icon, icon_color, icon_bg, description_text, status, created_at, updated_at
+     FROM todos
+     WHERE openid = ? AND logical_key = 'global'
+     ORDER BY urgent DESC, updated_at DESC, id DESC`,
+    [openid]
+  );
+  return {
+    success: true,
+    todos: rows.map(mapTodoRow)
+  };
+}
+
+async function addTodoForUser(db, openid, input) {
+  const logicalKey = normalizeLogicalKey(input?.logicalKey);
+  const title = typeof input?.content === 'string'
+    ? input.content.trim()
+    : typeof input?.title === 'string'
+      ? input.title.trim()
+      : '';
+
+  if (!title) {
+    return {
+      success: false,
+      msg: 'content is required'
+    };
+  }
+
+  const urgent = input?.urgent ? 1 : 0;
+  const icon = typeof input?.icon === 'string' && input.icon.trim() ? input.icon.trim() : '📝';
+  const iconColor = typeof input?.iconColor === 'string' && input.iconColor.trim() ? input.iconColor.trim() : 'text-blue-500';
+  const iconBg = typeof input?.iconBg === 'string' && input.iconBg.trim() ? input.iconBg.trim() : 'bg-blue-50';
+  const desc = typeof input?.desc === 'string' ? input.desc.trim() : '长按切换优先级';
+  const now = toSqlDateTime(Date.now());
+
+  const [result] = await db.execute(
+    `INSERT INTO todos
+      (openid, logical_key, title, urgent, icon, icon_color, icon_bg, description_text, status, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`,
+    [
+      openid,
+      logicalKey || '',
+      title,
+      urgent,
+      icon,
+      iconColor,
+      iconBg,
+      desc,
+      now,
+      now
+    ]
+  );
+
+  const [rows] = await db.execute(
+    `SELECT id, openid, logical_key, title, urgent, icon, icon_color, icon_bg, description_text, status, created_at, updated_at
+     FROM todos
+     WHERE id = ?
+     LIMIT 1`,
+    [result.insertId]
+  );
+
+  return {
+    success: true,
+    todo: rows.length ? mapTodoRow(rows[0]) : null
+  };
+}
+
+async function completeTodoForUser(db, openid, input) {
+  const todoId = Number(input?.todoId || input?.id || 0);
+  if (!todoId) {
+    return {
+      success: false,
+      msg: 'todoId is required'
+    };
+  }
+
+  const logicalKey = normalizeLogicalKey(input?.logicalKey);
+  const [rows] = await db.execute(
+    `SELECT id, openid, logical_key FROM todos WHERE id = ? LIMIT 1`,
+    [todoId]
+  );
+
+  if (!rows.length || rows[0].openid !== openid) {
+    return {
+      success: false,
+      msg: 'permission denied'
+    };
+  }
+
+  if (logicalKey && rows[0].logical_key && rows[0].logical_key !== logicalKey) {
+    return {
+      success: false,
+      msg: 'device mismatch'
+    };
+  }
+
+  await db.execute(`DELETE FROM todos WHERE id = ?`, [todoId]);
+  return {
+    success: true,
+    todoId
+  };
+}
+
+async function toggleTodoUrgencyForUser(db, openid, input) {
+  const todoId = Number(input?.todoId || input?.id || 0);
+  if (!todoId) {
+    return {
+      success: false,
+      msg: 'todoId is required'
+    };
+  }
+
+  const logicalKey = normalizeLogicalKey(input?.logicalKey);
+  const [rows] = await db.execute(
+    `SELECT id, openid, logical_key, urgent FROM todos WHERE id = ? LIMIT 1`,
+    [todoId]
+  );
+
+  if (!rows.length || rows[0].openid !== openid) {
+    return {
+      success: false,
+      msg: 'permission denied'
+    };
+  }
+
+  if (logicalKey && rows[0].logical_key && rows[0].logical_key !== logicalKey) {
+    return {
+      success: false,
+      msg: 'device mismatch'
+    };
+  }
+
+  const newUrgent = rows[0].urgent ? 0 : 1;
+  const desc = newUrgent ? '高优先级' : '普通优先级';
+  const iconColor = newUrgent ? 'text-red-500' : 'text-blue-500';
+  const iconBg = newUrgent ? 'bg-red-50' : 'bg-blue-50';
+  const now = toSqlDateTime(Date.now());
+
+  await db.execute(
+    `UPDATE todos
+     SET urgent = ?, description_text = ?, icon_color = ?, icon_bg = ?, updated_at = ?
+     WHERE id = ?`,
+    [newUrgent, desc, iconColor, iconBg, now, todoId]
+  );
+
+  const [updatedRows] = await db.execute(
+    `SELECT id, openid, logical_key, title, urgent, icon, icon_color, icon_bg, description_text, status, created_at, updated_at
+     FROM todos
+     WHERE id = ?
+     LIMIT 1`,
+    [todoId]
+  );
+
+  return {
+    success: true,
+    todo: updatedRows.length ? mapTodoRow(updatedRows[0]) : null
+  };
+}
+
 async function queryLatestByUser(db, openid, input) {
   const logicalKey = normalizeLogicalKey(input?.logicalKey);
   const aclRows = await getActiveAclRows(db, openid, logicalKey);
@@ -683,14 +880,21 @@ async function unbindDeviceForUser(db, openid, input) {
   }
 
   const now = toSqlDateTime(Date.now());
-  await db.execute(
+  const [updateResult] = await db.execute(
     `UPDATE device_acl
      SET status = 'inactive',
          unbind_time = ?,
          updated_at = ?
-     WHERE id = ?`,
+     WHERE id = ? AND status = 'active'`,
     [now, now, rows[0].id]
   );
+
+  if (!updateResult.affectedRows) {
+    return {
+      success: false,
+      msg: 'Unbind failed: record may have already been modified'
+    };
+  }
 
   return {
     success: true,
@@ -860,6 +1064,26 @@ exports.main = async (event) => {
 
     if (method === 'POST' && path.endsWith('/device/cmd')) {
       return json(200, await sendDeviceCmdForUser(db, openid, body));
+    }
+
+    if (method === 'POST' && path.endsWith('/todo/list')) {
+      return json(200, await listTodosForUser(db, openid, body));
+    }
+
+    if (method === 'POST' && path.endsWith('/todo/global')) {
+      return json(200, await listGlobalTodosForUser(db, openid));
+    }
+
+    if (method === 'POST' && path.endsWith('/todo/add')) {
+      return json(200, await addTodoForUser(db, openid, body));
+    }
+
+    if (method === 'POST' && path.endsWith('/todo/complete')) {
+      return json(200, await completeTodoForUser(db, openid, body));
+    }
+
+    if (method === 'POST' && path.endsWith('/todo/toggle-urgent')) {
+      return json(200, await toggleTodoUrgencyForUser(db, openid, body));
     }
 
     if (method === 'GET' && path.endsWith('/user/profile')) {

@@ -1,4 +1,55 @@
 /** app.wxss **/
+
+/**
+ * 全局 CSS 变量 - TRT Nova 设计系统
+ * 所有页面通过 var(--color-xxx) 引用，统一修改此处即可全局生效
+ */
+page {
+  /* 品牌主色 */
+  --color-primary: #10B981;
+  --color-primary-dark: #059669;
+  --color-primary-light: #D1FAE5;
+  --color-primary-bg: #F0F9F4;
+
+  /* 状态色 */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-danger-light: #FEE2E2;
+  --color-info: #3B82F6;
+  --color-info-light: #EFF6FF;
+
+  /* 中性色 */
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #6B7280;
+  --color-text-muted: #9CA3AF;
+  --color-border: #E5E7EB;
+  --color-bg-page: #F3F4F6;
+  --color-bg-card: #FFFFFF;
+
+  /* 在线/离线状态 */
+  --color-online: #10B981;
+  --color-offline: #9CA3AF;
+
+  /* 圆角 */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+/* 全局通用工具类 */
+.status-online { color: var(--color-online); }
+.status-offline { color: var(--color-offline); }
+.text-warning { color: var(--color-warning); }
+.text-danger { color: var(--color-danger); }
+.text-success { color: var(--color-success); }
+
 .container {
   height: 100%;
   display: flex;
@@ -7,14 +58,15 @@
 } 
 
 .fade-in {
-  animation: fadeIn 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-  opacity: 0;
+  /* opacity 只在动画 keyframe 里控制，不直接写在 class 上
+     这样即使动画不触发，元素也不会永久不可见 */
+  animation: fadeIn 0.4s ease-out forwards;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;

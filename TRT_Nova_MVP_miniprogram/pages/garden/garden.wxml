@@ -27,8 +27,13 @@
         </view>
       </block>
 
-      <view wx:if="{{devices.length === 0}}" class="empty">
-        <text>还没有设备，点击右下角添加</text>
+      <view wx:if="{{!hasDevices}}" class="empty-state" bindtap="openDeviceManager">
+        <text class="empty-icon">🪴</text>
+        <text class="empty-title">还没有绑定设备</text>
+        <text class="empty-desc">点击右下角 + 绑定你的智能花盆</text>
+        <view class="empty-btn">
+          <text class="empty-btn-text">去绑定设备</text>
+        </view>
       </view>
     </view>
   </scroll-view>

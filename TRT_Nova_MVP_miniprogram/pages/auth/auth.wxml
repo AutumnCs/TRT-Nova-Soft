@@ -1,44 +1,87 @@
-<view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
-  <view class="header">
-    <text class="title">欢迎使用智能花盆</text>
-    <text class="subtitle">请完成登录后继续</text>
+<view class="page" style="padding-top: {{statusBarHeight}}px;">
+
+  <!-- ── 自定义转场遮罩（替代原生 showLoading） ── -->
+  <view wx:if="{{loadingLogin}}" class="transition-mask">
+    <view class="transition-inner">
+      <view class="transition-logo">🌱</view>
+      <view class="transition-spinner">
+        <view class="spinner-ring"></view>
+      </view>
+      <text class="transition-text">正在进入...</text>
+    </view>
   </view>
 
-  <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}">
-    <view class="auth-section">
-      <view class="auth-card">
-        <text class="auth-card-title">快速登录</text>
-
-        <view class="avatar-section">
-          <button class="avatar-uploader" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-            <image class="avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
-          </button>
-          <text class="avatar-hint">点击选择头像</text>
-        </view>
-
-        <view class="nickname-section">
-          <input
-            type="nickname"
-            class="nickname-input"
-            placeholder="请输入昵称"
-            value="{{userInfo.nickName}}"
-            bind:change="onInputChange"
-            maxlength="20"
-          />
-        </view>
-
-        <view class="guide-text">
-          <text>头像和昵称完整后将自动登录</text>
-        </view>
-
-        <view wx:if="{{hasUserInfo}}" class="logged-in">
-          <view class="user-info">
-            <image class="user-avatar" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
-            <text class="user-nickname">{{userInfo.nickName}}</text>
-          </view>
-          <button class="enter-btn" bindtap="loginSuccess">进入首页</button>
-        </view>
-      </view>
+  <!-- ── 顶部装饰区 ── -->
+  <view class="hero">
+    <view class="hero-blob blob1"></view>
+    <view class="hero-blob blob2"></view>
+    <view class="hero-icon-wrap">
+      <text class="hero-icon">🪴</text>
     </view>
-  </scroll-view>
+    <text class="hero-title">TRT Nova</text>
+    <text class="hero-subtitle">智能植物养护助手</text>
+  </view>
+
+  <!-- ── 登录卡片 ── -->
+  <view class="card">
+    <text class="card-label">选择头像与昵称</text>
+
+    <!-- 头像区 -->
+    <view class="avatar-wrap">
+      <button
+        wx:if="{{canChooseAvatar}}"
+        class="avatar-btn"
+        open-type="chooseAvatar"
+        bind:chooseavatar="onChooseAvatar"
+      >
+        <image class="avatar-img {{userInfo.avatarUrl !== defaultAvatarUrl ? '' : 'avatar-placeholder'}}" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+        <view class="avatar-edit-badge">
+          <text class="avatar-edit-icon">📷</text>
+        </view>
+      </button>
+      <button
+        wx:else
+        class="avatar-btn"
+        bindtap="onPickAvatar"
+      >
+        <image class="avatar-img {{userInfo.avatarUrl !== defaultAvatarUrl ? '' : 'avatar-placeholder'}}" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+        <view class="avatar-edit-badge">
+          <text class="avatar-edit-icon">📷</text>
+        </view>
+      </button>
+      <text class="avatar-hint">点击更换头像</text>
+    </view>
+
+    <!-- 昵称输入 -->
+    <view class="input-wrap">
+      <text class="input-icon">✏️</text>
+      <input
+        type="nickname"
+        class="name-input"
+        placeholder="输入你的昵称"
+        placeholder-class="input-placeholder"
+        value="{{userInfo.nickName}}"
+        bind:change="onInputChange"
+        maxlength="20"
+      />
+    </view>
+
+    <!-- 状态提示 -->
+    <view class="status-row">
+      <view class="status-dot {{hasUserInfo ? 'dot-ok' : 'dot-pending'}}"></view>
+      <text class="status-text">{{hasUserInfo ? '信息完整，即将登录 ✓' : '请完善头像和昵称'}}</text>
+    </view>
+
+    <!-- 主按钮 -->
+    <button
+      class="login-btn {{hasUserInfo ? 'login-btn-active' : ''}}"
+      bindtap="loginSuccess"
+      disabled="{{!hasUserInfo}}"
+    >
+      <text class="login-btn-text">{{hasUserInfo ? '进入花园 🌿' : '完善信息后登录'}}</text>
+    </button>
+
+    <text class="footer-hint">头像和昵称仅用于标识你的账号</text>
+  </view>
+
 </view>
