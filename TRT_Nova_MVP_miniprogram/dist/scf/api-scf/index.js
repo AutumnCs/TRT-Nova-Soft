@@ -1020,11 +1020,242 @@ async function saveUserProfile(db, openid, input) {
   return getUserProfile(db, openid);
 }
 
-async function sendDeviceCmdForUser(_db, _openid, input) {
+/**
+ * 生成 OneNET 产品级 Authorization token
+ * 环境变量: ONENET_ACCESS_KEY（产品 access_key，base64 编码）
+ */
+function resolveOneNetAuthConfig(productId) {
+  const authMode = String(process.env.ONENET_AUTH_MODE || 'product').trim().toLowerCase();
+  const version = '2022-05-01';
+  const method = String(process.env.ONENET_AUTH_METHOD || 'sha256').trim().toLowerCase();
+  const ttlSeconds = Math.max(60, Number(process.env.ONENET_AUTH_TTL_SECONDS) || 3600);
+
+  if (!['md5', 'sha1', 'sha256'].includes(method)) {
+    throw new Error(`Unsupported ONENET_AUTH_METHOD: ${method}`);
+  }
+
+  if (authMode === 'product') {
+    const accessKey = String(process.env.ONENET_PRODUCT_ACCESS_KEY || process.env.ONENET_ACCESS_KEY || '').trim();
+    if (!accessKey) {
+      throw new Error('Missing ONENET_PRODUCT_ACCESS_KEY or ONENET_ACCESS_KEY env var');
+    }
+    if (!productId) {
+      throw new Error('Missing productId for product auth mode');
+    }
+    return {
+      authMode,
+      version,
+      method,
+      ttlSeconds,
+      accessKey,
+      res: `products/${productId}`
+    };
+  }
+
+  if (authMode === 'project') {
+    const accessKey = String(process.env.ONENET_PROJECT_ACCESS_KEY || process.env.ONENET_ACCESS_KEY || '').trim();
+    const projectId = String(process.env.ONENET_PROJECT_ID || '').trim();
+    if (!accessKey) {
+      throw new Error('Missing ONENET_PROJECT_ACCESS_KEY or ONENET_ACCESS_KEY env var');
+    }
+    if (!projectId) {
+      throw new Error('Missing ONENET_PROJECT_ID env var');
+    }
+    return {
+      authMode,
+      version,
+      method,
+      ttlSeconds,
+      accessKey,
+      res: `projects/${projectId}`
+    };
+  }
+
+  if (authMode === 'user') {
+    const accessKey = String(process.env.ONENET_USER_ACCESS_KEY || process.env.ONENET_ACCESS_KEY || '').trim();
+    const userId = String(process.env.ONENET_USER_ID || '').trim();
+    if (!accessKey) {
+      throw new Error('Missing ONENET_USER_ACCESS_KEY or ONENET_ACCESS_KEY env var');
+    }
+    if (!userId) {
+      throw new Error('Missing ONENET_USER_ID env var');
+    }
+    return {
+      authMode,
+      version,
+      method,
+      ttlSeconds,
+      accessKey,
+      res: `userid/${userId}`
+    };
+  }
+
+  throw new Error(`Unsupported ONENET_AUTH_MODE: ${authMode}`);
+}
+
+function generateOneNetAuth(productId) {
+  const authConfig = resolveOneNetAuthConfig(productId);
+  const et = Math.ceil(Date.now() / 1000) + authConfig.ttlSeconds;
+  const StringForSignature = `${et}\n${authConfig.method}\n${authConfig.res}\n${authConfig.version}`;
+  const keyBuf = Buffer.from(authConfig.accessKey, 'base64');
+  const sign = encodeURIComponent(
+    crypto.createHmac(authConfig.method, keyBuf).update(StringForSignature).digest('base64')
+  );
+
   return {
-    success: false,
-    msg: 'sendDeviceCmd is not implemented yet',
-    logicalKey: normalizeLogicalKey(input?.logicalKey)
+    authorization: `version=${authConfig.version}&res=${encodeURIComponent(authConfig.res)}&et=${et}&method=${authConfig.method}&sign=${sign}`,
+    authInfo: {
+      mode: authConfig.authMode,
+      method: authConfig.method,
+      res: authConfig.res,
+      et
+    }
+  };
+}
+
+/**
+ * 调用 OneNET 物模型属性设置接口
+ * POST https://iot-api.heclouds.com/thingmodel/set-device-property
+ */
+async function callOneNetSetProperty(productId, deviceName, params) {
+  const body = JSON.stringify({ product_id: productId, device_name: deviceName, params });
+  const authResult = generateOneNetAuth(productId);
+
+  return new Promise((resolve, reject) => {
+    const https = require('https');
+    const req = https.request({
+      hostname: 'iot-api.heclouds.com',
+      path: '/thingmodel/set-device-property',
+      method: 'POST',
+      headers: {
+        'Authorization': authResult.authorization,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      }
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); }
+        catch { resolve({ raw: data }); }
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(10000, () => req.destroy(new Error('OneNET request timeout')));
+    req.write(body);
+    req.end();
+  }).then((data) => ({
+    ...data,
+    _authInfo: authResult.authInfo
+  }));
+}
+
+function resolveCommandParams(input) {
+  if (input?.params && typeof input.params === 'object' && !Array.isArray(input.params)) {
+    return { ok: true, params: input.params };
+  }
+
+  if (typeof input?.cmd === 'string' && input.cmd.trim()) {
+    try {
+      const parsed = JSON.parse(input.cmd.trim());
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return { ok: true, params: parsed };
+      }
+      return {
+        ok: false,
+        msg: 'cmd JSON must be an object, e.g. {"run_state": true}'
+      };
+    } catch (err) {
+      return {
+        ok: false,
+        msg: 'Use params object or cmd JSON string, e.g. {"run_state": true}'
+      };
+    }
+  }
+
+  return {
+    ok: false,
+    msg: 'params must be an object, e.g. { "run_state": true }'
+  };
+}
+
+function normalizeThingModelParams(params = {}) {
+  const normalized = { ...params };
+  const configuredFanKey = String(process.env.FAN_SWITCH_IDENTIFIER || 'test').trim() || 'test';
+  const fanAliasKeys = ['fan_switch', 'fan_on', 'test'];
+
+  const incomingFanKey = fanAliasKeys.find((key) => Object.prototype.hasOwnProperty.call(normalized, key));
+  if (incomingFanKey) {
+    const fanValue = normalized[incomingFanKey];
+    fanAliasKeys.forEach((key) => {
+      if (key !== configuredFanKey) {
+        delete normalized[key];
+      }
+    });
+    normalized[configuredFanKey] = fanValue;
+  }
+
+  return normalized;
+}
+
+async function sendDeviceCmdForUser(db, openid, input) {
+  const logicalKey = normalizeLogicalKey(input?.logicalKey);
+  const resolved = resolveCommandParams(input);
+
+  if (!logicalKey) {
+    return { success: false, msg: 'logicalKey is required' };
+  }
+  if (!resolved.ok) {
+    return { success: false, msg: resolved.msg };
+  }
+  const params = normalizeThingModelParams(resolved.params);
+
+  // ACL 权限校验
+  const [aclRows] = await db.execute(
+    `SELECT id FROM device_acl WHERE openid = ? AND logical_key = ? AND status = 'active' LIMIT 1`,
+    [openid, logicalKey]
+  );
+  if (!aclRows.length) {
+    return { success: false, msg: 'Permission denied for this device' };
+  }
+
+  // 查 productId / deviceName
+  const [deviceRows] = await db.execute(
+    `SELECT product_id, device_name FROM devices WHERE logical_key = ? LIMIT 1`,
+    [logicalKey]
+  );
+  if (!deviceRows.length) {
+    return { success: false, msg: 'Device not found' };
+  }
+
+  const { product_id: productId, device_name: deviceName } = deviceRows[0];
+  if (!productId || !deviceName) {
+    return { success: false, msg: 'Device missing productId or deviceName' };
+  }
+
+  const oneNetResp = await callOneNetSetProperty(productId, deviceName, params);
+
+  if (oneNetResp.code !== 0) {
+    return {
+      success: false,
+      msg: oneNetResp.msg || 'OneNET error',
+      logicalKey,
+      productId,
+      deviceName,
+      sentParams: params,
+      authInfo: oneNetResp._authInfo || null,
+      oneNetResp
+    };
+  }
+
+  return {
+    success: true,
+    logicalKey,
+    productId,
+    deviceName,
+    sentParams: params,
+    authInfo: oneNetResp._authInfo || null,
+    oneNetResp
   };
 }
 

@@ -413,8 +413,11 @@ async function processDeviceData(pushData, db) {
 
   const historyRows = [];
   for (const [paramKey, item] of Object.entries(params)) {
-    const value = item?.value;
-    const time = item?.time || pushTime;
+    const isStructuredItem = item && typeof item === 'object' && !Array.isArray(item);
+    const value = isStructuredItem && Object.prototype.hasOwnProperty.call(item, 'value')
+      ? item.value
+      : item;
+    const time = isStructuredItem && item?.time ? item.time : pushTime;
     const dedupKey = crypto
       .createHash('md5')
       .update(`${logicalKey}|${pushId}|${paramKey}|${time}`)

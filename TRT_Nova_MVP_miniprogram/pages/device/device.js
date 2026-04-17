@@ -162,13 +162,27 @@ Page({
 
   async sendCmd(e) {
     const logicalKey = e.currentTarget.dataset.logicalkey;
-    const cmd = this.data.cmdInput || 'default_cmd';
+    const rawInput = this.data.cmdInput || '';
+    const cmd = rawInput;
     if (!logicalKey) return wx.showToast({ title: '设备标识缺失', icon: 'none' });
     if (!cmd) return wx.showToast({ title: '请输入命令', icon: 'none' });
 
     wx.showLoading({ title: '发送中...' });
     try {
-      const result = await deviceService.sendDeviceCmd(logicalKey, cmd);
+      let params;
+      try {
+        params = JSON.parse(rawInput);
+      } catch (err) {
+        wx.hideLoading();
+        return wx.showToast({ title: '鎸囦护闇€鏄?JSON 瀵硅薄', icon: 'none' });
+      }
+
+      if (!params || typeof params !== 'object' || Array.isArray(params)) {
+        wx.hideLoading();
+        return wx.showToast({ title: '鎸囦护闇€鏄?JSON 瀵硅薄', icon: 'none' });
+      }
+
+      const result = await deviceService.sendDeviceCmd(logicalKey, params);
       wx.hideLoading();
       if (result.success) {
         wx.showToast({ title: '已发送' });

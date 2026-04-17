@@ -1,4 +1,4 @@
-<view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
+﻿<view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
   <view class="header-bar">
     <view class="plant-picker">
       <text class="plant-name">{{plantName}}</text>
@@ -74,6 +74,9 @@
     <view class="section">
       <view class="section-header">
         <text class="section-title">我的设备</text>
+        <view wx:if="{{hasDevices}}" class="refresh-btn" bindtap="refreshDeviceStatus">
+          <text class="refresh-btn-text">刷新状态</text>
+        </view>
       </view>
 
       <!-- 无设备时的引导卡片 -->
@@ -147,11 +150,11 @@
         </view>
         <view class="extra-item">
           <text class="extra-label">运行状态</text>
-          <text class="extra-value">{{extraMetrics.runState === true ? '运行中' : (extraMetrics.runState === false ? '已停止' : '--')}}</text>
+          <text class="extra-value">{{extraMetrics.runState === true ? 'ON' : (extraMetrics.runState === false ? 'OFF' : '--')}}</text>
         </view>
         <view class="extra-item">
           <text class="extra-label">红外状态</text>
-          <text class="extra-value">{{extraMetrics.irStatus === true ? '触发' : (extraMetrics.irStatus === false ? '正常' : '--')}}</text>
+          <text class="extra-value">{{extraMetrics.irStatus === true ? 'TRIGGERED' : (extraMetrics.irStatus === false ? 'NORMAL' : '--')}}</text>
         </view>
         <view class="extra-item">
           <text class="extra-label">DS18B20 温度</text>
@@ -170,13 +173,17 @@
         <text class="section-title">设备控制</text>
       </view>
       <view class="device-grid">
-        <view class="device-card {{fan.isOn ? 'active' : ''}}" bindtap="toggleFan">
+        <view class="device-card {{fan.isOn ? 'active' : ''}} {{fan.pending ? 'pending' : ''}}" bindtap="toggleFan">
+          <view class="device-state-badge {{fan.isOn ? 'is-on' : 'is-off'}}">
+            <text class="device-state-badge-text">{{fan.isOn ? '开启' : '关闭'}}</text>
+          </view>
           <view class="device-icon-box">
             <text class="device-icon">{{fan.icon}}</text>
           </view>
           <view class="device-info">
             <text class="device-name">{{fan.name}}</text>
-            <text class="device-status">{{fan.isOn ? '已开启' : '已关闭'}}</text>
+            <text class="device-status">{{fan.statusText}}</text>
+            <text class="device-hint">{{fan.hintText}}</text>
           </view>
         </view>
       </view>
@@ -186,3 +193,4 @@
     <view wx:if="{{!hasDevices}}" style="padding-bottom: 120px;"></view>
   </scroll-view>
 </view>
+

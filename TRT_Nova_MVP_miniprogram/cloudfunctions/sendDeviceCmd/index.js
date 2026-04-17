@@ -1,4 +1,8 @@
 // cloudfunctions/sendDeviceCmd/index.js
+// LEGACY:
+// This file belongs to the old CloudBase-based command path.
+// The current recommended path is:
+// mini-program -> api-scf /device/cmd -> OneNET northbound HTTP API -> device.
 const cloud = require('wx-server-sdk');
 const axios = require('axios');
 

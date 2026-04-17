@@ -54,11 +54,22 @@ class DeviceService {
     return this.scfApiAdapter.unbindDevice({ logicalKey: key });
   }
 
-  async sendDeviceCmd(logicalKey, cmd) {
+  async sendDeviceCmd(logicalKey, cmdOrParams) {
     const key = typeof logicalKey === 'string' ? logicalKey.trim() : '';
-    const command = typeof cmd === 'string' ? cmd.trim() : '';
-    if (!key || !command) {
-      return { success: false, msg: 'logicalKey and cmd are required' };
+    if (!key) {
+      return { success: false, msg: 'logicalKey is required' };
+    }
+
+    if (cmdOrParams && typeof cmdOrParams === 'object' && !Array.isArray(cmdOrParams)) {
+      return this.scfApiAdapter.sendDeviceCmd({
+        logicalKey: key,
+        params: cmdOrParams
+      });
+    }
+
+    const command = typeof cmdOrParams === 'string' ? cmdOrParams.trim() : '';
+    if (!command) {
+      return { success: false, msg: 'params object or cmd JSON string is required' };
     }
 
     return this.scfApiAdapter.sendDeviceCmd({

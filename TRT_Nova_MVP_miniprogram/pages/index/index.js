@@ -7,20 +7,6 @@ const { computeBubbles, computeMoodEmoji } = require('../../services/config/thre
 
 const DEFAULT_PLANT_IMAGE = '/images/plant-default.jpg';
 
-// 植物类型 → 设备图标 emoji 映射
-const PLANT_ICON_MAP = {
-  '龟背竹': '🌿',
-  '绿萝': '🍃',
-  '多肉': '🌵',
-  '薄荷': '🌱',
-  '番茄': '🍅',
-  '玫瑰': '🌹',
-  '向日葵': '🌻',
-  '兰花': '🌸',
-  '仙人掌': '🌵',
-  '其他': '🪴'
-};
-
 const DEFAULT_SENSORS = {
   temp: { value: '--', unit: '℃', label: '环境温度' },
   light: { value: '--', unit: 'lx', label: '环境光照' },
@@ -36,6 +22,28 @@ const DEFAULT_EXTRA = {
   updatedAt: '--'
 };
 
+const DEFAULT_FAN = {
+  name: '通风风扇',
+  icon: '🌬️',
+  isOn: false,
+  pending: false,
+  hasReportedState: false,
+  statusText: '暂无上报',
+  hintText: '以设备最新上报为准'
+};
+
+function cloneSensors() {
+  return JSON.parse(JSON.stringify(DEFAULT_SENSORS));
+}
+
+function cloneExtra() {
+  return { ...DEFAULT_EXTRA };
+}
+
+function buildDefaultWeather() {
+  return { icon: '🌤️', temp: '--', desc: '' };
+}
+
 Page({
   _refreshTimer: null,
   _loadingDevices: false,
@@ -46,24 +54,16 @@ Page({
     plantName: '未选择设备',
     plantImageSource: '',
     plantImage: DEFAULT_PLANT_IMAGE,
-    dialogue: '主人，记得给我按时浇水哦。',
+    dialogue: '主人，我现在状态很好，继续保持哦。',
     todos: [],
     devices: [],
     selectedLogicalKey: '',
-    sensors: { ...DEFAULT_SENSORS },
-    extraMetrics: { ...DEFAULT_EXTRA },
-    fan: {
-      name: '通风风扇',
-      icon: '🌬️',
-      isOn: false
-    },
-    // 天气
-    weather: { icon: '🌤️', temp: '--', desc: '' },
-    // 气泡（由阈值计算，最多 2 条）
+    sensors: cloneSensors(),
+    extraMetrics: cloneExtra(),
+    fan: { ...DEFAULT_FAN },
+    weather: buildDefaultWeather(),
     bubbles: [],
-    // 心情 emoji
     moodEmoji: '😊',
-    // 是否有设备
     hasDevices: false
   },
 
@@ -79,8 +79,8 @@ Page({
       this.getTabBar().setData({ selected: 0 });
     }
     if (!this.checkLoginStatus()) return;
-    this.loadDevices();
-    this.loadWeather(); // fire-and-forget，不 await，不阻塞主流程
+    this.loadDevices({ refreshTodos: true });
+    this.loadWeather();
     this.startAutoRefresh();
   },
 
@@ -101,42 +101,38 @@ Page({
     return true;
   },
 
-  // ── 天气 ────────────────────────────────────────────────
-
   async loadWeather() {
     try {
       const weather = await weatherService.getCurrentWeather();
-      this.setData({ weather });
+      this.setData({ weather: weather || buildDefaultWeather() });
     } catch (err) {
-      // WeatherService 内部已有兜底，这里静默处理
       console.warn('[index] loadWeather error:', err);
     }
   },
 
-  // ── 植物图片 ────────────────────────────────────────────
-
   async resolveAnySource(source) {
-    const src = (source || '').trim();
+    const src = typeof source === 'string' ? source.trim() : '';
     if (!src) return '';
-    if (src.startsWith('cloud://')) {
-      if (!wx.cloud || typeof wx.cloud.getTempFileURL !== 'function') return '';
-      try {
-        const res = await wx.cloud.getTempFileURL({ fileList: [src] });
-        const first = res?.fileList?.[0];
-        const ok = first && (first.status === 0 || first.status === '0');
-        return ok ? first.tempFileURL || '' : '';
-      } catch (err) {
-        console.error('resolveAnySource failed:', err);
-        return '';
-      }
+    if (!src.startsWith('cloud://')) {
+      return src;
     }
-    return src;
+    if (!wx.cloud || typeof wx.cloud.getTempFileURL !== 'function') {
+      return '';
+    }
+
+    try {
+      const res = await wx.cloud.getTempFileURL({ fileList: [src] });
+      const first = res && res.fileList ? res.fileList[0] : null;
+      const ok = first && (first.status === 0 || first.status === '0');
+      return ok ? first.tempFileURL || '' : '';
+    } catch (err) {
+      console.error('[index] resolveAnySource error:', err);
+      return '';
+    }
   },
 
   async resolvePlantImage() {
-    const primary =
-      (this.data.plantImageSource || '').trim() ||
-      (typeof this.data.plantImage === 'string' ? this.data.plantImage.trim() : '');
+    const primary = this.data.plantImageSource || this.data.plantImage || DEFAULT_PLANT_IMAGE;
     const primaryUrl = await this.resolveAnySource(primary);
     if (primaryUrl) {
       this.setData({ plantImage: primaryUrl });
@@ -151,23 +147,23 @@ Page({
     this.setData({ plantImage: fallbackUrl || DEFAULT_PLANT_IMAGE });
   },
 
-  // ── Todos ───────────────────────────────────────────────
-
   async loadTodos(logicalKey = '') {
     try {
       let todos = [];
       if (logicalKey) {
-        // 合并设备专属 todo + wiki 全局养护提醒
         const [deviceTodos, globalTodos] = await Promise.all([
           todoService.getTodos(logicalKey),
           todoService.getGlobalTodos()
         ]);
         todos = [...deviceTodos, ...globalTodos];
       } else {
-        // 无设备时只展示全局养护提醒
         todos = await todoService.getGlobalTodos();
       }
-      todos.sort((a, b) => (a.urgent === b.urgent ? 0 : a.urgent ? -1 : 1));
+
+      todos.sort((a, b) => {
+        if (!!a.urgent === !!b.urgent) return 0;
+        return a.urgent ? -1 : 1;
+      });
       this.setData({ todos });
     } catch (error) {
       console.error('[index] loadTodos error:', error);
@@ -175,52 +171,57 @@ Page({
     }
   },
 
-  // ── 设备加载 ────────────────────────────────────────────
-
-  async loadDevices() {
+  async loadDevices(options = {}) {
     if (this._loadingDevices) return;
     this._loadingDevices = true;
+    const { refreshTodos = false, silent = false } = options;
+
     try {
       const result = await deviceService.getDeviceData();
-      const raw = result.deviceData || [];
+      const raw = Array.isArray(result && result.deviceData) ? result.deviceData : [];
       this._deviceRows = raw;
-      const prevSelected = this.data.selectedLogicalKey;
 
-      const mapped = raw.map((item) => ({
+      const previousKey = this.data.selectedLogicalKey;
+      const devices = raw.map((item) => ({
         _id: item.logicalKey || '',
         logicalKey: item.logicalKey || '',
         name: item.alias || item.deviceName || '未命名设备',
         status: item.hasLatest ? '在线' : '离线',
-        // 根据植物类型选择图标
-        icon: PLANT_ICON_MAP[item.plantType] || PLANT_ICON_MAP['其他'],
+        icon: item.hasLatest ? '🪴' : '📟',
         active: false
       }));
 
       let activeIndex = 0;
-      if (prevSelected) {
-        const found = mapped.findIndex((x) => x.logicalKey === prevSelected);
-        activeIndex = found >= 0 ? found : 0;
+      if (previousKey) {
+        const foundIndex = devices.findIndex((item) => item.logicalKey === previousKey);
+        if (foundIndex >= 0) activeIndex = foundIndex;
       }
-      if (mapped.length > 0) mapped[activeIndex].active = true;
+      if (devices.length > 0) {
+        devices[activeIndex].active = true;
+      }
 
-      const selected = mapped[activeIndex];
+      const selected = devices[activeIndex] || null;
       const selectedLogicalKey = selected ? selected.logicalKey : '';
-      const selectedAlias = selected ? selected.name : '未选择设备';
 
       this.setData({
-        devices: mapped,
+        devices,
         selectedLogicalKey,
-        plantName: selectedAlias,
-        hasDevices: mapped.length > 0
+        plantName: selected ? selected.name : '未选择设备',
+        hasDevices: devices.length > 0
       });
 
       if (!raw.length) {
         this.resetTelemetryDefaults();
-        await this.loadTodos('');
+        this.resetDeviceControlDefaults();
+        if (refreshTodos) {
+          await this.loadTodos('');
+        }
       } else {
         this.applyLatestParams(raw, selectedLogicalKey);
-        await this.loadTodos(selectedLogicalKey);
-        // 检查设备离线告警
+        if (refreshTodos) {
+          await this.loadTodos(selectedLogicalKey);
+        }
+
         const offlineAlerts = alertService.checkDeviceOffline(raw);
         if (offlineAlerts.length) {
           alertService.showOfflineAlerts(offlineAlerts);
@@ -237,8 +238,9 @@ Page({
         hasDevices: false
       });
       this.resetTelemetryDefaults();
+      this.resetDeviceControlDefaults();
       wx.showToast({
-        title: '设备加载失败，请检查网络',
+        title: '设备加载失败',
         icon: 'none',
         duration: 2500
       });
@@ -249,11 +251,10 @@ Page({
 
   startAutoRefresh() {
     this.stopAutoRefresh();
-    // 5s 轮询，给上一次请求足够的完成时间（网络超时 8s）
     this._refreshTimer = setInterval(() => {
       if (!this.checkLoginStatus()) return;
-      this.loadDevices();
-    }, 5000);
+      this.loadDevices({ refreshTodos: false });
+    }, 60000);
   },
 
   stopAutoRefresh() {
@@ -264,90 +265,148 @@ Page({
 
   resetTelemetryDefaults() {
     this.setData({
-      sensors: { ...DEFAULT_SENSORS },
-      extraMetrics: { ...DEFAULT_EXTRA },
+      sensors: cloneSensors(),
+      extraMetrics: cloneExtra(),
       bubbles: [],
       moodEmoji: '😊'
     });
   },
 
+  resetDeviceControlDefaults() {
+    this.setData({
+      fan: { ...DEFAULT_FAN }
+    });
+  },
+
+  formatTs(ts) {
+    const value = Number(ts);
+    if (!Number.isFinite(value) || value <= 0) return '--';
+
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return '--';
+
+    const pad = (part) => String(part).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  },
+
   applyLatestParams(deviceRows, selectedLogicalKey = '') {
-    if (!Array.isArray(deviceRows) || deviceRows.length === 0) return;
+    if (!Array.isArray(deviceRows) || deviceRows.length === 0) {
+      this.resetTelemetryDefaults();
+      this.resetDeviceControlDefaults();
+      return;
+    }
+
     const selected =
-      deviceRows.find((d) => d && d.logicalKey === selectedLogicalKey) ||
-      deviceRows.find((d) => d && d.hasLatest && d.params) ||
+      deviceRows.find((item) => item && item.logicalKey === selectedLogicalKey) ||
+      deviceRows.find((item) => item && item.hasLatest && item.params) ||
       deviceRows[0];
+
     const params = selected && selected.params ? selected.params : {};
 
-    const getValue = (keys) => {
+    const getNode = (keys) => {
       for (const key of keys) {
         const node = params[key];
-        if (node && node.value !== undefined && node.value !== null && node.value !== '') {
-          return String(node.value);
+        if (
+          node &&
+          typeof node === 'object' &&
+          node.value !== undefined &&
+          node.value !== null &&
+          node.value !== ''
+        ) {
+          return node;
         }
       }
       return null;
     };
 
-    const temp = getValue(['dht_temp', 'temp', 'temperature', 'air_temp']);
-    const humidity = getValue(['dht_humi', 'humidity', 'air_humidity']);
-    const light = getValue(['light_val', 'light', 'illuminance', 'lux']);
-    const soil = getValue(['soil_percent', 'soil', 'soil_moisture']);
-    const uid = getValue(['uid']);
-    const dsbTemp = getValue(['dsb_temp']);
+    const getBooleanValue = (node) => {
+      if (typeof node === 'boolean') return node;
+      if (node && typeof node === 'object' && typeof node.value === 'boolean') {
+        return node.value;
+      }
+      return null;
+    };
 
-    const runStateNode = params.run_state;
-    const irStatusNode = params.ir_status;
+    const getNodeTime = (node) => {
+      if (node && typeof node === 'object' && node.time) {
+        return this.formatTs(node.time);
+      }
+      return null;
+    };
 
-    const patch = {};
-    if (temp !== null) patch['sensors.temp.value'] = temp;
-    if (humidity !== null) patch['sensors.humidity.value'] = humidity;
-    if (light !== null) patch['sensors.light.value'] = light;
-    if (soil !== null) patch['sensors.soil.value'] = soil;
-    if (uid !== null) patch['extraMetrics.uid'] = uid;
-    if (dsbTemp !== null) patch['extraMetrics.dsbTemp'] = dsbTemp;
-    if (runStateNode && typeof runStateNode.value === 'boolean') patch['extraMetrics.runState'] = runStateNode.value;
-    if (irStatusNode && typeof irStatusNode.value === 'boolean') patch['extraMetrics.irStatus'] = irStatusNode.value;
-    if (selected && selected.updatedAt) patch['extraMetrics.updatedAt'] = this.formatTs(selected.updatedAt);
+    const tempNode = getNode(['dht_temp', 'temp', 'temperature', 'air_temp']);
+    const humidityNode = getNode(['dht_humi', 'humidity', 'air_humidity']);
+    const lightNode = getNode(['light_val', 'light', 'illuminance', 'lux']);
+    const soilNode = getNode(['soil_percent', 'soil', 'soil_moisture']);
+    const uidNode = getNode(['uid']);
+    const dsbTempNode = getNode(['dsb_temp']);
+    const runStateNode = params.run_state || null;
+    const irStatusNode = params.ir_status || null;
+    const fanNode = params.fan_switch || params.test || null;
 
-    if (Object.keys(patch).length > 0) this.setData(patch);
+    const sensors = cloneSensors();
+    const extraMetrics = cloneExtra();
 
-    // 计算气泡 & 心情（用 patch 后的最新 sensors 值）
+    if (tempNode) sensors.temp.value = String(tempNode.value);
+    if (humidityNode) sensors.humidity.value = String(humidityNode.value);
+    if (lightNode) sensors.light.value = String(lightNode.value);
+    if (soilNode) sensors.soil.value = String(soilNode.value);
+    if (uidNode) extraMetrics.uid = String(uidNode.value);
+    if (dsbTempNode) extraMetrics.dsbTemp = String(dsbTempNode.value);
+    const runStateValue = getBooleanValue(runStateNode);
+    const irStatusValue = getBooleanValue(irStatusNode);
+    if (runStateValue !== null) extraMetrics.runState = runStateValue;
+    if (irStatusValue !== null) extraMetrics.irStatus = irStatusValue;
+    extraMetrics.updatedAt = selected && selected.updatedAt ? this.formatTs(selected.updatedAt) : '--';
+
+    const fanReportedState = getBooleanValue(fanNode);
+    const fanTime = getNodeTime(fanNode) || extraMetrics.updatedAt;
+    const fan = {
+      ...DEFAULT_FAN,
+      isOn: fanReportedState === true,
+      pending: false,
+      hasReportedState: fanReportedState !== null,
+      statusText: fanReportedState === null ? '暂无上报' : (fanReportedState ? '已开启' : '已关闭'),
+      hintText: fanReportedState === null ? '等待设备上报风扇状态' : `最近同步 ${fanTime}`
+    };
+
     const latestSensors = {
-      temp: { value: patch['sensors.temp.value'] ?? this.data.sensors.temp.value },
-      humidity: { value: patch['sensors.humidity.value'] ?? this.data.sensors.humidity.value },
-      light: { value: patch['sensors.light.value'] ?? this.data.sensors.light.value },
-      soil: { value: patch['sensors.soil.value'] ?? this.data.sensors.soil.value }
+      temp: { value: sensors.temp.value },
+      humidity: { value: sensors.humidity.value },
+      light: { value: sensors.light.value },
+      soil: { value: sensors.soil.value }
     };
     const bubbles = computeBubbles(latestSensors);
     const moodEmoji = computeMoodEmoji(latestSensors);
-    this.setData({ bubbles, moodEmoji });
+    const warningBubble = bubbles.find((item) => item.type === 'warning');
+    const dialogue = warningBubble
+      ? `主人，${warningBubble.text}，请及时处理哦`
+      : '主人，我现在状态很好，继续保持哦。';
 
-    // 同步 dialogue 文字
-    const warningBubble = bubbles.find(b => b.type === 'warning');
-    if (warningBubble) {
-      this.setData({ dialogue: `主人，${warningBubble.text}，请及时处理哦 ${warningBubble.icon}` });
-    } else {
-      this.setData({ dialogue: '主人，我现在状态很好，继续保持哦 😊' });
-    }
+    const resolvedFan = fanReportedState === null && this.data && this.data.fan && this.data.fan.hasReportedState
+      ? {
+          ...this.data.fan,
+          pending: false,
+          hintText: '命令已发送，等待设备状态同步'
+        }
+      : fan;
+
+    this.setData({
+      sensors,
+      extraMetrics,
+      fan: resolvedFan,
+      bubbles,
+      moodEmoji,
+      dialogue
+    });
   },
-
-  formatTs(ts) {
-    const n = Number(ts);
-    if (!Number.isFinite(n) || n <= 0) return '--';
-    const d = new Date(n);
-    if (Number.isNaN(d.getTime())) return String(ts);
-    const p = (x) => String(x).padStart(2, '0');
-    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
-  },
-
-  // ── 待办 ────────────────────────────────────────────────
 
   addTodo() {
     if (!this.data.selectedLogicalKey) {
-      wx.showToast({ title: '请先绑定并选择设备', icon: 'none' });
+      wx.showToast({ title: '请先选择设备', icon: 'none' });
       return;
     }
+
     wx.showModal({
       title: '添加待办',
       editable: true,
@@ -359,8 +418,8 @@ Page({
           await this.loadTodos(this.data.selectedLogicalKey);
           wx.showToast({ title: '添加成功', icon: 'success' });
         } catch (error) {
-          console.error(error);
-          wx.showToast({ title: '添加失败，请重试', icon: 'none' });
+          console.error('[index] addTodo error:', error);
+          wx.showToast({ title: '添加失败', icon: 'none' });
         }
       }
     });
@@ -368,57 +427,129 @@ Page({
 
   async onTaskDone(e) {
     const id = e.currentTarget.dataset.id;
-    const todo = this.data.todos.find((t) => t._id === id || t.id === id);
+    const todo = this.data.todos.find((item) => item._id === id || item.id === id);
     if (!todo) return;
+
     try {
-      if (todo._id) await todoService.completeTodo(todo._id, todo.logicalKey || this.data.selectedLogicalKey);
+      if (todo._id) {
+        await todoService.completeTodo(todo._id, todo.logicalKey || this.data.selectedLogicalKey);
+      }
       await this.loadTodos(this.data.selectedLogicalKey);
       wx.showToast({ title: '任务已完成', icon: 'success' });
     } catch (error) {
-      console.error(error);
-      wx.showToast({ title: '操作失败，请重试', icon: 'none' });
+      console.error('[index] onTaskDone error:', error);
+      wx.showToast({ title: '操作失败', icon: 'none' });
     }
   },
 
   async toggleUrgency(e) {
     const id = e.currentTarget.dataset.id;
-    const todo = this.data.todos.find((t) => t._id === id || t.id === id);
+    const todo = this.data.todos.find((item) => item._id === id || item.id === id);
     if (!todo || !todo._id) return;
+
     try {
       await todoService.toggleUrgency(todo, todo.logicalKey || this.data.selectedLogicalKey);
       await this.loadTodos(this.data.selectedLogicalKey);
-      wx.showToast({ title: '已更新优先级', icon: 'none' });
+      wx.showToast({ title: '优先级已更新', icon: 'none' });
     } catch (error) {
-      console.error(error);
-      wx.showToast({ title: '操作失败，请重试', icon: 'none' });
+      console.error('[index] toggleUrgency error:', error);
+      wx.showToast({ title: '操作失败', icon: 'none' });
     }
   },
 
-  // ── 设备切换 ────────────────────────────────────────────
-
   switchDevice(e) {
-    const index = e.currentTarget.dataset.index;
-    const devices = this.data.devices.map((item, i) => ({ ...item, active: i === index }));
-    const selected = devices[index];
+    const index = Number(e.currentTarget.dataset.index || 0);
+    const devices = this.data.devices.map((item, itemIndex) => ({
+      ...item,
+      active: itemIndex === index
+    }));
+    const selected = devices[index] || null;
     const selectedLogicalKey = selected ? selected.logicalKey : '';
+
     this.setData({
       devices,
       selectedLogicalKey,
       plantName: selected ? selected.name : '未选择设备'
     });
+
     this.applyLatestParams(this._deviceRows, selectedLogicalKey);
     this.loadTodos(selectedLogicalKey);
   },
 
+  async refreshDeviceStatus() {
+    if (!this.checkLoginStatus()) return;
+    await this.loadDevices();
+    wx.showToast({
+      title: '设备状态已刷新',
+      icon: 'none',
+      duration: 1800
+    });
+  },
+
   toggleFan() {
-    // TODO: 接通真实下行指令后，在此处调用 deviceService.sendDeviceCmd
-    this.setData({ 'fan.isOn': !this.data.fan.isOn });
+    this.toggleFanCommand();
+  },
+
+  async toggleFanCommand() {
+    const logicalKey = this.data.selectedLogicalKey;
+    if (!logicalKey) {
+      wx.showToast({ title: '请先选择设备', icon: 'none' });
+      return;
+    }
+
+    if (this.data.fan.pending) {
+      return;
+    }
+
+    const targetState = !this.data.fan.isOn;
+    this.setData({
+      'fan.pending': true,
+      'fan.statusText': targetState ? '开启中...' : '关闭中...',
+      'fan.hintText': '命令已发出，等待设备上报确认'
+    });
+
+    try {
+      const result = await deviceService.sendDeviceCmd(logicalKey, {
+        test: targetState
+      });
+
+      if (!result || result.success === false) {
+        throw new Error((result && result.msg) || '风扇控制失败');
+      }
+
+      wx.showToast({
+        title: targetState ? '已发送开启' : '已发送关闭',
+        icon: 'success'
+      });
+
+      this.setData({
+        'fan.pending': false,
+        'fan.isOn': targetState,
+        'fan.hasReportedState': true,
+        'fan.statusText': targetState ? '已开启' : '已关闭',
+        'fan.hintText': '命令已发送，等待设备状态同步'
+      });
+
+      setTimeout(() => {
+        this.loadDevices({ refreshTodos: false });
+      }, 600);
+    } catch (error) {
+      console.error('[index] toggleFanCommand error:', error);
+      this.setData({
+        'fan.pending': false,
+        'fan.statusText': this.data.fan.hasReportedState ? (this.data.fan.isOn ? '已开启' : '已关闭') : '暂无上报',
+        'fan.hintText': (error && error.message) || '下发失败，请稍后重试'
+      });
+      wx.showToast({
+        title: (error && error.message) || '风扇控制失败',
+        icon: 'none'
+      });
+    }
   },
 
   async onPullDownRefresh() {
     await this.loadDevices();
     wx.stopPullDownRefresh();
-    // 天气缓存 30 分钟，下拉刷新仅刷设备数据，不重新定位
   },
 
   goToDeviceManagement() {

@@ -278,6 +278,27 @@ page {
   letter-spacing: 0.05em;
 }
 
+.refresh-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 96rpx;
+  height: 52rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  background: #E5F7EE;
+}
+
+.refresh-btn:active {
+  opacity: 0.82;
+}
+
+.refresh-btn-text {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #0F9D69;
+}
+
 .tag {
   background-color: #D1FAE5;
   padding: 2px 8px;
@@ -612,7 +633,7 @@ page {
 
 .device-card {
   width: 100%;
-  background-color: white;
+  background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
   padding: 16px;
   border-radius: 20px;
   display: flex;
@@ -632,19 +653,63 @@ page {
 }
 
 .device-card.active {
-  background-color: #10B981;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  background: linear-gradient(135deg, #10B981 0%, #0F9D69 100%);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.28);
+}
+
+.device-card:not(.active) {
+  border-color: #E5E7EB;
+}
+
+.device-card.pending {
+  opacity: 0.85;
+}
+
+.device-state-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  height: 28px;
+  min-width: 72px;
+  padding: 0 12px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.device-state-badge.is-on {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.device-state-badge.is-off {
+  background: #EEF2F7;
+}
+
+.device-state-badge-text {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.device-state-badge.is-on .device-state-badge-text {
+  color: #FFFFFF;
+}
+
+.device-state-badge.is-off .device-state-badge-text {
+  color: #64748B;
 }
 
 .device-icon-box {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background-color: #F3F4F6;
+  background-color: #EAF4FF;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
+  box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.08);
 }
 
 .device-card.active .device-icon-box {
@@ -659,6 +724,7 @@ page {
   font-weight: 700;
   font-size: 16px;
   display: block;
+  color: #0F172A;
 }
 
 .device-card.active .device-name {
@@ -667,11 +733,24 @@ page {
 
 .device-status {
   font-size: 12px;
-  color: #9CA3AF;
+  color: #475569;
+  font-weight: 700;
+}
+
+.device-hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #64748B;
+  line-height: 1.4;
 }
 
 .device-card.active .device-status {
   color: rgba(255, 255, 255, 0.8);
+}
+
+.device-card.active .device-hint {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .toggle-indicator {
