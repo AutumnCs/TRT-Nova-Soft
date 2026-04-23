@@ -76,9 +76,9 @@
               <text class="device-name">{{item.alias || item.deviceName || '未命名设备'}}</text>
               <text class="device-id">{{item.location || '未设置地点'}} · {{item.plantType || '未设置植物'}}</text>
             </view>
-            <view class="device-status-badge">
+            <view class="device-status-badge {{item.online ? '' : 'offline'}}">
               <text class="status-dot"></text>
-              <text>{{item.hasData ? '在线' : '离线'}}</text>
+              <text>{{item.online ? '在线' : '离线'}}</text>
             </view>
           </view>
 

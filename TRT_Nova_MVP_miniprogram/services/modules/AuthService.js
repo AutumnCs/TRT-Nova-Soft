@@ -3,6 +3,20 @@ const { resolveRuntimeConfig } = require('../config/runtime');
 const TOKEN_STORAGE_KEY = 'apiAccessToken';
 const TOKEN_META_STORAGE_KEY = 'apiAccessTokenMeta';
 
+function normalizeUserMessage(message) {
+  const text = typeof message === 'string' ? message.trim() : '';
+  const map = {
+    'authScfBaseUrl is not configured': '服务地址未配置',
+    'wx.login failed': '微信登录失败，请重试',
+    'auth login failed': '登录失败，请重试',
+    'Route not found': '接口不存在',
+    'code is required': '登录参数缺失',
+    'HTTP 404': '请求地址不存在',
+    'HTTP 500': '服务器开小差了，请稍后重试'
+  };
+  return map[text] || text;
+}
+
 function normalizeResponseBody(body) {
   if (typeof body === 'string') {
     try {
@@ -27,7 +41,7 @@ class AuthService {
   saveToken(payload = {}) {
     const accessToken = payload.accessToken || payload.token || '';
     if (!accessToken) {
-      throw new Error('accessToken is required');
+      throw new Error('登录凭证缺失');
     }
 
     const meta = {
@@ -55,12 +69,12 @@ class AuthService {
       .replace(/\/+$/, '');
 
     if (!baseUrl) {
-      throw new Error('authScfBaseUrl is not configured');
+      throw new Error('服务地址未配置');
     }
 
     const loginRes = await wx.login();
     if (!loginRes?.code) {
-      throw new Error('wx.login failed');
+      throw new Error('微信登录失败，请重试');
     }
 
     const url = `${baseUrl}/auth/login`;
@@ -82,14 +96,14 @@ class AuthService {
             return;
           }
 
-          reject(new Error(body?.msg || body?.message || `HTTP ${res.statusCode}`));
+          reject(new Error(normalizeUserMessage(body?.msg || body?.message || `HTTP ${res.statusCode}`)));
         },
         fail: reject
       });
     });
 
     if (result?.success === false) {
-      throw new Error(result.msg || 'auth login failed');
+      throw new Error(normalizeUserMessage(result.msg || 'auth login failed'));
     }
 
     return this.saveToken(result);

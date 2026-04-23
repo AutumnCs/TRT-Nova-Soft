@@ -20,21 +20,15 @@ App({
   onLaunch() {
     this.checkLoginStatus();
 
-    const runtimeConfig = this.globalData.runtimeConfig || {};
-    if (!runtimeConfig.useCloudBase) {
-      return;
-    }
-
     if (!wx.cloud) {
       console.error('请使用基础库 2.2.3 及以上版本以启用云能力');
       return;
     }
 
-    const initOptions = { traceUser: true };
-    if (this.globalData.env) {
-      initOptions.env = this.globalData.env;
-    }
-    wx.cloud.init(initOptions);
+    wx.cloud.init({
+      env: this.globalData.env || 'cloud1-6gfrptied648aa39',
+      traceUser: true
+    });
   },
 
   checkLoginStatus() {

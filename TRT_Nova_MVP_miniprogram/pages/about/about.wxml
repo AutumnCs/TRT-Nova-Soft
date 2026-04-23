@@ -1,31 +1,22 @@
 <view class="container" style="padding-top: {{statusBarHeight}}px;">
-  
-  <!-- Header with Back Button -->
   <view class="header">
     <view class="back-btn" bindtap="goBack">
       <text class="back-icon">←</text>
     </view>
     <text class="header-title">关于我们</text>
-    <view class="header-right">
-      <view class="share-btn" bindtap="shareApp">
-        <text class="share-icon">📤</text>
-      </view>
-    </view>
+    <view class="header-placeholder"></view>
   </view>
 
   <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}">
-    
-    <!-- App Logo and Info -->
     <view class="app-info-section">
       <view class="app-logo">
-        <text class="logo-icon">🌱</text>
+        <text class="logo-icon">🌿</text>
       </view>
       <text class="app-name">{{appInfo.name}}</text>
       <text class="app-version">版本 {{appInfo.version}}</text>
       <text class="app-description">{{appInfo.description}}</text>
     </view>
 
-    <!-- Features Section -->
     <view class="section">
       <text class="section-title">核心功能</text>
       <view class="feature-list">
@@ -38,7 +29,6 @@
       </view>
     </view>
 
-    <!-- Company Info -->
     <view class="section">
       <text class="section-title">开发者信息</text>
       <view class="info-item">
@@ -51,26 +41,23 @@
       </view>
     </view>
 
-    <!-- Legal Section -->
     <view class="section">
       <text class="section-title">法律信息</text>
       <view class="legal-list">
         <view class="legal-item" bindtap="viewPrivacyPolicy">
           <text class="legal-text">隐私协议</text>
-          <text class="arrow">›</text>
+          <text class="arrow">></text>
         </view>
         <view class="legal-item" bindtap="viewUserAgreement">
           <text class="legal-text">用户协议</text>
-          <text class="arrow">›</text>
+          <text class="arrow">></text>
         </view>
       </view>
     </view>
 
-    <!-- Footer -->
     <view class="footer">
       <text class="footer-text">© 2026 {{appInfo.developer}}</text>
       <text class="footer-subtext">All rights reserved</text>
     </view>
-
   </scroll-view>
 </view>

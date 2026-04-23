@@ -19,16 +19,14 @@
   color: #111827;
 }
 
+.nav-placeholder {
+  width: 64rpx;
+}
+
 .nav-title {
   font-size: 34rpx;
   font-weight: 700;
   color: #111827;
-}
-
-.loading {
-  text-align: center;
-  color: #6b7280;
-  margin-top: 120rpx;
 }
 
 .content {
@@ -55,12 +53,33 @@
   margin-left: 16rpx;
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.device-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
 }
 
 .device-name {
   font-size: 38rpx;
   font-weight: 700;
   color: #111827;
+  flex: 1;
+  min-width: 0;
+}
+
+.device-settings-btn {
+  flex-shrink: 0;
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  background: #eef2ff;
+  color: #3758f9;
+  font-size: 22rpx;
+  line-height: 1;
 }
 
 .device-meta {

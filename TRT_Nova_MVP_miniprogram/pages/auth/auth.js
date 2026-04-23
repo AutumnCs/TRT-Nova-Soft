@@ -1,6 +1,7 @@
 const app = getApp();
 const userProfileService = require('../../services/modules/UserProfileService');
 const authService = require('../../services/modules/AuthService');
+const cloudStorageService = require('../../services/modules/CloudStorageService');
 const { resolveRuntimeConfig } = require('../../services/config/runtime');
 
 const defaultAvatarUrl =
@@ -95,25 +96,42 @@ Page({
         throw new Error('无法获取 openid');
       }
 
-      const userInfo = {
-        avatarUrl: this.data.userInfo.avatarUrl,
+      // 有 openid 后才能上传头像（文件名需要 openid 隔离）
+      let avatarUrl = this.data.userInfo.avatarUrl;
+      try {
+        avatarUrl = await cloudStorageService.uploadAvatar(avatarUrl, openid);
+      } catch (err) {
+        // 上传失败不阻断登录，继续用临时路径
+      }
+
+      const baseUserInfo = {
+        avatarUrl,
         nickName: this.data.userInfo.nickName,
         openId: openid,
         openid,
         loginTime: Date.now()
       };
 
-      wx.setStorageSync('userInfo', userInfo);
-      app.globalData.userInfo = userInfo;
+      wx.setStorageSync('userInfo', baseUserInfo);
+      app.globalData.userInfo = baseUserInfo;
       app.globalData.hasLogin = true;
 
       try {
-        await userProfileService.saveMyProfile({
-          nickName: userInfo.nickName,
-          avatarUrl: userInfo.avatarUrl
-        });
+        const cloudProfile = await userProfileService.getMyProfile();
+        if (cloudProfile) {
+          // 已有云端资料，合并到本地；头像用刚上传的永久地址覆盖旧值
+          const merged = { ...cloudProfile, ...baseUserInfo };
+          wx.setStorageSync('userInfo', merged);
+          app.globalData.userInfo = merged;
+        } else {
+          // 首次登录，初始化云端 profile
+          await userProfileService.saveMyProfile({
+            nickName: baseUserInfo.nickName,
+            avatarUrl
+          });
+        }
       } catch (err) {
-        // Keep login successful even if profile sync fails.
+        // 云端操作失败不影响登录
       }
 
       // 转场动画停留一下再跳转，视觉更流畅

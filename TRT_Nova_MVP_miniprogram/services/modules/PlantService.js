@@ -1,39 +1,52 @@
 const ScfApiAdapter = require('../core/ScfApiAdapter');
 
-/**
- * PlantService
- * 植物库 + 用户收藏，数据源为服务端 plant_library / user_plant_favorites 表。
- * 本地 data/plants.js 仅作离线兜底。
- */
 class PlantService {
   constructor() {
     this.scfApiAdapter = new ScfApiAdapter();
+    this._cachedPlants = [];
   }
 
-  /**
-   * 拉取植物库（含当前用户收藏标记，收藏在前）
-   * @returns {Promise<{ plants: Array }>}
-   */
-  async getPlants() {
+  async getPlants(options = {}) {
+    const { useCache = true } = options;
+
+    if (useCache && this._cachedPlants.length > 0) {
+      return {
+        success: true,
+        plants: this._cachedPlants.slice()
+      };
+    }
+
     const res = await this.scfApiAdapter.getPlantLibrary();
-    const plants = res?.plants || [];
-    // 收藏在前，其余按 sort_order（服务端已排好序）
+    const plants = Array.isArray(res?.plants) ? res.plants : [];
+    const sortedPlants = [
+      ...plants.filter((item) => item.isFavorite),
+      ...plants.filter((item) => !item.isFavorite)
+    ];
+
+    this._cachedPlants = sortedPlants.slice();
+
     return {
       success: true,
-      plants: [
-        ...plants.filter(p => p.isFavorite),
-        ...plants.filter(p => !p.isFavorite)
-      ]
+      plants: sortedPlants
     };
   }
 
-  /**
-   * 切换收藏状态
-   * @param {number} plantId
-   * @returns {Promise<{ success: boolean, plantId: number, isFavorite: boolean }>}
-   */
+  getCachedPlants() {
+    return this._cachedPlants.slice();
+  }
+
   async toggleFavorite(plantId) {
-    return this.scfApiAdapter.togglePlantFavorite(plantId);
+    const result = await this.scfApiAdapter.togglePlantFavorite(plantId);
+    if (result?.success) {
+      this._cachedPlants = this._cachedPlants.map((plant) =>
+        plant.id === plantId ? { ...plant, isFavorite: result.isFavorite } : plant
+      );
+      this._cachedPlants = [
+        ...this._cachedPlants.filter((item) => item.isFavorite),
+        ...this._cachedPlants.filter((item) => !item.isFavorite)
+      ];
+    }
+    return result;
   }
 }
 

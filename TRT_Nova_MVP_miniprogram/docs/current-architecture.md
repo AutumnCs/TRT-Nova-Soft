@@ -39,7 +39,7 @@
 
 以下内容保留作历史参考，但不再视为当前正式主路径：
 
-- [`cloudfunctions/sendDeviceCmd/index.js`](/g:/TRT-Nova-Soft/TRT_Nova_MVP_miniprogram/cloudfunctions/sendDeviceCmd/index.js)
+- [`legacy/cloudfunctions/sendDeviceCmd/index.js`](/g:/TRT-Nova-Soft/TRT_Nova_MVP_miniprogram/legacy/cloudfunctions/sendDeviceCmd/index.js)
 - [`services/core/CloudAdapter.js`](/g:/TRT-Nova-Soft/TRT_Nova_MVP_miniprogram/services/core/CloudAdapter.js)
 - [`services/DB.js`](/g:/TRT-Nova-Soft/TRT_Nova_MVP_miniprogram/services/DB.js)
 

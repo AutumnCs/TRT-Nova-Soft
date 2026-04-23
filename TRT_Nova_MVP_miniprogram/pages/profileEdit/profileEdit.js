@@ -1,13 +1,13 @@
 const app = getApp();
 const userProfileService = require('../../services/modules/UserProfileService');
-
-const defaultAvatarUrl = 'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0';
+const cloudStorageService = require('../../services/modules/CloudStorageService');
 
 Page({
   data: {
     statusBarHeight: 20,
+    regionText: '',
     form: {
-      avatarUrl: defaultAvatarUrl,
+      avatarUrl: '',
       nickName: '',
       gender: 0,
       birthday: '',
@@ -30,11 +30,14 @@ Page({
 
   onLoad: function() {
     const sysInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: sysInfo.statusBarHeight });
-
+    this.setData({ statusBarHeight: sysInfo.statusBarHeight || 20 });
     this.checkLoginStatus();
     this.initFormFromLocal();
     this.loadProfileFromCloud();
+  },
+
+  goBack: function() {
+    wx.navigateBack();
   },
 
   /**
@@ -61,7 +64,7 @@ Page({
     if (!userInfo) return;
     this.setData({
       'form.nickName': userInfo.nickName || '',
-      'form.avatarUrl': userInfo.avatarUrl || defaultAvatarUrl
+      'form.avatarUrl': userInfo.avatarUrl || ''
     });
   },
 
@@ -91,6 +94,7 @@ Page({
           phone: profile.phone || '',
           email: profile.email || ''
         },
+        regionText: Array.isArray(profile.region) && profile.region.length ? profile.region.join(' ') : '',
         genderIndex,
         experienceIndex
       });
@@ -136,7 +140,10 @@ Page({
    */
   onRegionChange: function(e) {
     const region = e.detail.value || [];
-    this.setData({ 'form.region': region });
+    this.setData({
+      'form.region': region,
+      regionText: Array.isArray(region) && region.length ? region.join(' ') : ''
+    });
   },
 
   /**
@@ -200,16 +207,23 @@ Page({
     this.setData({ saving: true });
     wx.showLoading({ title: '保存中', mask: true });
     try {
+      const openid = app.globalData.userInfo?.openid || app.globalData.userInfo?.openId || '';
+      const avatarUrl = await cloudStorageService.uploadAvatar(this.data.form.avatarUrl, openid);
+      if (avatarUrl !== this.data.form.avatarUrl) {
+        this.setData({ 'form.avatarUrl': avatarUrl });
+      }
+
       await userProfileService.saveMyProfile({
         ...this.data.form,
-        nickName
+        nickName,
+        avatarUrl
       });
 
       const oldUserInfo = wx.getStorageSync('userInfo') || {};
       const newUserInfo = {
         ...oldUserInfo,
         nickName,
-        avatarUrl: this.data.form.avatarUrl || oldUserInfo.avatarUrl
+        avatarUrl: avatarUrl || oldUserInfo.avatarUrl
       };
       wx.setStorageSync('userInfo', newUserInfo);
       app.globalData.userInfo = newUserInfo;

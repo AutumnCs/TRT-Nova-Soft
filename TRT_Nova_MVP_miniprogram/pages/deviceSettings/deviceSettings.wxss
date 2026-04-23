@@ -189,10 +189,11 @@
   width: 100%;
   background: #fff;
   border-radius: 32rpx 32rpx 0 0;
-  max-height: 75vh;
+  height: 75vh;
   display: flex;
   flex-direction: column;
   padding-bottom: env(safe-area-inset-bottom);
+  overflow: hidden;
 }
 
 .picker-header {
@@ -201,6 +202,12 @@
   justify-content: space-between;
   padding: 32rpx 32rpx 16rpx;
   flex-shrink: 0;
+}
+
+.picker-toolbar {
+  padding: 0 24rpx 16rpx;
+  flex-shrink: 0;
+  background: #fff;
 }
 
 .picker-title {
@@ -226,7 +233,6 @@
 .picker-search-box {
   display: flex;
   align-items: center;
-  margin: 0 24rpx 16rpx;
   background: #f5f6f8;
   border-radius: 20rpx;
   padding: 0 20rpx;
@@ -234,10 +240,22 @@
   flex-shrink: 0;
 }
 
-.picker-search-icon {
-  font-size: 28rpx;
-  margin-right: 12rpx;
-  color: #9ca3af;
+.picker-search-badge {
+  flex-shrink: 0;
+  height: 44rpx;
+  padding: 0 16rpx;
+  border-radius: 999rpx;
+  background: linear-gradient(135deg, #ecfdf3 0%, #dcfce7 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 14rpx;
+}
+
+.picker-search-badge-text {
+  font-size: 22rpx;
+  color: #15803d;
+  font-weight: 600;
 }
 
 .picker-search-input {
@@ -254,7 +272,7 @@
 /* 植物列表 */
 .picker-list {
   flex: 1;
-  overflow: hidden;
+  min-height: 0;
 }
 
 .picker-empty {

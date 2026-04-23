@@ -130,7 +130,7 @@
 
 以下内容保留作历史参考，但不再是当前正式主路径：
 
-- `cloudfunctions/sendDeviceCmd/index.js`
+- `legacy/cloudfunctions/sendDeviceCmd/index.js`
 
 当前正式方向以：
 

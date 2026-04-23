@@ -46,7 +46,7 @@ class AlertService {
     for (const device of deviceRows) {
       const key = device.logicalKey;
       const updatedAt = Number(device.updatedAt || 0);
-      const isOffline = !device.hasLatest || (updatedAt > 0 && now - updatedAt > OFFLINE_THRESHOLD_MS);
+      const isOffline = this.isDeviceOffline(device, now);
 
       if (!isOffline) continue;
 
@@ -64,6 +64,12 @@ class AlertService {
     }
 
     return alerts;
+  }
+
+  isDeviceOffline(device, nowTs = Date.now()) {
+    if (!device || typeof device !== 'object') return true;
+    const updatedAt = Number(device.updatedAt || 0);
+    return !device.hasLatest || (updatedAt > 0 && nowTs - updatedAt > OFFLINE_THRESHOLD_MS);
   }
 
   /**

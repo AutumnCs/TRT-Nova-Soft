@@ -1,5 +1,6 @@
 const app = getApp();
 const deviceService = require('../../services/modules/DeviceService');
+const alertService = require('../../services/modules/AlertService');
 
 const PLANT_IMAGE_MAP = {
   龟背竹: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?q=80&w=600&auto=format&fit=crop',
@@ -12,7 +13,7 @@ const PLANT_IMAGE_MAP = {
 
 function getGreeting() {
   const h = new Date().getHours();
-  if (h < 6)  return '夜深了';
+  if (h < 6) return '夜深了';
   if (h < 11) return '早上好';
   if (h < 14) return '中午好';
   if (h < 18) return '下午好';
@@ -34,9 +35,29 @@ function calcPlantStatus(params) {
   return { text: '生长良好', type: 'good' };
 }
 
+function mapRowsToDevices(rows) {
+  return rows.map((row) => {
+    const plantType = row.plantType || '其他';
+    const status = calcPlantStatus(row.params || {});
+    const offline = alertService.isDeviceOffline(row);
+    return {
+      logicalKey: row.logicalKey,
+      alias: row.alias || row.deviceName || '未命名设备',
+      location: row.location || '未设置地点',
+      plantType,
+      image: PLANT_IMAGE_MAP[plantType] || PLANT_IMAGE_MAP.其他,
+      online: !offline,
+      statusText: status.text,
+      statusType: status.type
+    };
+  });
+}
+
 Page({
   _refreshTimer: null,
   _loading: false,
+  _bootstrapRetryTimer: null,
+  _bootstrapRetryCount: 0,
 
   data: {
     statusBarHeight: 20,
@@ -47,6 +68,7 @@ Page({
 
   onLoad() {
     const sys = wx.getSystemInfoSync();
+    this._bootstrapRetryCount = 0;
     this.setData({ statusBarHeight: sys.statusBarHeight || 20 });
     this.loadDevices();
   },
@@ -62,6 +84,7 @@ Page({
 
   onUnload() {
     this.stopAutoRefresh();
+    this.clearBootstrapRetry();
   },
 
   checkLoginStatus() {
@@ -90,6 +113,19 @@ Page({
     this._refreshTimer = null;
   },
 
+  clearBootstrapRetry() {
+    if (!this._bootstrapRetryTimer) return;
+    clearTimeout(this._bootstrapRetryTimer);
+    this._bootstrapRetryTimer = null;
+  },
+
+  scheduleBootstrapRetry() {
+    this.clearBootstrapRetry();
+    this._bootstrapRetryTimer = setTimeout(() => {
+      this.loadDevices();
+    }, 1200);
+  },
+
   async loadDevices(options = {}) {
     if (!this.checkLoginStatus() || this._loading) return;
     const { silent = false } = options;
@@ -98,40 +134,50 @@ Page({
 
     try {
       const result = await deviceService.getDeviceData();
-      const rows = result.deviceData || [];
-      const devices = rows.map((row) => {
-        const plantType = row.plantType || '其他';
-        const status = calcPlantStatus(row.params || {});
-        return {
-          logicalKey: row.logicalKey,
-          alias: row.alias || row.deviceName || '未命名设备',
-          location: row.location || '未设置地点',
-          plantType,
-          image: PLANT_IMAGE_MAP[plantType] || PLANT_IMAGE_MAP['其他'],
-          online: !!row.hasLatest,
-          statusText: status.text,
-          statusType: status.type
-        };
-      });
+      const rows = Array.isArray(result?.deviceData) ? result.deviceData : [];
+      const devices = mapRowsToDevices(rows);
 
       const greeting = getGreeting();
       const warnCount = devices.filter((item) => item.statusType === 'warn').length;
+
       this.setData({
         devices,
         hasDevices: devices.length > 0,
         summaryText: devices.length === 0
           ? `${greeting}，还没有绑定设备`
           : warnCount > 0
-            ? `${greeting}，有 ${warnCount} 株植物需要关注 🌿`
-            : `${greeting}，所有设备运行正常 ✓`
+            ? `${greeting}，有 ${warnCount} 株植物需要关注`
+            : `${greeting}，所有设备运行正常`
       });
+
+      this.clearBootstrapRetry();
+      this._bootstrapRetryCount = 0;
     } catch (err) {
-      console.error('loadDevices failed:', err);
-      this.setData({
-        devices: [],
-        hasDevices: false,
-        summaryText: '加载失败，请下拉刷新重试'
-      });
+      console.error('[garden] loadDevices failed:', err);
+      const cachedRows = deviceService.getCachedDeviceList();
+      const cachedDevices = mapRowsToDevices(cachedRows);
+
+      if (cachedDevices.length > 0) {
+        this.setData({
+          devices: cachedDevices,
+          hasDevices: true,
+          summaryText: '设备同步慢了一点，已先展示缓存结果'
+        });
+        return;
+      }
+
+      if (!silent && this.data.devices.length === 0 && this._bootstrapRetryCount < 2) {
+        this._bootstrapRetryCount += 1;
+        this.setData({ summaryText: '设备同步慢了一点，正在重试...' });
+        this.scheduleBootstrapRetry();
+      } else {
+        this.setData({
+          hasDevices: this.data.devices.length > 0,
+          summaryText: this.data.devices.length > 0
+            ? '设备同步慢了一点，已先展示上次结果'
+            : '加载慢了一点，稍后再试'
+        });
+      }
     } finally {
       if (!silent) wx.hideLoading();
       this._loading = false;
@@ -145,9 +191,31 @@ Page({
   openDeviceDetail(e) {
     const logicalKey = e.currentTarget.dataset.logicalkey;
     if (!logicalKey) return;
-    wx.navigateTo({
-      url: `/pages/deviceDetail/deviceDetail?logicalKey=${encodeURIComponent(logicalKey)}`
-    });
+
+    wx.showLoading({ title: '加载中...', mask: true });
+    deviceService.getDeviceData({
+      logicalKey,
+      withHistory: false
+    })
+      .then((result) => {
+        const row = Array.isArray(result?.deviceData) ? result.deviceData[0] : null;
+        if (!row) {
+          wx.showToast({ title: '设备数据暂时不可用', icon: 'none' });
+          return;
+        }
+
+        deviceService.setDeviceDetailBootstrap(logicalKey, result);
+        wx.navigateTo({
+          url: `/pages/deviceDetail/deviceDetail?logicalKey=${encodeURIComponent(logicalKey)}`
+        });
+      })
+      .catch((err) => {
+        console.error('[garden] openDeviceDetail error:', err);
+        wx.showToast({ title: '加载失败，请稍后再试', icon: 'none' });
+      })
+      .finally(() => {
+        wx.hideLoading();
+      });
   },
 
   openDeviceManager() {

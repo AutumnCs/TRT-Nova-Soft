@@ -186,8 +186,8 @@ Page({
         _id: item.logicalKey || '',
         logicalKey: item.logicalKey || '',
         name: item.alias || item.deviceName || '未命名设备',
-        status: item.hasLatest ? '在线' : '离线',
-        icon: item.hasLatest ? '🪴' : '📟',
+        status: alertService.isDeviceOffline(item) ? '离线' : '在线',
+        icon: alertService.isDeviceOffline(item) ? '📟' : '🪴',
         active: false
       }));
 
@@ -298,7 +298,7 @@ Page({
 
     const selected =
       deviceRows.find((item) => item && item.logicalKey === selectedLogicalKey) ||
-      deviceRows.find((item) => item && item.hasLatest && item.params) ||
+      deviceRows.find((item) => item && !alertService.isDeviceOffline(item) && item.params) ||
       deviceRows[0];
 
     const params = selected && selected.params ? selected.params : {};

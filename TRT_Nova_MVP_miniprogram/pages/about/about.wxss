@@ -25,6 +25,11 @@ page {
   z-index: 10;
 }
 
+.header-placeholder {
+  width: 36px;
+  height: 36px;
+}
+
 .header-title {
   font-size: 18px;
   font-weight: 700;
@@ -50,30 +55,6 @@ page {
   font-size: 20px;
   font-weight: 700;
   color: #374151;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-}
-
-.share-btn {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  transition: all 0.2s;
-}
-
-.share-btn:active {
-  background-color: #F3F4F6;
-  transform: scale(0.9);
-}
-
-.share-icon {
-  font-size: 16px;
 }
 
 /* Scroll Content */

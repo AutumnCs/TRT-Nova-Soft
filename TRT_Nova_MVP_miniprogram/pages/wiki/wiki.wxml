@@ -1,11 +1,13 @@
-<!-- 植物列表页 -->
 <view wx:if="{{!showDetail}}" class="container">
-
-  <!-- 顶部搜索区（固定在顶部，加状态栏高度）-->
   <view class="search-section" style="padding-top: calc({{statusBarHeight}}px + 8px)">
     <view class="search-box">
       <text class="search-icon">🔍</text>
-      <input class="search-input" placeholder="搜索植物名称、科属或特征" placeholder-class="placeholder" bindinput="onSearch"/>
+      <input
+        class="search-input"
+        placeholder="搜索植物名称、科属或特征"
+        placeholder-class="placeholder"
+        bindinput="onSearch"
+      />
     </view>
     <view class="category-tags">
       <view class="tag {{activeCategory === 'all' ? 'active' : ''}}" bindtap="switchCategory" data-category="all">全部</view>
@@ -14,21 +16,27 @@
   </view>
 
   <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}">
+    <view wx:if="{{loading && filteredPlants.length === 0}}" class="skeleton-grid">
+      <view wx:for="{{[1,2,3,4]}}" wx:key="*this" class="skeleton-card">
+        <view class="skeleton-image"></view>
+        <view class="skeleton-body">
+          <view class="skeleton-line skeleton-line-lg"></view>
+          <view class="skeleton-line skeleton-line-md"></view>
+          <view class="skeleton-chip"></view>
+        </view>
+      </view>
+    </view>
 
-    <!-- 植物卡片列表 -->
-    <view class="plant-grid">
+    <view wx:else class="plant-grid fade-in">
       <block wx:for="{{filteredPlants}}" wx:key="id">
         <view class="plant-card" bindtap="showPlantDetail" data-id="{{item.id}}">
-          <!-- 植物图片 -->
           <view class="plant-image-container">
             <image class="plant-image" src="{{item.image}}" mode="aspectFill"></image>
-            <!-- 收藏图标 -->
             <view class="favorite-icon {{item.isFavorite ? 'active' : ''}}" catchtap="toggleFavorite" data-id="{{item.id}}">
               <text>{{item.isFavorite ? '❤️' : '🤍'}}</text>
             </view>
           </view>
-          
-          <!-- 植物信息 -->
+
           <view class="plant-info">
             <text class="plant-name">{{item.name}}</text>
             <text class="plant-family">{{item.family}}</text>
@@ -36,8 +44,7 @@
               {{item.featureText}}
             </view>
           </view>
-          
-          <!-- 详情按钮 -->
+
           <view class="detail-btn">
             <text>i</text>
           </view>
@@ -45,8 +52,7 @@
       </block>
     </view>
 
-    <!-- 底部模块：动态日历 -->
-    <view class="calendar-section">
+    <view wx:if="{{!loading || filteredPlants.length > 0}}" class="calendar-section fade-in">
       <view class="calendar-header">
         <text class="calendar-title">{{calendarYear}} 年 {{calendarMonth}} 月植物日历</text>
         <view class="calendar-icon">
@@ -55,15 +61,11 @@
       </view>
       <text class="calendar-desc">今日推荐：{{calendarTodayPlant}}・点击卡片查看养护详情</text>
     </view>
-
   </scroll-view>
 </view>
 
-<!-- 植物详情页（scroll-view 包裹以解决底部遮挡）-->
 <view wx:else class="container detail-page" style="padding-top: {{statusBarHeight}}px;">
-
-  <!-- 顶部导航 -->
-  <view class="detail-nav">
+  <view class="detail-nav" style="padding-top: {{detailNavPaddingTop}}px;">
     <view class="nav-btn close-btn" bindtap="closeDetail">
       <text>×</text>
     </view>
@@ -79,8 +81,6 @@
   </view>
 
   <scroll-view scroll-y="true" class="detail-scroll" show-scrollbar="{{false}}">
-
-    <!-- 植物展示区 -->
     <view class="plant-showcase">
       <image class="showcase-image" src="{{currentPlant.image}}" mode="aspectFill"></image>
       <view class="plant-details">
@@ -94,16 +94,14 @@
       </view>
     </view>
 
-    <!-- 植物简介 -->
     <view class="plant-intro">
       <text class="section-title">植物简介</text>
       <text class="intro-text">{{currentPlant.description}}</text>
       <view class="more-link" bindtap="toggleMore">
-        {{showMore ? '收起' : '查看更多详细资料'}} ↓
+        {{showMore ? '收起 ↑' : '查看更多详细资料 ↓'}}
       </view>
     </view>
 
-    <!-- 养护信息区 -->
     <view class="care-info">
       <text class="section-title">养护信息</text>
       <view class="care-grid">
@@ -118,10 +116,8 @@
       </view>
     </view>
 
-    <!-- 底部操作按钮 -->
     <view class="action-section">
       <button class="add-reminder-btn" bindtap="addReminder">加入养护提醒</button>
     </view>
-
   </scroll-view>
 </view>

@@ -1,4 +1,10 @@
 <view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
+  <view class="nav">
+    <view class="nav-btn" bindtap="goBack">←</view>
+    <text class="nav-title">个人资料</text>
+    <view class="nav-placeholder"></view>
+  </view>
+
   <view class="header">
     <text class="title">个人资料</text>
     <text class="subtitle">完善信息，获得更贴心的养护建议</text>
@@ -13,7 +19,10 @@
         <view class="row-right flex-1">
           <view class="avatar-wrap">
             <button class="avatar-uploader" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar">
-              <image class="avatar" src="{{form.avatarUrl}}" mode="aspectFill"></image>
+              <image wx:if="{{form.avatarUrl}}" class="avatar" src="{{form.avatarUrl}}" mode="aspectFill"></image>
+              <view wx:else class="avatar-empty">
+                <text class="avatar-empty-icon">📷</text>
+              </view>
             </button>
           </view>
         </view>
@@ -43,7 +52,7 @@
           <picker mode="selector" range="{{genderOptions}}" range-key="label" value="{{genderIndex}}" bindchange="onGenderChange">
             <view class="picker">
               <text class="picker-text">{{genderOptions[genderIndex].label}}</text>
-              <text class="picker-arrow">›</text>
+              <text class="picker-arrow">></text>
             </view>
           </picker>
         </view>
@@ -56,8 +65,8 @@
         <view class="row-right flex-1">
           <picker mode="region" value="{{form.region}}" bindchange="onRegionChange">
             <view class="picker">
-              <text class="picker-text">{{form.region.length ? form.region.join(' ') : '请选择'}}</text>
-              <text class="picker-arrow">›</text>
+              <text class="picker-text">{{regionText || '请选择'}}</text>
+              <text class="picker-arrow">></text>
             </view>
           </picker>
         </view>
@@ -71,7 +80,7 @@
           <picker mode="date" value="{{form.birthday}}" bindchange="onBirthdayChange">
             <view class="picker">
               <text class="picker-text">{{form.birthday || '请选择'}}</text>
-              <text class="picker-arrow">›</text>
+              <text class="picker-arrow">></text>
             </view>
           </picker>
         </view>
@@ -85,7 +94,7 @@
           <picker mode="selector" range="{{experienceOptions}}" value="{{experienceIndex}}" bindchange="onExperienceChange">
             <view class="picker">
               <text class="picker-text">{{form.experienceLevel || '请选择'}}</text>
-              <text class="picker-arrow">›</text>
+              <text class="picker-arrow">></text>
             </view>
           </picker>
         </view>
@@ -133,4 +142,3 @@
     </button>
   </view>
 </view>
-

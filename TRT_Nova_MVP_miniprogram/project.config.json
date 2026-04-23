@@ -3,7 +3,7 @@
     "condition": true,
     "es6": true,
     "enhance": true,
-    "minified": false,
+    "minified": true,
     "uglifyFileName": false
   },
   "simulatorPluginLibVersion": {

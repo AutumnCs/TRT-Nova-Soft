@@ -5,7 +5,7 @@
     </view>
   </view>
 
-  <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}">
+  <view class="scroll-content">
     <view class="plant-section">
       <view class="glow-bg"></view>
       <view class="plant-circle">
@@ -91,7 +91,7 @@
           <view wx:for="{{devices}}" wx:key="_id" class="device-item {{item.active ? 'active' : ''}}" bindtap="switchDevice" data-index="{{index}}">
             <text class="device-item-icon">{{item.icon}}</text>
             <text class="device-item-name">{{item.name}}</text>
-            <text class="device-item-status {{item.status === '在线' ? 'status-text-online' : ''}}">{{item.status}}</text>
+            <text class="device-item-status {{item.status === '在线' ? 'status-text-online' : 'status-text-offline'}}">{{item.status}}</text>
           </view>
           <view class="add-device" bindtap="goToDeviceManagement">
             <text class="add-device-icon">+</text>
@@ -191,6 +191,6 @@
 
     <!-- 无设备时的底部间距 -->
     <view wx:if="{{!hasDevices}}" style="padding-bottom: 120px;"></view>
-  </scroll-view>
+  </view>
 </view>
 

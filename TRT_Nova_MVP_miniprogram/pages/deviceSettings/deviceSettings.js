@@ -4,7 +4,57 @@ const { PLANTS } = require('../../data/plants');
 
 const PROVISION_URL = 'http://192.168.4.1';
 
+function scorePlantMatch(plant, keyword) {
+  const name = String(plant?.name || '').toLowerCase();
+  const family = String(plant?.family || '').toLowerCase();
+  const featureText = String(plant?.featureText || '').toLowerCase();
+  const tags = Array.isArray(plant?.tags) ? plant.tags.join(' ').toLowerCase() : '';
+  if (!keyword) return 0;
+
+  if (name === keyword) return -2;
+  if (name.startsWith(keyword)) return -1;
+  if (family.startsWith(keyword)) return 0;
+  if (featureText.startsWith(keyword)) return 1;
+  if (name.includes(keyword)) return 2;
+  if (family.includes(keyword)) return 3;
+  if (featureText.includes(keyword)) return 4;
+  if (tags.includes(keyword)) return 5;
+  return 99;
+}
+
+function filterPlantsByKeyword(plants, rawKeyword = '') {
+  const keyword = String(rawKeyword || '').toLowerCase().trim();
+  const source = Array.isArray(plants) ? plants : [];
+
+  if (!keyword) {
+    return source.slice().sort((a, b) => {
+      if (Boolean(b.isFavorite) !== Boolean(a.isFavorite)) {
+        return a.isFavorite ? -1 : 1;
+      }
+      return String(a.name || '').localeCompare(String(b.name || ''), 'zh-Hans-CN');
+    });
+  }
+
+  return source
+    .filter((item) =>
+      item.name.toLowerCase().includes(keyword) ||
+      item.family.toLowerCase().includes(keyword) ||
+      String(item.featureText || '').toLowerCase().includes(keyword) ||
+      (Array.isArray(item.tags) ? item.tags.join(' ').toLowerCase().includes(keyword) : false)
+    )
+    .sort((a, b) => {
+      const scoreDiff = scorePlantMatch(a, keyword) - scorePlantMatch(b, keyword);
+      if (scoreDiff !== 0) return scoreDiff;
+      if (Boolean(b.isFavorite) !== Boolean(a.isFavorite)) {
+        return a.isFavorite ? -1 : 1;
+      }
+      return String(a.name || '').localeCompare(String(b.name || ''), 'zh-Hans-CN');
+    });
+}
+
 Page({
+  _allPickerPlants: [],
+
   data: {
     logicalKey: '',
     alias: '',
@@ -12,11 +62,11 @@ Page({
     selectedPlant: null,
     saving: false,
     provisionUrl: PROVISION_URL,
-    // 植物选择弹窗
     showPlantPicker: false,
     pickerKeyword: '',
     pickerPlants: [],
-    pickerLoading: false
+    pickerLoading: false,
+    pickerInputFocus: false
   },
 
   async onLoad(options) {
@@ -27,6 +77,7 @@ Page({
 
   async loadCurrentInfo() {
     if (!this.data.logicalKey) return;
+
     wx.showLoading({ title: '加载中...' });
     try {
       const result = await deviceService.getDeviceData({
@@ -36,10 +87,9 @@ Page({
       const row = (result.deviceData || [])[0];
       if (!row) return;
 
-      // 优先用服务端返回的完整 plant 对象，其次按名称匹配兜底
       let selectedPlant = row.plant || null;
       if (!selectedPlant && row.plantType) {
-        selectedPlant = PLANTS.find(p => p.name === row.plantType) || null;
+        selectedPlant = PLANTS.find((item) => item.name === row.plantType) || null;
       }
 
       this.setData({
@@ -56,60 +106,105 @@ Page({
   },
 
   onAliasInput(e) {
-    this.setData({ alias: e.detail.value });
+    this.setData({ alias: e.detail.value || '' });
   },
 
   onLocationInput(e) {
-    this.setData({ location: e.detail.value });
+    this.setData({ location: e.detail.value || '' });
   },
 
-  // 打开植物选择弹窗
   async openPlantPicker() {
-    this.setData({ showPlantPicker: true, pickerKeyword: '', pickerLoading: true });
+    const cachedPlants = plantService.getCachedPlants();
+
+    this.setData({
+      showPlantPicker: true,
+      pickerKeyword: '',
+      pickerPlants: filterPlantsByKeyword(cachedPlants),
+      pickerLoading: cachedPlants.length === 0,
+      pickerInputFocus: true
+    });
+
+    this._allPickerPlants = cachedPlants;
+
     try {
-      const res = await plantService.getPlants();
-      this.setData({ pickerPlants: res?.plants || [], pickerLoading: false });
+      const res = await plantService.getPlants({ useCache: true });
+      const plants = res?.plants || [];
+      this._allPickerPlants = plants;
+      this.setData({
+        pickerPlants: filterPlantsByKeyword(plants, this.data.pickerKeyword),
+        pickerLoading: false
+      });
     } catch (err) {
       console.error(err);
-      // 兜底本地数据
-      const sorted = [
-        ...PLANTS.filter(p => p.isFavorite),
-        ...PLANTS.filter(p => !p.isFavorite)
-      ];
-      this.setData({ pickerPlants: sorted, pickerLoading: false });
+      if (cachedPlants.length > 0) {
+        this._allPickerPlants = cachedPlants;
+        this.setData({
+          pickerPlants: filterPlantsByKeyword(cachedPlants, this.data.pickerKeyword),
+          pickerLoading: false
+        });
+      } else {
+        this._allPickerPlants = [];
+        this.setData({
+          pickerPlants: [],
+          pickerLoading: false
+        });
+        wx.showToast({
+          title: '植物库加载失败，请稍后重试',
+          icon: 'none'
+        });
+      }
     }
   },
 
   closePlantPicker() {
-    this.setData({ showPlantPicker: false, pickerKeyword: '' });
-  },
-
-  // 弹窗内搜索
-  onPickerSearch(e) {
-    const keyword = e.detail.value.toLowerCase().trim();
-    this.setData({ pickerKeyword: keyword });
-    // 直接在已加载的列表上过滤，无需再请求
-    const allPlants = this._cachedPickerPlants || this.data.pickerPlants;
-    if (!this._cachedPickerPlants) {
-      this._cachedPickerPlants = this.data.pickerPlants;
+    this.setData({
+      showPlantPicker: false,
+      pickerKeyword: '',
+      pickerInputFocus: false
+    });
+    if (typeof wx.hideKeyboard === 'function') {
+      wx.hideKeyboard();
     }
-    const filtered = keyword
-      ? allPlants.filter(p =>
-          p.name.toLowerCase().includes(keyword) ||
-          p.family.toLowerCase().includes(keyword)
-        )
-      : allPlants;
-    this.setData({ pickerPlants: filtered });
   },
 
-  // 选择植物
+  onPickerKeywordInput(e) {
+    const pickerKeyword = e.detail.value || '';
+    this.setData({
+      pickerKeyword,
+      pickerPlants: filterPlantsByKeyword(this._allPickerPlants, pickerKeyword)
+    });
+  },
+
+  onPickerSearchConfirm(e) {
+    const keyword = (e?.detail?.value) || this.data.pickerKeyword || '';
+
+    this.setData({
+      pickerKeyword: keyword,
+      pickerPlants: filterPlantsByKeyword(this._allPickerPlants, keyword),
+      pickerInputFocus: false
+    });
+
+    if (typeof wx.hideKeyboard === 'function') {
+      wx.hideKeyboard();
+    }
+  },
+
   selectPlant(e) {
     const id = Number(e.currentTarget.dataset.id);
-    const plant = (this._cachedPickerPlants || this.data.pickerPlants).find(p => p.id === id);
+    const plant = (this._allPickerPlants || []).find((item) => item.id === id);
     if (!plant) return;
+
     wx.vibrateShort({ type: 'light' });
-    this._cachedPickerPlants = null;
-    this.setData({ selectedPlant: plant, showPlantPicker: false, pickerKeyword: '' });
+    this.setData({
+      selectedPlant: plant,
+      showPlantPicker: false,
+      pickerKeyword: '',
+      pickerInputFocus: false
+    });
+
+    if (typeof wx.hideKeyboard === 'function') {
+      wx.hideKeyboard();
+    }
   },
 
   stopPropagation() {},
@@ -137,7 +232,7 @@ Page({
       success: () => {
         wx.showModal({
           title: '已复制配网地址',
-          content: '微信小程序不能直接拉起系统浏览器。请退出到浏览器后粘贴打开配网页。',
+          content: '微信小程序不能直接拉起系统浏览器，请切换到浏览器后粘贴打开。',
           showCancel: false,
           confirmText: '知道了'
         });
@@ -151,6 +246,7 @@ Page({
       wx.showToast({ title: '缺少设备标识', icon: 'none' });
       return;
     }
+
     this.setData({ saving: true });
     wx.showLoading({ title: '保存中...' });
     try {
@@ -162,6 +258,7 @@ Page({
         plantType: plant ? plant.name : '',
         plantLibraryId: plant ? plant.id : null
       });
+
       if (result.success) {
         wx.showToast({ title: '已保存', icon: 'success' });
         setTimeout(() => wx.navigateBack({ delta: 1 }), 500);

@@ -189,7 +189,7 @@ exports.main = async (event) => {
   if (method !== 'POST' || !path.endsWith('/auth/login')) {
     return json(404, {
       success: false,
-      msg: 'Route not found'
+      msg: '接口不存在'
     });
   }
 
@@ -198,7 +198,7 @@ exports.main = async (event) => {
     if (!code) {
       return json(400, {
         success: false,
-        msg: 'code is required'
+        msg: '登录参数缺失'
       });
     }
 
@@ -236,7 +236,7 @@ exports.main = async (event) => {
     });
     return json(500, {
       success: false,
-      msg: err.message || 'Internal Server Error'
+      msg: err.message || '服务器开小差了，请稍后重试'
     });
   }
 };

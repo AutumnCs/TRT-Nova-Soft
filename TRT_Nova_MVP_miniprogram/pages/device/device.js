@@ -1,6 +1,16 @@
 const deviceService = require('../../services/modules/DeviceService');
+const plantService = require('../../services/modules/PlantService');
+const alertService = require('../../services/modules/AlertService');
+const { PLANTS } = require('../../data/plants');
 
-const PLANT_OPTIONS = ['龟背竹', '绿萝', '多肉', '薄荷', '番茄', '其他'];
+const FALLBACK_PLANT_OPTIONS = Array.from(
+  new Set(
+    (Array.isArray(PLANTS) ? PLANTS : [])
+      .map((item) => String(item && item.name ? item.name : '').trim())
+      .filter(Boolean)
+      .concat('其他')
+  )
+);
 
 Page({
   _refreshTimer: null,
@@ -11,12 +21,13 @@ Page({
     alias: '',
     location: '',
     plantTypeIndex: 0,
-    plantOptions: PLANT_OPTIONS,
+    plantOptions: FALLBACK_PLANT_OPTIONS,
     deviceList: [],
     cmdInput: ''
   },
 
   onLoad() {
+    this.loadPlantOptions();
     this.refreshData();
   },
 
@@ -30,6 +41,39 @@ Page({
 
   onUnload() {
     this.stopAutoRefresh();
+  },
+
+  async loadPlantOptions() {
+    const buildOptions = (plants) => {
+      const names = (Array.isArray(plants) ? plants : [])
+        .map((item) => String(item && item.name ? item.name : '').trim())
+        .filter(Boolean);
+
+      const options = Array.from(new Set(names.concat('其他')));
+      return options.length > 0 ? options : FALLBACK_PLANT_OPTIONS;
+    };
+
+    try {
+      const cachedPlants = plantService.getCachedPlants();
+      if (cachedPlants.length > 0) {
+        this.setData({
+          plantOptions: buildOptions(cachedPlants),
+          plantTypeIndex: 0
+        });
+      }
+
+      const result = await plantService.getPlants({ useCache: true });
+      this.setData({
+        plantOptions: buildOptions(result?.plants),
+        plantTypeIndex: 0
+      });
+    } catch (err) {
+      console.warn('[device] loadPlantOptions failed, use fallback:', err);
+      this.setData({
+        plantOptions: FALLBACK_PLANT_OPTIONS,
+        plantTypeIndex: 0
+      });
+    }
   },
 
   onDeviceCodeInput(e) {
@@ -59,7 +103,7 @@ Page({
 
   async bindDevice() {
     if (!this.data.deviceCode) {
-      return wx.showToast({ title: '请输入设备唯一码', icon: 'none' });
+      return wx.showToast({ title: '请输入设备唯一编码', icon: 'none' });
     }
 
     wx.showLoading({ title: '绑定中...' });
@@ -68,7 +112,7 @@ Page({
         deviceCode: this.data.deviceCode,
         alias: this.data.alias,
         location: this.data.location,
-        plantType: this.data.plantOptions[this.data.plantTypeIndex] || ''
+        plantType: this.data.plantOptions[this.data.plantTypeIndex] || '其他'
       });
       wx.hideLoading();
 
@@ -136,7 +180,8 @@ Page({
       const result = await deviceService.getDeviceData();
       const list = (result.deviceData || []).map((item) => ({
         ...item,
-        hasData: !!item.hasLatest
+        hasData: !!item.hasLatest,
+        online: !alertService.isDeviceOffline(item)
       }));
       this.setData({ deviceList: list });
     } catch (err) {
@@ -163,9 +208,8 @@ Page({
   async sendCmd(e) {
     const logicalKey = e.currentTarget.dataset.logicalkey;
     const rawInput = this.data.cmdInput || '';
-    const cmd = rawInput;
     if (!logicalKey) return wx.showToast({ title: '设备标识缺失', icon: 'none' });
-    if (!cmd) return wx.showToast({ title: '请输入命令', icon: 'none' });
+    if (!rawInput) return wx.showToast({ title: '请输入命令', icon: 'none' });
 
     wx.showLoading({ title: '发送中...' });
     try {
@@ -174,12 +218,12 @@ Page({
         params = JSON.parse(rawInput);
       } catch (err) {
         wx.hideLoading();
-        return wx.showToast({ title: '鎸囦护闇€鏄?JSON 瀵硅薄', icon: 'none' });
+        return wx.showToast({ title: '请输入正确 JSON 对象', icon: 'none' });
       }
 
       if (!params || typeof params !== 'object' || Array.isArray(params)) {
         wx.hideLoading();
-        return wx.showToast({ title: '鎸囦护闇€鏄?JSON 瀵硅薄', icon: 'none' });
+        return wx.showToast({ title: '请输入正确 JSON 对象', icon: 'none' });
       }
 
       const result = await deviceService.sendDeviceCmd(logicalKey, params);

@@ -669,7 +669,7 @@ async function queryHistoryByUser(db, openid, input) {
   if (!logicalKey) {
     return {
       success: false,
-      msg: 'logicalKey is required'
+      msg: '设备标识缺失'
     };
   }
 
@@ -730,7 +730,7 @@ async function bindDeviceForUser(db, openid, input) {
   if (!deviceCode || !fullDeviceName) {
     return {
       success: false,
-      msg: 'deviceCode is required'
+      msg: '请输入设备码'
     };
   }
 
@@ -755,7 +755,7 @@ async function bindDeviceForUser(db, openid, input) {
       await conn.rollback();
       return {
         success: false,
-        msg: 'Device code not found or inactive'
+        msg: '设备码不存在或设备未激活'
       };
     }
 
@@ -775,7 +775,7 @@ async function bindDeviceForUser(db, openid, input) {
         await conn.commit();
         return {
           success: true,
-          msg: 'Already bound',
+          msg: '该设备已绑定到当前账号',
           logicalKey
         };
       }
@@ -783,7 +783,7 @@ async function bindDeviceForUser(db, openid, input) {
       await conn.rollback();
       return {
         success: false,
-        msg: 'Device already bound by another user'
+        msg: '该设备已被其他账号绑定'
       };
     }
 
@@ -842,7 +842,7 @@ async function bindDeviceForUser(db, openid, input) {
     await conn.commit();
     return {
       success: true,
-      msg: 'Binding successful',
+      msg: '绑定成功',
       deviceCode,
       deviceName: fullDeviceName,
       logicalKey
@@ -860,7 +860,7 @@ async function unbindDeviceForUser(db, openid, input) {
   if (!logicalKey) {
     return {
       success: false,
-      msg: 'logicalKey is required'
+      msg: '设备标识缺失'
     };
   }
 
@@ -875,7 +875,7 @@ async function unbindDeviceForUser(db, openid, input) {
   if (!rows.length) {
     return {
       success: false,
-      msg: 'Binding record not found'
+      msg: '未找到绑定记录'
     };
   }
 
@@ -892,13 +892,13 @@ async function unbindDeviceForUser(db, openid, input) {
   if (!updateResult.affectedRows) {
     return {
       success: false,
-      msg: 'Unbind failed: record may have already been modified'
+      msg: '解绑失败，请稍后重试'
     };
   }
 
   return {
     success: true,
-    msg: 'Unbind successful',
+    msg: '解绑成功',
     logicalKey
   };
 }
@@ -908,7 +908,7 @@ async function updateDeviceProfileForUser(db, openid, input) {
   if (!logicalKey) {
     return {
       success: false,
-      msg: 'logicalKey is required'
+      msg: '设备标识缺失'
     };
   }
 
@@ -928,7 +928,7 @@ async function updateDeviceProfileForUser(db, openid, input) {
   if (!rows.length) {
     return {
       success: false,
-      msg: 'Binding record not found'
+      msg: '未找到绑定记录'
     };
   }
 
@@ -948,7 +948,7 @@ async function updateDeviceProfileForUser(db, openid, input) {
 
   return {
     success: true,
-    msg: 'Profile updated',
+    msg: '保存成功',
     logicalKey,
     alias,
     location,
@@ -1203,7 +1203,7 @@ async function sendDeviceCmdForUser(db, openid, input) {
   const resolved = resolveCommandParams(input);
 
   if (!logicalKey) {
-    return { success: false, msg: 'logicalKey is required' };
+    return { success: false, msg: '设备标识缺失' };
   }
   if (!resolved.ok) {
     return { success: false, msg: resolved.msg };
@@ -1333,10 +1333,10 @@ exports.main = async (event) => {
       return json(200, await togglePlantFavorite(db, openid, body));
     }
 
-    return json(404, {
-      success: false,
-      msg: 'Route not found'
-    });
+      return json(404, {
+        success: false,
+        msg: '接口不存在'
+      });
   } catch (err) {
     console.error('api-scf error:', {
       message: err.message,

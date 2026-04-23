@@ -1,4 +1,5 @@
 const deviceService = require('../../services/modules/DeviceService');
+const alertService = require('../../services/modules/AlertService');
 
 const PLANT_IMAGE_MAP = {
   龟背竹: 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?q=80&w=600&auto=format&fit=crop',
@@ -43,10 +44,12 @@ Page({
   _historyRows: [],
 
   data: {
+    statusBarHeight: 20,
     logicalKey: '',
     loading: true,
     device: null,
     metricTabs: [],
+    hasTrendData: false,
     selectedMetricKey: 'soil_percent',
     rangeKey: 'day',
     rangeOptions: [
@@ -62,8 +65,22 @@ Page({
 
   onLoad(options) {
     const logicalKey = decodeURIComponent(options?.logicalKey || '');
-    this.setData({ logicalKey: logicalKey || '' });
-    this.loadAll({ withHistory: true });
+    const sysInfo = wx.getSystemInfoSync();
+    this.setData({
+      statusBarHeight: sysInfo.statusBarHeight || 20,
+      logicalKey: logicalKey || ''
+    });
+
+    const bootstrap = deviceService.consumeDeviceDetailBootstrap(logicalKey);
+    if (bootstrap) {
+      this.applyDevicePayload(bootstrap);
+      this.setData({ loading: false });
+      this.loadTrendData({ silent: true });
+      return;
+    }
+
+    wx.showLoading({ title: '加载中...', mask: true });
+    this.loadDeviceBase();
   },
 
   onShow() {
@@ -76,11 +93,27 @@ Page({
 
   onUnload() {
     this.stopAutoRefresh();
+    wx.hideLoading();
+  },
+
+  getHistoryRequestOptions() {
+    const optionMap = {
+      day: { historyGranularity: '5m', historyRange: '24h', historyLimit: 288 },
+      week: { historyGranularity: '1h', historyRange: '7d', historyLimit: 168 },
+      month: { historyGranularity: '1d', historyRange: '30d', historyLimit: 30 }
+    };
+    const current = optionMap[this.data.rangeKey] || optionMap.day;
+    return {
+      ...current,
+      historyParamKey: this.data.selectedMetricKey
+    };
   },
 
   startAutoRefresh() {
     this.stopAutoRefresh();
-    this._refreshTimer = setInterval(() => this.loadAll({ withHistory: false, silent: true }), 3000);
+    this._refreshTimer = setInterval(() => {
+      this.loadDeviceBase({ silent: true });
+    }, 3000);
   },
 
   stopAutoRefresh() {
@@ -89,84 +122,131 @@ Page({
     this._refreshTimer = null;
   },
 
-  async loadAll(options = {}) {
-    const { withHistory = false, silent = false } = options;
+  applyDevicePayload(result) {
+    const row = (result?.deviceData || [])[0] || null;
+    if (!row) return false;
+
+    const metricTabs = METRIC_DEFS.map((def) => {
+      const node = row.params?.[def.key];
+      const rawValue = node ? node.value : null;
+      return {
+        ...def,
+        value: formatMetricValue(rawValue, def.key),
+        active: def.key === this.data.selectedMetricKey
+      };
+    });
+
+    this.setData({
+      device: {
+        logicalKey: row.logicalKey,
+        alias: row.alias || row.deviceName || '未命名设备',
+        location: row.location || '未设置地点',
+        plantType: row.plantType || '其他',
+        online: !alertService.isDeviceOffline(row),
+        image: PLANT_IMAGE_MAP[row.plantType || '其他'] || PLANT_IMAGE_MAP.其他
+      },
+      metricTabs
+    });
+
+    return true;
+  },
+
+  async loadDeviceBase(options = {}) {
+    const { silent = false } = options;
     const logicalKey = this.data.logicalKey;
     if (!logicalKey) return;
 
-    if (!silent) this.setData({ loading: true });
+    if (!silent) {
+      this.setData({ loading: true });
+    }
+
     try {
       const result = await deviceService.getDeviceData({
         logicalKey,
-        withHistory,
-        historyLimit: 300
+        withHistory: false
       });
-      const row = (result.deviceData || [])[0] || null;
-      if (!row) {
-        this.setData({
-          device: null,
-          metricTabs: [],
-          trendTip: '设备不存在或未绑定'
-        });
-        return;
+
+      const ok = this.applyDevicePayload(result);
+      if (!ok) {
+        throw new Error('device not found');
       }
 
-      const metricTabs = METRIC_DEFS.map((def) => {
-        const node = row.params?.[def.key];
-        const rawValue = node ? node.value : null;
-        return {
-          ...def,
-          value: formatMetricValue(rawValue, def.key),
-          active: def.key === this.data.selectedMetricKey
-        };
-      });
-
-      this.setData({
-        device: {
-          logicalKey: row.logicalKey,
-          alias: row.alias || row.deviceName || '未命名设备',
-          location: row.location || '未设置地点',
-          plantType: row.plantType || '其他',
-          online: !!row.hasLatest,
-          image: PLANT_IMAGE_MAP[row.plantType || '其他'] || PLANT_IMAGE_MAP.其他
-        },
-        metricTabs
-      });
-
-      if (withHistory) {
-        this._historyRows = result.historyData || [];
-        this.refreshTrend();
-      } else {
-        this.refreshTrend({ skipHistoryUpdate: true });
-      }
+      wx.hideLoading();
+      this.loadTrendData({ silent: true });
     } catch (err) {
-      console.error(err);
-      this.setData({ trendTip: '加载失败，请稍后重试' });
+      console.error('[deviceDetail] loadDeviceBase error:', err);
+      if (!silent && !this.data.device) {
+        wx.hideLoading();
+        wx.showToast({ title: '加载失败，请稍后再试', icon: 'none' });
+        setTimeout(() => {
+          wx.navigateBack({ delta: 1 });
+        }, 400);
+      }
     } finally {
-      if (!silent) this.setData({ loading: false });
+      if (!silent) {
+        this.setData({ loading: false });
+      }
+    }
+  },
+
+  async loadTrendData(options = {}) {
+    const { silent = false } = options;
+    const logicalKey = this.data.logicalKey;
+    if (!logicalKey) return;
+
+    try {
+      const result = await deviceService.getDeviceData({
+        logicalKey,
+        withHistory: true,
+        ...this.getHistoryRequestOptions()
+      });
+
+      this._historyRows = Array.isArray(result?.historyData) ? result.historyData : [];
+      this.refreshTrend();
+    } catch (err) {
+      console.warn('[deviceDetail] loadTrendData skipped:', err);
+      this._historyRows = [];
+      this.setData({
+        hasTrendData: false,
+        trendMin: '--',
+        trendAvg: '--',
+        trendMax: '--',
+        trendTip: '暂无历史数据'
+      });
+      this.drawChart([]);
+      if (!silent) {
+        wx.hideLoading();
+      }
     }
   },
 
   onMetricTap(e) {
     const key = e.currentTarget.dataset.key;
     if (!key || key === this.data.selectedMetricKey) return;
+
     this.setData({
       selectedMetricKey: key,
-      metricTabs: this.data.metricTabs.map((x) => ({ ...x, active: x.key === key }))
+      metricTabs: this.data.metricTabs.map((item) => ({
+        ...item,
+        active: item.key === key
+      }))
     });
-    this.refreshTrend();
+
+    wx.showLoading({ title: '加载中...', mask: true });
+    this.loadTrendData({ silent: true }).finally(() => wx.hideLoading());
   },
 
   onRangeTap(e) {
     const key = e.currentTarget.dataset.key;
     if (!key || key === this.data.rangeKey) return;
+
     this.setData({ rangeKey: key });
-    this.refreshTrend();
+    wx.showLoading({ title: '加载中...', mask: true });
+    this.loadTrendData({ silent: true }).finally(() => wx.hideLoading());
   },
 
-  refreshTrend(options = {}) {
-    const { skipHistoryUpdate = false } = options;
-    const rows = skipHistoryUpdate ? this._historyRows : this._historyRows;
+  refreshTrend() {
+    const rows = this._historyRows;
     const key = this.data.selectedMetricKey;
     const now = Date.now();
     const spanMap = {
@@ -178,33 +258,36 @@ Page({
     const startTs = now - span;
 
     const points = (rows || [])
-      .filter((x) => x && x.logicalKey === this.data.logicalKey && x.paramKey === key)
-      .map((x) => {
-        const value = parseMetricValue(x.value, key);
-        const ts = Number(x.time || x.receivedAt || 0);
+      .filter((item) => item && item.logicalKey === this.data.logicalKey && item.paramKey === key)
+      .map((item) => {
+        const rawValue = item.avg !== undefined && item.avg !== null ? item.avg : item.value;
+        const value = parseMetricValue(rawValue, key);
+        const ts = Number(item.bucketStart || item.time || item.receivedAt || 0);
         return Number.isFinite(value) && Number.isFinite(ts) ? { value, ts } : null;
       })
       .filter(Boolean)
-      .filter((x) => x.ts >= startTs)
+      .filter((item) => item.ts >= startTs)
       .sort((a, b) => a.ts - b.ts);
 
     if (!points.length) {
       this.setData({
+        hasTrendData: false,
         trendMin: '--',
         trendAvg: '--',
         trendMax: '--',
-        trendTip: '该指标暂无历史数据'
+        trendTip: '暂无历史数据'
       });
       this.drawChart([]);
       return;
     }
 
-    const values = points.map((x) => x.value);
+    const values = points.map((item) => item.value);
     const min = Math.min(...values);
     const max = Math.max(...values);
-    const avg = values.reduce((s, v) => s + v, 0) / values.length;
+    const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
 
     this.setData({
+      hasTrendData: true,
       trendMin: min.toFixed(1),
       trendAvg: avg.toFixed(1),
       trendMax: max.toFixed(1),
@@ -218,6 +301,7 @@ Page({
       callback();
       return;
     }
+
     wx.createSelectorQuery()
       .in(this)
       .select('#trendCanvas')
@@ -234,7 +318,6 @@ Page({
       const ctx = wx.createCanvasContext('trendCanvas', this);
       const w = this._canvasW;
       const h = this._canvasH;
-      // 留边距用于显示坐标轴标签
       const left = 42;
       const right = w - 12;
       const top = 14;
@@ -244,11 +327,10 @@ Page({
       ctx.setFillStyle('#f8fafc');
       ctx.fillRect(0, 0, w, h);
 
-      // ── 网格线 ────────────────────────────────────────
       const gridCount = 4;
       ctx.setStrokeStyle('#e5e7eb');
       ctx.setLineWidth(1);
-      for (let i = 0; i <= gridCount; i++) {
+      for (let i = 0; i <= gridCount; i += 1) {
         const y = top + ((bottom - top) / gridCount) * i;
         ctx.beginPath();
         ctx.moveTo(left, y);
@@ -257,8 +339,7 @@ Page({
       }
 
       if (!points.length) {
-        // 无数据提示
-        ctx.setFillStyle('#9CA3AF');
+        ctx.setFillStyle('#9ca3af');
         ctx.setFontSize(13);
         ctx.setTextAlign('center');
         ctx.fillText('暂无历史数据', w / 2, h / 2);
@@ -268,82 +349,69 @@ Page({
 
       const minTs = points[0].ts;
       const maxTs = points[points.length - 1].ts;
-      const rawMin = Math.min(...points.map((p) => p.value));
-      const rawMax = Math.max(...points.map((p) => p.value));
+      const rawMin = Math.min(...points.map((item) => item.value));
+      const rawMax = Math.max(...points.map((item) => item.value));
       const tsSpan = Math.max(1, maxTs - minTs);
-      // 上下各留 10% padding 使曲线不贴边
       const valPadding = (rawMax - rawMin) * 0.1 || 1;
       const minVal = rawMin - valPadding;
       const maxVal = rawMax + valPadding;
       const valSpan = Math.max(0.001, maxVal - minVal);
 
       const mapX = (ts) => left + ((ts - minTs) / tsSpan) * (right - left);
-      const mapY = (v) => bottom - ((v - minVal) / valSpan) * (bottom - top);
+      const mapY = (value) => bottom - ((value - minVal) / valSpan) * (bottom - top);
 
-      // ── Y 轴标签 ───────────────────────────────────────
-      ctx.setFillStyle('#9CA3AF');
+      ctx.setFillStyle('#9ca3af');
       ctx.setFontSize(10);
       ctx.setTextAlign('right');
-      for (let i = 0; i <= gridCount; i++) {
-        const v = minVal + (valSpan / gridCount) * (gridCount - i);
+      for (let i = 0; i <= gridCount; i += 1) {
+        const value = minVal + (valSpan / gridCount) * (gridCount - i);
         const y = top + ((bottom - top) / gridCount) * i;
-        ctx.fillText(v.toFixed(1), left - 4, y + 4);
+        ctx.fillText(value.toFixed(1), left - 4, y + 4);
       }
 
-      // ── X 轴时间标签（首/中/末）────────────────────────
       ctx.setTextAlign('center');
-      const labelTs = [
-        points[0].ts,
-        points[Math.floor(points.length / 2)].ts,
-        points[points.length - 1].ts
-      ];
-      labelTs.forEach((ts) => {
+      [points[0].ts, points[Math.floor(points.length / 2)].ts, points[points.length - 1].ts].forEach((ts) => {
         const d = new Date(ts);
         const label = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
         ctx.fillText(label, mapX(ts), bottom + 18);
       });
 
-      // ── 渐变填充区域 ────────────────────────────────────
-      // 用折线路径闭合后填充（Canvas 2D gradient 在旧版本有兼容问题，用半透明纯色替代）
       ctx.setFillStyle('rgba(125, 164, 216, 0.15)');
       ctx.beginPath();
       ctx.moveTo(mapX(points[0].ts), bottom);
-      points.forEach((p) => {
-        ctx.lineTo(mapX(p.ts), mapY(p.value));
+      points.forEach((item) => {
+        ctx.lineTo(mapX(item.ts), mapY(item.value));
       });
       ctx.lineTo(mapX(points[points.length - 1].ts), bottom);
       ctx.closePath();
       ctx.fill();
 
-      // ── 平滑曲线（贝塞尔）─────────────────────────────
-      ctx.setStrokeStyle('#4A90D9');
+      ctx.setStrokeStyle('#4a90d9');
       ctx.setLineWidth(2.5);
       ctx.setLineCap('round');
       ctx.setLineJoin('round');
       ctx.beginPath();
-      points.forEach((p, idx) => {
-        const x = mapX(p.ts);
-        const y = mapY(p.value);
-        if (idx === 0) {
+      points.forEach((item, index) => {
+        const x = mapX(item.ts);
+        const y = mapY(item.value);
+        if (index === 0) {
           ctx.moveTo(x, y);
           return;
         }
-        const prev = points[idx - 1];
+        const prev = points[index - 1];
         const px = mapX(prev.ts);
         const py = mapY(prev.value);
-        // 简单三次贝塞尔：控制点取前后点 x 方向 1/3 处
         const cp1x = px + (x - px) / 3;
         const cp2x = x - (x - px) / 3;
         ctx.bezierCurveTo(cp1x, py, cp2x, y, x, y);
       });
       ctx.stroke();
 
-      // ── 数据点圆点（点数较少时才画，避免密集） ──────────
       if (points.length <= 30) {
-        ctx.setFillStyle('#4A90D9');
-        points.forEach((p) => {
+        ctx.setFillStyle('#4a90d9');
+        points.forEach((item) => {
           ctx.beginPath();
-          ctx.arc(mapX(p.ts), mapY(p.value), 3, 0, Math.PI * 2);
+          ctx.arc(mapX(item.ts), mapY(item.value), 3, 0, Math.PI * 2);
           ctx.fill();
         });
       }
