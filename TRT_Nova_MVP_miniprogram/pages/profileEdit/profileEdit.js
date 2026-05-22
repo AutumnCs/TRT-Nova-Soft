@@ -2,6 +2,13 @@ const app = getApp();
 const userProfileService = require('../../services/modules/UserProfileService');
 const cloudStorageService = require('../../services/modules/CloudStorageService');
 
+function getStatusBarHeight() {
+  if (typeof wx.getWindowInfo === 'function') {
+    return wx.getWindowInfo().statusBarHeight || 20;
+  }
+  return wx.getSystemInfoSync().statusBarHeight || 20;
+}
+
 Page({
   data: {
     statusBarHeight: 20,
@@ -25,12 +32,15 @@ Page({
     experienceOptions: ['新手', '进阶', '专家'],
     genderIndex: 0,
     experienceIndex: 0,
-    saving: false
+    saving: false,
+    isApp: false
   },
 
   onLoad: function() {
-    const sysInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: sysInfo.statusBarHeight || 20 });
+    this.setData({
+      statusBarHeight: getStatusBarHeight(),
+      isApp: typeof wx.weixinMiniProgramLogin === 'function'
+    });
     this.checkLoginStatus();
     this.initFormFromLocal();
     this.loadProfileFromCloud();
@@ -99,6 +109,9 @@ Page({
         experienceIndex
       });
     } catch (err) {
+      if (app.isAuthError && app.isAuthError(err)) {
+        return;
+      }
       wx.showToast({ title: '资料加载失败', icon: 'none' });
     }
   },
@@ -111,6 +124,18 @@ Page({
     const avatarUrl = e && e.detail ? e.detail.avatarUrl : '';
     if (!avatarUrl) return;
     this.setData({ 'form.avatarUrl': avatarUrl });
+  },
+
+  onPickAvatar: function() {
+    wx.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const filePath = res.tempFilePaths && res.tempFilePaths[0];
+        if (filePath) this.setData({ 'form.avatarUrl': filePath });
+      }
+    });
   },
 
   /**

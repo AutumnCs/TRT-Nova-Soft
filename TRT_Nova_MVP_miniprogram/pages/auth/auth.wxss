@@ -1,83 +1,20 @@
-/* pages/auth/auth.wxss */
 page {
-  background: linear-gradient(160deg, #064e3b 0%, #065f46 40%, #10b981 100%);
+  background: linear-gradient(160deg, #064e3b 0%, #065f46 42%, #10b981 100%);
   min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
 }
 
-/* ── 整体容器 ─────────────────────────────────── */
 .page {
+  width: 100%;
   min-height: 100vh;
+  box-sizing: border-box;
+  padding-bottom: 48px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  box-sizing: border-box;
-  padding-bottom: 48px;
-  position: relative;
   overflow: hidden;
 }
 
-/* ── 自定义转场遮罩 ───────────────────────────── */
-.transition-mask {
-  position: fixed;
-  inset: 0;
-  background: linear-gradient(160deg, #064e3b 0%, #10b981 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  animation: maskIn 0.25s ease forwards;
-}
-
-@keyframes maskIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-.transition-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-
-.transition-logo {
-  font-size: 64px;
-  animation: logoPulse 1.2s ease-in-out infinite;
-}
-
-@keyframes logoPulse {
-  0%, 100% { transform: scale(1);    opacity: 1; }
-  50%       { transform: scale(1.12); opacity: 0.85; }
-}
-
-.transition-spinner {
-  width: 44px;
-  height: 44px;
-  position: relative;
-}
-
-.spinner-ring {
-  width: 44px;
-  height: 44px;
-  border: 3px solid rgba(255,255,255,0.25);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.transition-text {
-  color: rgba(255,255,255,0.9);
-  font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
-}
-
-/* ── 顶部装饰 Hero ────────────────────────────── */
 .hero {
   width: 100%;
   display: flex;
@@ -88,11 +25,10 @@ page {
   flex-shrink: 0;
 }
 
-/* 背景装饰圆 */
 .hero-blob {
   position: absolute;
   border-radius: 50%;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .blob1 {
@@ -112,14 +48,14 @@ page {
 .hero-icon-wrap {
   width: 80px;
   height: 80px;
-  background: rgba(255,255,255,0.15);
+  background: rgba(255, 255, 255, 0.15);
   border-radius: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(8px);
   margin-bottom: 16px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
 }
 
 .hero-icon {
@@ -130,234 +66,301 @@ page {
   font-size: 28px;
   font-weight: 800;
   color: white;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
   display: block;
   margin-bottom: 6px;
 }
 
 .hero-subtitle {
   font-size: 14px;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.74);
   display: block;
   letter-spacing: 0.06em;
 }
 
-/* ── 登录卡片 ─────────────────────────────────── */
 .card {
   width: calc(100% - 32px);
   max-width: 400px;
-  background: rgba(255,255,255,0.97);
+  background: rgba(255, 255, 255, 0.97);
   border-radius: 28px;
   padding: 32px 24px 28px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 20px;
-  /* 去掉 opacity 动画，避免动画不触发时卡片不可见 */
-  animation: cardSlide 0.4s ease-out forwards;
   box-sizing: border-box;
+  animation: cardSlide 0.4s ease-out forwards;
 }
 
 @keyframes cardSlide {
-  from { transform: translateY(32px); }
-  to   { transform: translateY(0); }
+  from {
+    transform: translateY(32px);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
 .card-label {
   font-size: 13px;
-  font-weight: 700;
-  color: #9CA3AF;
+  font-weight: 800;
+  color: #0f766e;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   align-self: flex-start;
 }
 
-/* ── 头像区 ───────────────────────────────────── */
+.card-sub {
+  font-size: 12px;
+  color: #7b8b86;
+  line-height: 1.6;
+  align-self: flex-start;
+  margin-top: -12px;
+}
+
+.wechat-login-btn,
+.wechat-profile-btn,
+.login-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 16px;
+  margin: 0;
+  padding: 0 18px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.wechat-login-btn {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+}
+
+.wechat-profile-btn {
+  background: #eefaf5;
+  border: 1px solid #d1fae5;
+}
+
+.wechat-login-btn::after,
+.wechat-profile-btn::after,
+.login-btn::after,
+.avatar-btn::after,
+.text-btn::after {
+  border: none;
+}
+
+.wechat-btn-text,
+.login-btn-text {
+  font-size: 16px;
+  font-weight: 800;
+  color: white;
+  letter-spacing: 0.04em;
+}
+
+.wechat-profile-text {
+  font-size: 15px;
+  font-weight: 800;
+  color: #065f46;
+}
+
+.secondary-actions,
+.profile-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 40px;
+}
+
+.text-btn {
+  margin: 0;
+  padding: 0;
+  height: 28px;
+  line-height: 28px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.footer-hint {
+  font-size: 11px;
+  color: #9ca3af;
+  text-align: center;
+  line-height: 1.6;
+}
+
 .avatar-wrap {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
 }
 
-/*
- * 关键：button 的 width/height 必须和图片相同，
- * line-height: 0 消除 button 内部的行高撑高，
- * font-size: 0 消除可能的字符间距影响。
- */
 .avatar-btn {
   width: 88px;
   height: 88px;
+  min-width: 88px;
+  max-width: 88px;
   border-radius: 50%;
   overflow: hidden;
   padding: 0;
-  margin: 0;
+  margin: 0 auto;
   line-height: 0;
   font-size: 0;
-  background: #F3F4F6;
-  border: 3px solid #10B981;
-  box-shadow: 0 0 0 4px rgba(16,185,129,0.15);
+  background: #f3f4f6;
+  border: 3px solid #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  display: block;
   box-sizing: content-box;
 }
 
-.avatar-btn::after {
-  border: none;
-}
-
-/* 头像图片：明确指定宽高为正方形，消除椭圆问题 */
 .avatar-img {
+  position: absolute;
+  inset: 0;
   width: 88px;
   height: 88px;
   border-radius: 50%;
   display: block;
-  flex-shrink: 0;
 }
 
 .avatar-placeholder {
-  opacity: 0.4;
-}
-
-/* 相机编辑角标 */
-.avatar-edit-badge {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 26px;
-  height: 26px;
-  background: #10B981;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid white;
-}
-
-.avatar-edit-icon {
-  font-size: 12px;
-  line-height: 1;
+  opacity: 0.42;
 }
 
 .avatar-hint {
   font-size: 12px;
-  color: #9CA3AF;
+  color: #9ca3af;
 }
 
-/* ── 昵称输入 ─────────────────────────────────── */
 .input-wrap {
   width: 100%;
+  height: 50px;
+  border-radius: 14px;
+  background: #f9fafb;
+  border: 1.5px solid #e5e7eb;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  background: #F9FAFB;
-  border: 1.5px solid #E5E7EB;
-  border-radius: 14px;
   padding: 0 14px;
-  height: 50px;
-  box-sizing: border-box;
   gap: 10px;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.input-wrap:focus-within {
-  border-color: #10B981;
-  box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
-  background: white;
 }
 
 .input-icon {
-  font-size: 16px;
+  width: 22px;
+  height: 22px;
+  border-radius: 8px;
+  background: #d1fae5;
+  color: #059669;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 22px;
+  text-align: center;
   flex-shrink: 0;
 }
 
 .name-input {
   flex: 1;
-  font-size: 15px;
-  color: #1F2937;
   height: 50px;
   line-height: 50px;
-  background: transparent;
-  border: none;
-  outline: none;
+  font-size: 15px;
+  color: #1f2937;
 }
 
 .input-placeholder {
-  color: #D1D5DB;
+  color: #d1d5db;
   font-size: 14px;
 }
 
-/* ── 状态提示行 ───────────────────────────────── */
-.status-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  align-self: flex-start;
-}
-
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  transition: background-color 0.3s;
-}
-
-.dot-pending { background: #D1D5DB; }
-.dot-ok      { background: #10B981; }
-
-.status-text {
-  font-size: 13px;
-  color: #6B7280;
-}
-
-/* ── 登录按钮 ─────────────────────────────────── */
 .login-btn {
-  width: 100%;
-  height: 52px;
-  border-radius: 16px;
-  background: #E5E7EB;
-  border: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.3s, box-shadow 0.3s, transform 0.15s;
-}
-
-.login-btn::after {
-  border: none;
+  background: #e5e7eb;
 }
 
 .login-btn-active {
-  background: linear-gradient(135deg, #059669 0%, #10B981 100%);
-  box-shadow: 0 6px 20px rgba(16,185,129,0.35);
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
 }
 
-.login-btn-active:active {
-  transform: scale(0.97);
-  box-shadow: 0 2px 8px rgba(16,185,129,0.2);
+.login-btn .login-btn-text {
+  color: #9ca3af;
 }
 
-.login-btn-text {
-  font-size: 16px;
-  font-weight: 700;
+.login-btn-active .login-btn-text {
   color: white;
-  letter-spacing: 0.04em;
 }
 
-.login-btn[disabled] .login-btn-text {
-  color: #9CA3AF;
+.transition-mask {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(160deg, #064e3b 0%, #10b981 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: maskIn 0.25s ease forwards;
 }
 
-/* ── 底部说明 ─────────────────────────────────── */
-.footer-hint {
-  font-size: 11px;
-  color: #9CA3AF;
-  text-align: center;
-  line-height: 1.6;
+@keyframes maskIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.transition-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.transition-logo {
+  font-size: 34px;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: 0.08em;
+  animation: logoPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes logoPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.86;
+  }
+}
+
+.transition-spinner {
+  width: 44px;
+  height: 44px;
+}
+
+.spinner-ring {
+  width: 44px;
+  height: 44px;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.transition-text {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
 }

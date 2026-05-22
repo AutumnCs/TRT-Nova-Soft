@@ -1,7 +1,6 @@
 const app = getApp();
 const plantService = require('../../services/modules/PlantService');
 const todoService = require('../../services/modules/TodoService');
-const { PLANTS } = require('../../data/plants');
 
 function sortPlantsWithFavorites(plants) {
   const source = Array.isArray(plants) ? plants : [];
@@ -9,6 +8,13 @@ function sortPlantsWithFavorites(plants) {
     ...source.filter((item) => item.isFavorite),
     ...source.filter((item) => !item.isFavorite)
   ];
+}
+
+function getStatusBarHeight() {
+  if (typeof wx.getWindowInfo === 'function') {
+    return wx.getWindowInfo().statusBarHeight || 20;
+  }
+  return wx.getSystemInfoSync().statusBarHeight || 20;
 }
 
 Page({
@@ -31,8 +37,7 @@ Page({
   },
 
   onLoad(_options) {
-    const sysInfo = wx.getSystemInfoSync();
-    const statusBarHeight = sysInfo.statusBarHeight || 20;
+    const statusBarHeight = getStatusBarHeight();
     const menuBtn = wx.getMenuButtonBoundingClientRect();
     // 胶囊底部到页面顶部的距离，再加 8px 间隔，确保按钮不被遮挡
     const detailNavPaddingTop = menuBtn && menuBtn.bottom
@@ -65,7 +70,7 @@ Page({
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 1 });
+      this.getTabBar().setData({ selected: 2 });
     }
     if (!this.checkLoginStatus()) return;
     this.hydratePlantsFromCache();
@@ -109,7 +114,9 @@ Page({
 
     try {
       const res = await plantService.getPlants({ useCache: true });
-      const plants = Array.isArray(res?.plants) && res.plants.length ? res.plants : PLANTS;
+      const plants = Array.isArray(res?.plants) && res.plants.length
+        ? res.plants
+        : plantService.getFallbackPlants();
       this.setData({
         plants,
         loading: false,
@@ -118,7 +125,7 @@ Page({
     } catch (err) {
       console.error('[wiki] loadPlants failed, using local fallback:', err);
       this.setData({
-        plants: PLANTS,
+        plants: plantService.getFallbackPlants(),
         loading: false,
         hasLoadedPlants: true
       });
@@ -247,5 +254,11 @@ Page({
       console.error('[wiki] addReminder error:', err);
       wx.showToast({ title: '添加失败，请重试', icon: 'none' });
     }
+  },
+
+  openPlantJournal() {
+    wx.navigateTo({
+      url: '/pages/plantJournal/plantJournal'
+    });
   }
 });

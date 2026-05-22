@@ -2,6 +2,13 @@ const app = getApp();
 const userProfileService = require('../../services/modules/UserProfileService');
 const authService = require('../../services/modules/AuthService');
 
+function getStatusBarHeight() {
+  if (typeof wx.getWindowInfo === 'function') {
+    return wx.getWindowInfo().statusBarHeight || 20;
+  }
+  return wx.getSystemInfoSync().statusBarHeight || 20;
+}
+
 Page({
   data: {
     statusBarHeight: 20,
@@ -11,23 +18,22 @@ Page({
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop'
     },
     menu: [
-      { key: 'garden', icon: '🌿', title: '我的花园', desc: '植物管理' },
-      { key: 'notice', icon: '🔔', title: '通知设置', desc: '已开启' },
+      { key: 'garden', icon: '🌶', title: '我的花园', desc: '植物管理' },
+      { key: 'notice', icon: '🔂', title: '通知设置', desc: '已开启' },
       { key: 'setting', icon: '⚙️', title: '系统设置', desc: '' },
       { key: 'about', icon: 'ℹ️', title: '关于我们', desc: '小程序信息' }
     ]
   },
 
   onLoad() {
-    const sysInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: sysInfo.statusBarHeight || 20 });
+    this.setData({ statusBarHeight: getStatusBarHeight() });
     this.checkLoginStatus();
     this.loadUserProfile();
   },
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
-      this.getTabBar().setData({ selected: 2 });
+      this.getTabBar().setData({ selected: 3 });
     }
     this.checkLoginStatus();
     this.loadUserProfile();

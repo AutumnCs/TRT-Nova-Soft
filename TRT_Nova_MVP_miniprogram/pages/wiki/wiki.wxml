@@ -52,14 +52,14 @@
       </block>
     </view>
 
-    <view wx:if="{{!loading || filteredPlants.length > 0}}" class="calendar-section fade-in">
+    <view wx:if="{{!loading || filteredPlants.length > 0}}" class="calendar-section fade-in" bindtap="openPlantJournal">
       <view class="calendar-header">
         <text class="calendar-title">{{calendarYear}} 年 {{calendarMonth}} 月植物日历</text>
         <view class="calendar-icon">
           <text>{{calendarDay}}</text>
         </view>
       </view>
-      <text class="calendar-desc">今日推荐：{{calendarTodayPlant}}・点击卡片查看养护详情</text>
+      <text class="calendar-desc">今日推荐：{{calendarTodayPlant}}・点击打开成长记录与当天待办</text>
     </view>
   </scroll-view>
 </view>

@@ -8,6 +8,7 @@ page {
 .container {
   display: flex;
   flex-direction: column;
+  width: 100%;
   min-height: 100vh;
   box-sizing: border-box;
   background-color: #F0F9F4;

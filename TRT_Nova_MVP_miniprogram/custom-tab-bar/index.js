@@ -10,9 +10,14 @@ Component({
         icon: '🏠'
       },
       {
+        pagePath: '/pages/assistant/assistant',
+        text: '助手',
+        icon: '🌿'
+      },
+      {
         pagePath: '/pages/wiki/wiki',
-        text: '社区',
-        icon: '🌱'
+        text: '植物库',
+        icon: '📚'
       },
       {
         pagePath: '/pages/profile/profile',

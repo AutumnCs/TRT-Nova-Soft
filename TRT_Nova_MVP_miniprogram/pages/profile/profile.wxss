@@ -8,6 +8,7 @@ page {
 .container {
   display: flex;
   flex-direction: column;
+  width: 100%;
   height: 100vh;
   box-sizing: border-box;
 }
@@ -17,7 +18,6 @@ page {
   box-sizing: border-box;
 }
 
-/* Header — 绿色渐变 */
 .user-header {
   display: flex;
   flex-direction: column;
@@ -31,7 +31,6 @@ page {
   overflow: hidden;
 }
 
-/* 装饰圆 — 用真实 view 实现 */
 .header-blob {
   position: absolute;
   border-radius: 50%;
@@ -111,7 +110,6 @@ page {
   z-index: 1;
 }
 
-/* Stats */
 .stats-row {
   display: flex;
   justify-content: center;
@@ -145,7 +143,6 @@ page {
   background-color: #E5E7EB;
 }
 
-/* Menu */
 .menu-list {
   padding: 0 24px;
   display: flex;
@@ -202,7 +199,6 @@ page {
   font-weight: 300;
 }
 
-/* Logout Button Styles */
 .logout-item {
   margin-top: 16px;
 }

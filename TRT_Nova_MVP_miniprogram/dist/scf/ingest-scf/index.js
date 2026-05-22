@@ -157,7 +157,12 @@ function normalizeIncomingMessage(innerMsg, pushTime) {
     run_state: ['run_state', 'rs'],
     light_val: ['light_val', 'lv'],
     ir_status: ['ir_status', 'ir'],
-    uid: ['uid']
+    uid: ['uid'],
+    is_dead: ['is_dead', 'dead', 'death_status'],
+    soul_state: ['soul_state', 'spirit_state', 'soul', 'ss'],
+    favorability: ['favorability', 'favor', 'affinity', 'likability', 'haogandu'],
+    plant_personality: ['plant_personality', 'personality', 'character'],
+    plant_type: ['plant_type', 'ptype']
   };
 
   const params = {};

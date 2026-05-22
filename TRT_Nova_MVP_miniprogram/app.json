@@ -1,6 +1,7 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/assistant/assistant",
     "pages/device/device",
     "pages/deviceDetail/deviceDetail",
     "pages/deviceSettings/deviceSettings",
@@ -8,6 +9,7 @@
     "pages/auth/auth",
     "pages/profileEdit/profileEdit",
     "pages/wiki/wiki",
+    "pages/plantJournal/plantJournal",
     "pages/profile/profile",
     "pages/about/about"
   ],
@@ -29,8 +31,12 @@
         "text": "首页"
       },
       {
+        "pagePath": "pages/assistant/assistant",
+        "text": "助手"
+      },
+      {
         "pagePath": "pages/wiki/wiki",
-        "text": "社区"
+        "text": "植物库"
       },
       {
         "pagePath": "pages/profile/profile",

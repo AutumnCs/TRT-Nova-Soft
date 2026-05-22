@@ -62,6 +62,22 @@ class AuthService {
     wx.removeStorageSync(TOKEN_META_STORAGE_KEY);
   }
 
+  async _getLoginCode() {
+    if (typeof wx.weixinMiniProgramLogin === 'function') {
+      const res = await new Promise((resolve, reject) => {
+        wx.weixinMiniProgramLogin({
+          success: resolve,
+          fail: (err) => reject(new Error(err.errMsg || '微信登录失败'))
+        });
+      });
+
+      return res?.code || '';
+    }
+
+    const loginRes = await wx.login();
+    return loginRes?.code || '';
+  }
+
   async loginWithScf() {
     const config = resolveRuntimeConfig();
     const baseUrl = (config.authScfBaseUrl || config.scfApiBaseUrl || '')
@@ -72,8 +88,8 @@ class AuthService {
       throw new Error('服务地址未配置');
     }
 
-    const loginRes = await wx.login();
-    if (!loginRes?.code) {
+    const code = await this._getLoginCode();
+    if (!code) {
       throw new Error('微信登录失败，请重试');
     }
 
@@ -86,16 +102,13 @@ class AuthService {
         header: {
           'content-type': 'application/json'
         },
-        data: {
-          code: loginRes.code
-        },
+        data: { code },
         success: (res) => {
           const body = normalizeResponseBody(res.data);
           if (res.statusCode >= 200 && res.statusCode < 300) {
             resolve(body);
             return;
           }
-
           reject(new Error(normalizeUserMessage(body?.msg || body?.message || `HTTP ${res.statusCode}`)));
         },
         fail: reject

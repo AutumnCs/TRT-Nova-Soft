@@ -60,10 +60,43 @@ function normalizeResponsePayload(payload) {
   };
 }
 
+function isNetworkError(err) {
+  const message = String(err?.errMsg || err?.message || '').toLowerCase();
+  if (!message) return false;
+  return (
+    message.includes('request:fail') ||
+    message.includes('timeout') ||
+    message.includes('failed to fetch') ||
+    message.includes('network') ||
+    message.includes('internetdisconnected')
+  );
+}
+
+function isAuthErrorMessage(message) {
+  const text = typeof message === 'string' ? message.trim() : '';
+  return (
+    text === '登录已过期，请重新登录' ||
+    text === '登录状态已失效，请重新登录' ||
+    text === '登录状态异常，请重新登录'
+  );
+}
+
 class ScfApiAdapter {
   async request(path, method = 'POST', data = {}) {
     const config = resolveRuntimeConfig();
-    const baseUrl = (config.scfApiBaseUrl || '').trim().replace(/\/+$/, '');
+    const requestData =
+      data && typeof data === 'object' && !Array.isArray(data)
+        ? { ...data }
+        : data;
+    const overrideBaseUrl =
+      requestData && typeof requestData === 'object'
+        ? String(requestData.__baseUrl || '').trim()
+        : '';
+    if (requestData && typeof requestData === 'object' && Object.prototype.hasOwnProperty.call(requestData, '__baseUrl')) {
+      delete requestData.__baseUrl;
+    }
+
+    const baseUrl = (overrideBaseUrl || config.scfApiBaseUrl || '').trim().replace(/\/+$/, '');
 
     if (!baseUrl) {
       throw new Error('scfApiBaseUrl is not configured');
@@ -74,15 +107,15 @@ class ScfApiAdapter {
 
     const accessToken = authService.getToken();
 
-    return new Promise((resolve, reject) => {
+    const doRequest = (retryCount = 0) => new Promise((resolve, reject) => {
       wx.request({
         url,
         method,
-        data,
+        data: requestData,
         timeout: Math.max(Number(config.scfRequestTimeoutMs) || 0, 15000),
         header: {
           'content-type': 'application/json',
-          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
+          ...(accessToken ? { 'x-access-token': accessToken } : {})
         },
         success: (res) => {
           const body = normalizeResponsePayload(normalizeResponseBody(res.data));
@@ -92,11 +125,22 @@ class ScfApiAdapter {
           }
 
           const msg = normalizeUserMessage(body?.message || body?.msg || `HTTP ${res.statusCode}`);
+          if (isAuthErrorMessage(msg)) {
+            getApp()?.handleAuthExpired?.();
+          }
           reject(new Error(msg));
         },
-        fail: (err) => reject(err)
+        fail: (err) => {
+          if (retryCount < 1 && isNetworkError(err)) {
+            resolve(doRequest(retryCount + 1));
+            return;
+          }
+          reject(err);
+        }
       });
     });
+
+    return doRequest();
   }
 
   async login() {
@@ -175,6 +219,18 @@ class ScfApiAdapter {
     return this.request('/plant/favorite/toggle', 'POST', { plantId });
   }
 
+  async getJournalMonth(payload = {}) {
+    return this.request('/journal/month', 'POST', payload);
+  }
+
+  async getJournalDay(payload = {}) {
+    return this.request('/journal/day', 'POST', payload);
+  }
+
+  async addJournalRecord(payload = {}) {
+    return this.request('/journal/add', 'POST', payload);
+  }
+
   async getTodos(logicalKey = '') {
     return this.request('/todo/list', 'POST', {
       logicalKey
@@ -195,6 +251,10 @@ class ScfApiAdapter {
 
   async toggleTodoUrgency(payload = {}) {
     return this.request('/todo/toggle-urgent', 'POST', payload);
+  }
+
+  async chatWithAgent(payload = {}) {
+    return this.request('/agent/chat', 'POST', payload);
   }
 }
 

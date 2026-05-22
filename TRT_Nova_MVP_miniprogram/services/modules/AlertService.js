@@ -20,6 +20,8 @@
 
 const { computeBubbles } = require('../config/thresholds');
 
+const OFFLINE_ALERT_HISTORY_STORAGE_KEY = 'offlineAlertHistory';
+
 // 超过此时间未上报视为离线（默认 10 分钟）
 const OFFLINE_THRESHOLD_MS = 10 * 60 * 1000;
 
@@ -29,7 +31,7 @@ const ALERT_COOLDOWN_MS = 30 * 60 * 1000;
 class AlertService {
   constructor() {
     // { logicalKey: lastAlertTimestamp }
-    this._offlineAlertHistory = {};
+    this._offlineAlertHistory = this._readOfflineAlertHistory();
     this._sensorAlertHistory = {};
   }
 
@@ -55,6 +57,7 @@ class AlertService {
       if (now - lastAlerted < ALERT_COOLDOWN_MS) continue;
 
       this._offlineAlertHistory[key] = now;
+      this._persistOfflineAlertHistory();
       alerts.push({
         logicalKey: key,
         alias: device.alias || device.deviceName || '未命名设备',
@@ -148,6 +151,32 @@ class AlertService {
     if (isNaN(d.getTime())) return '--';
     const p = x => String(x).padStart(2, '0');
     return `${d.getMonth() + 1}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+
+  _readOfflineAlertHistory() {
+    try {
+      const history = wx.getStorageSync(OFFLINE_ALERT_HISTORY_STORAGE_KEY);
+      return history && typeof history === 'object' ? history : {};
+    } catch (err) {
+      return {};
+    }
+  }
+
+  _persistOfflineAlertHistory() {
+    try {
+      const now = Date.now();
+      const nextHistory = Object.keys(this._offlineAlertHistory).reduce((acc, key) => {
+        const ts = Number(this._offlineAlertHistory[key] || 0);
+        if (ts > 0 && now - ts < ALERT_COOLDOWN_MS) {
+          acc[key] = ts;
+        }
+        return acc;
+      }, {});
+      this._offlineAlertHistory = nextHistory;
+      wx.setStorageSync(OFFLINE_ALERT_HISTORY_STORAGE_KEY, nextHistory);
+    } catch (err) {
+      console.warn('[AlertService] persist offline alert history failed:', err);
+    }
   }
 }
 

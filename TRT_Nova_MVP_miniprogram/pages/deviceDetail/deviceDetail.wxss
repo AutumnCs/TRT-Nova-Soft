@@ -1,4 +1,5 @@
 .page {
+  width: 100%;
   min-height: 100vh;
   background: #f5f6f8;
 }
@@ -64,6 +65,13 @@
   gap: 16rpx;
 }
 
+.device-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-shrink: 0;
+}
+
 .device-name {
   font-size: 38rpx;
   font-weight: 700;
@@ -78,6 +86,16 @@
   border-radius: 999rpx;
   background: #eef2ff;
   color: #3758f9;
+  font-size: 22rpx;
+  line-height: 1;
+}
+
+.device-journal-btn {
+  flex-shrink: 0;
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  background: #ecfdf5;
+  color: #16a34a;
   font-size: 22rpx;
   line-height: 1;
 }
@@ -99,6 +117,28 @@
 
 .device-online.offline {
   color: #6b7280;
+}
+
+.device-personality-chip {
+  margin-top: 12rpx;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: #f4f8f1;
+}
+
+.device-personality-label {
+  font-size: 20rpx;
+  color: #6b7280;
+}
+
+.device-personality-value {
+  font-size: 22rpx;
+  color: #4b7d4a;
+  font-weight: 600;
 }
 
 .metric-scroll {
@@ -140,6 +180,46 @@
   font-size: 24rpx;
   color: #6b7280;
   display: block;
+}
+
+.info-card {
+  margin-top: 20rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 20rpx;
+}
+
+.info-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.info-item {
+  width: calc(50% - 6rpx);
+  background: #f8fafc;
+  border-radius: 16rpx;
+  padding: 16rpx;
+  box-sizing: border-box;
+}
+
+.info-item-full {
+  width: 100%;
+}
+
+.info-label {
+  display: block;
+  font-size: 22rpx;
+  color: #6b7280;
+  margin-bottom: 8rpx;
+}
+
+.info-value {
+  display: block;
+  font-size: 28rpx;
+  color: #111827;
+  font-weight: 600;
+  word-break: break-all;
 }
 
 .trend-card {

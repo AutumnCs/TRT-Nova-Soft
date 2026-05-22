@@ -1,0 +1,113 @@
+<view class="page" style="padding-top: {{statusBarHeight}}px;">
+  <view class="nav">
+    <view class="nav-btn" bindtap="goBack">〈</view>
+    <view class="nav-title">植物成长日历</view>
+    <view class="nav-btn ghost"></view>
+  </view>
+
+  <scroll-view class="content" scroll-y>
+    <view class="device-card" wx:if="{{devices.length > 0}}" bindtap="onChooseDevice">
+      <text class="device-card-label">当前设备</text>
+      <text class="device-card-title">{{selectedDeviceLabel}}</text>
+      <text class="device-card-arrow">切换设备</text>
+    </view>
+
+    <view wx:else class="empty-card">
+      <text class="empty-title">还没有已绑定设备</text>
+      <text class="empty-desc">先去设备管理绑定一台设备，再开始记录成长轨迹。</text>
+    </view>
+
+    <view class="calendar-card">
+      <view class="calendar-top">
+        <view class="month-switch" bindtap="onPrevMonth">〈</view>
+        <text class="month-label">{{monthLabel}}</text>
+        <view class="month-switch" bindtap="onNextMonth">〉</view>
+      </view>
+      <view class="week-row">
+        <text wx:for="{{['一','二','三','四','五','六','日']}}" wx:key="*this" class="week-item">{{item}}</text>
+      </view>
+      <view class="day-grid">
+        <view
+          wx:for="{{calendarDays}}"
+          wx:key="key"
+          class="day-cell {{item.active ? 'active' : ''}} {{item.today ? 'today' : ''}} {{item.empty ? 'empty' : ''}}"
+          bindtap="onSelectDay"
+          data-date="{{item.date}}"
+        >
+          <text wx:if="{{!item.empty}}" class="day-number">{{item.day}}</text>
+          <view wx:if="{{item.marked && !item.empty}}" class="day-dot"></view>
+        </view>
+      </view>
+    </view>
+
+    <view class="day-header">
+      <view>
+        <text class="day-title">{{selectedDate}}</text>
+        <text class="day-subtitle">手动记录与当天待办完成情况</text>
+      </view>
+      <view class="day-actions">
+        <view class="trend-btn" bindtap="goTrend">查看设备趋势</view>
+        <view class="add-btn" bindtap="showComposer">+ 记录</view>
+      </view>
+    </view>
+
+    <view wx:if="{{dayRecords.length > 0}}" class="record-list">
+      <view wx:for="{{dayRecords}}" wx:key="id" class="record-card">
+        <view class="record-icon">{{item.icon}}</view>
+        <view class="record-body">
+          <view class="record-head">
+            <text class="record-title">{{item.title}}</text>
+            <text class="record-type">{{item.typeLabel}}</text>
+          </view>
+          <text wx:if="{{item.content}}" class="record-content">{{item.content}}</text>
+          <text class="record-time">{{item.createdAt}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="empty-records">
+      <text>这一天还没有成长记录，点右上角加一条吧。</text>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{showComposer}}" class="composer-mask" bindtap="hideComposer">
+    <view class="composer" catchtap="noop">
+      <text class="composer-title">新增记录</text>
+      <picker
+        class="composer-field"
+        mode="selector"
+        range="{{eventTypeOptions}}"
+        range-key="label"
+        value="{{eventTypeIndex}}"
+        bindchange="onTypeChange"
+      >
+        <view class="composer-picker">
+          <text class="composer-picker-text">{{eventTypeOptions[eventTypeIndex].label}}</text>
+          <text class="composer-picker-arrow">▾</text>
+        </view>
+      </picker>
+      <view class="composer-field composer-input-wrap">
+        <input
+          class="composer-input"
+          placeholder="标题，例如：今天浇水了"
+          placeholder-class="composer-placeholder"
+          value="{{draftTitle}}"
+          bindinput="onTitleInput"
+        />
+      </view>
+      <view class="composer-field composer-textarea-wrap">
+        <textarea
+          class="composer-textarea"
+          placeholder="补充一点备注（可选）"
+          placeholder-class="composer-placeholder"
+          value="{{draftContent}}"
+          bindinput="onContentInput"
+        ></textarea>
+      </view>
+      <view class="composer-actions">
+        <view class="composer-btn secondary" bindtap="hideComposer">取消</view>
+        <view class="composer-btn primary" bindtap="submitRecord">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

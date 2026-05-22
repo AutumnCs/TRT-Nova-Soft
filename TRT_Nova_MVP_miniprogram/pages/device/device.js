@@ -1,16 +1,8 @@
 const deviceService = require('../../services/modules/DeviceService');
 const plantService = require('../../services/modules/PlantService');
 const alertService = require('../../services/modules/AlertService');
-const { PLANTS } = require('../../data/plants');
 
-const FALLBACK_PLANT_OPTIONS = Array.from(
-  new Set(
-    (Array.isArray(PLANTS) ? PLANTS : [])
-      .map((item) => String(item && item.name ? item.name : '').trim())
-      .filter(Boolean)
-      .concat('其他')
-  )
-);
+const FALLBACK_PLANT_OPTIONS = plantService.buildPlantOptions(plantService.getFallbackPlants());
 
 Page({
   _refreshTimer: null,
@@ -44,14 +36,7 @@ Page({
   },
 
   async loadPlantOptions() {
-    const buildOptions = (plants) => {
-      const names = (Array.isArray(plants) ? plants : [])
-        .map((item) => String(item && item.name ? item.name : '').trim())
-        .filter(Boolean);
-
-      const options = Array.from(new Set(names.concat('其他')));
-      return options.length > 0 ? options : FALLBACK_PLANT_OPTIONS;
-    };
+    const buildOptions = (plants) => plantService.buildPlantOptions(plants);
 
     try {
       const cachedPlants = plantService.getCachedPlants();

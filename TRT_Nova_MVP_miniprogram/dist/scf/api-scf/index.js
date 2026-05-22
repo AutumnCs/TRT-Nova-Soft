@@ -10,9 +10,12 @@
  * - POST /device/cmd
  * - GET /user/profile
  * - POST /user/profile
+ * - POST /journal/month
+ * - POST /journal/day
+ * - POST /journal/add
  *
  * Authentication order:
- * 1. Authorization: Bearer <jwt> if JWT_SECRET is configured
+ * 1. x-access-token / Authorization: Bearer <jwt> if JWT_SECRET is configured
  * 2. x-wx-openid / x-openid header
  * 3. body.openid
  */
@@ -89,6 +92,39 @@ function parseJsonField(input, fallback) {
     }
   }
   return fallback;
+}
+
+function normalizePlantRow(row = {}) {
+  const rowTags = parseJsonField(row.tags_json, []);
+  return {
+    id: row.id,
+    name: row.name || '',
+    aliases: parseJsonField(row.aliases_json, []),
+    family: row.family || '',
+    scientificName: row.scientific_name || '',
+    feature: row.feature || '',
+    featureText: row.feature_text || '',
+    category: row.category || '',
+    image: row.image_url || '',
+    tags: Array.isArray(rowTags) ? rowTags : [],
+    description: row.description || '',
+    difficulty: row.difficulty || '',
+    care: {
+      light: row.care_light || '',
+      water: row.care_water || '',
+      temperature: row.care_temperature || '',
+      humidity: row.care_humidity || '',
+      soil: row.care_soil || '',
+      fertilizer: row.care_fertilizer || '',
+      ventilation: row.care_ventilation || ''
+    },
+    seasonalTips: parseJsonField(row.seasonal_tips_json, []),
+    commonIssues: parseJsonField(row.common_issues_json, []),
+    faq: parseJsonField(row.faq_json, []),
+    recommendQuestions: parseJsonField(row.recommend_questions_json, []),
+    deviceInterpretation: parseJsonField(row.device_interpretation_json, {}),
+    agentNotes: row.agent_notes || ''
+  };
 }
 
 function toSqlDateTime(ms) {
@@ -195,6 +231,16 @@ function resolveAuthorizationOpenid(event) {
   }
 
   const headers = getHeaders(event);
+  const customAccessToken =
+    headers['x-access-token'] ||
+    headers['X-ACCESS-TOKEN'] ||
+    headers['xAccessToken'] ||
+    '';
+  if (customAccessToken) {
+    const payload = verifyJwt(String(customAccessToken).trim(), jwtSecret);
+    return payload?.openid ? String(payload.openid).trim() : '';
+  }
+
   const authorization =
     headers.authorization ||
     headers.Authorization ||
@@ -283,22 +329,9 @@ async function getActiveAclRows(db, openid, logicalKey = '') {
 
 // 将 plant_library 行映射为前端格式
 function mapPlantRow(row, favoriteIdSet) {
-  const tags = parseJsonField(row.tags_json, []);
+  const profile = normalizePlantRow(row);
   return {
-    id: row.id,
-    name: row.name || '',
-    family: row.family || '',
-    scientificName: row.scientific_name || '',
-    feature: row.feature || '',
-    featureText: row.feature_text || '',
-    category: row.category || '',
-    image: row.image_url || '',
-    tags: Array.isArray(tags) ? tags : [],
-    description: row.description || '',
-    care: {
-      light: row.care_light || '',
-      water: row.care_water || ''
-    },
+    ...profile,
     isFavorite: favoriteIdSet ? favoriteIdSet.has(row.id) : false
   };
 }
@@ -307,7 +340,11 @@ function mapPlantRow(row, favoriteIdSet) {
 async function getPlantLibrary(db, openid) {
   const [plantRows] = await db.execute(
     `SELECT id, name, family, scientific_name, feature, feature_text, category,
-            image_url, tags_json, description, care_light, care_water, sort_order
+            image_url, tags_json, description, aliases_json, difficulty,
+            care_light, care_water, care_temperature, care_humidity, care_soil,
+            care_fertilizer, care_ventilation, seasonal_tips_json,
+            common_issues_json, faq_json, recommend_questions_json,
+            device_interpretation_json, agent_notes, sort_order
      FROM plant_library
      WHERE is_active = 1
      ORDER BY sort_order ASC, id ASC`
@@ -388,6 +425,147 @@ function mapTodoRow(row = {}) {
     status: row.status || 'pending',
     createdAt: row.created_at || null,
     updatedAt: row.updated_at || null
+  };
+}
+
+function mapJournalRow(row = {}) {
+  return {
+    id: row.id || '',
+    openid: row.openid || '',
+    logicalKey: row.logical_key || '',
+    plantLibraryId: row.plant_library_id || null,
+    eventDate: row.event_date || '',
+    eventType: row.event_type || 'note',
+    title: row.title || '',
+    content: row.content_text || '',
+    photos: parseJsonField(row.photos_json, []),
+    relatedTodoId: row.related_todo_id || null,
+    createdAt: row.created_at || null,
+    updatedAt: row.updated_at || null
+  };
+}
+
+function normalizeJournalEventType(input) {
+  const value = String(input || '').trim().toLowerCase();
+  const allow = new Set(['watering', 'fertilizing', 'pruning', 'relocation', 'note', 'photo', 'todo_done']);
+  return allow.has(value) ? value : 'note';
+}
+
+function normalizeJournalDate(input) {
+  const value = String(input || '').trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : '';
+}
+
+function normalizeJournalMonth(input) {
+  const value = String(input || '').trim();
+  return /^\d{4}-\d{2}$/.test(value) ? value : '';
+}
+
+async function listJournalMonthForUser(db, openid, input) {
+  const logicalKey = normalizeLogicalKey(input?.logicalKey);
+  const month = normalizeJournalMonth(input?.month);
+  if (!logicalKey || !month) {
+    return { success: false, msg: 'logicalKey and month are required' };
+  }
+
+  const aclRows = await getActiveAclRows(db, openid, logicalKey);
+  if (!aclRows.length) {
+    return { success: true, records: [], days: [] };
+  }
+
+  const [rows] = await db.execute(
+    `SELECT id, openid, logical_key, plant_library_id, event_date, event_type, title, content_text,
+            photos_json, related_todo_id, created_at, updated_at
+     FROM plant_journal
+     WHERE openid = ? AND logical_key = ? AND DATE_FORMAT(event_date, '%Y-%m') = ?
+     ORDER BY event_date ASC, created_at ASC, id ASC`,
+    [openid, logicalKey, month]
+  );
+
+  const records = rows.map(mapJournalRow);
+  const days = Array.from(new Set(records.map((item) => item.eventDate)));
+  return { success: true, records, days };
+}
+
+async function listJournalDayForUser(db, openid, input) {
+  const logicalKey = normalizeLogicalKey(input?.logicalKey);
+  const date = normalizeJournalDate(input?.date);
+  if (!logicalKey || !date) {
+    return { success: false, msg: 'logicalKey and date are required' };
+  }
+
+  const aclRows = await getActiveAclRows(db, openid, logicalKey);
+  if (!aclRows.length) {
+    return { success: true, records: [] };
+  }
+
+  const [rows] = await db.execute(
+    `SELECT id, openid, logical_key, plant_library_id, event_date, event_type, title, content_text,
+            photos_json, related_todo_id, created_at, updated_at
+     FROM plant_journal
+     WHERE openid = ? AND logical_key = ? AND event_date = ?
+     ORDER BY created_at ASC, id ASC`,
+    [openid, logicalKey, date]
+  );
+
+  return {
+    success: true,
+    records: rows.map(mapJournalRow)
+  };
+}
+
+async function addJournalRecordForUser(db, openid, input) {
+  const logicalKey = normalizeLogicalKey(input?.logicalKey);
+  const eventDate = normalizeJournalDate(input?.eventDate) || toSqlDateTime(Date.now()).slice(0, 10);
+  const eventType = normalizeJournalEventType(input?.eventType);
+  const title = typeof input?.title === 'string' ? input.title.trim() : '';
+  const content = typeof input?.content === 'string' ? input.content.trim() : '';
+  const plantLibraryId = input?.plantLibraryId ? Number(input.plantLibraryId) : null;
+  const photos = Array.isArray(input?.photos) ? input.photos.filter(Boolean) : [];
+
+  if (!logicalKey) {
+    return { success: false, msg: 'logicalKey is required' };
+  }
+  if (!title) {
+    return { success: false, msg: 'title is required' };
+  }
+
+  const aclRows = await getActiveAclRows(db, openid, logicalKey);
+  if (!aclRows.length) {
+    return { success: false, msg: 'permission denied' };
+  }
+
+  const now = toSqlDateTime(Date.now());
+  const [result] = await db.execute(
+    `INSERT INTO plant_journal
+      (openid, logical_key, plant_library_id, event_date, event_type, title, content_text, photos_json, related_todo_id, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
+    [
+      openid,
+      logicalKey,
+      plantLibraryId || null,
+      eventDate,
+      eventType,
+      title,
+      content || null,
+      JSON.stringify(photos),
+      now,
+      now
+    ]
+  );
+
+  const [rows] = await db.execute(
+    `SELECT id, openid, logical_key, plant_library_id, event_date, event_type, title, content_text,
+            photos_json, related_todo_id, created_at, updated_at
+     FROM plant_journal
+     WHERE id = ?
+     LIMIT 1`,
+    [result.insertId]
+  );
+
+  return {
+    success: true,
+    record: rows.length ? mapJournalRow(rows[0]) : null
   };
 }
 
@@ -489,7 +667,7 @@ async function completeTodoForUser(db, openid, input) {
 
   const logicalKey = normalizeLogicalKey(input?.logicalKey);
   const [rows] = await db.execute(
-    `SELECT id, openid, logical_key FROM todos WHERE id = ? LIMIT 1`,
+    `SELECT id, openid, logical_key, title FROM todos WHERE id = ? LIMIT 1`,
     [todoId]
   );
 
@@ -505,6 +683,36 @@ async function completeTodoForUser(db, openid, input) {
       success: false,
       msg: 'device mismatch'
     };
+  }
+
+  const todo = rows[0];
+  const eventLogicalKey = todo.logical_key || logicalKey;
+  if (eventLogicalKey) {
+    const [aclRows] = await db.execute(
+      `SELECT plant_library_id
+       FROM device_acl
+       WHERE openid = ? AND logical_key = ? AND status = 'active'
+       ORDER BY updated_at DESC
+       LIMIT 1`,
+      [openid, eventLogicalKey]
+    );
+    const now = toSqlDateTime(Date.now());
+    await db.execute(
+      `INSERT INTO plant_journal
+        (openid, logical_key, plant_library_id, event_date, event_type, title, content_text, photos_json, related_todo_id, created_at, updated_at)
+       VALUES (?, ?, ?, ?, 'todo_done', ?, ?, '[]', ?, ?, ?)`,
+      [
+        openid,
+        eventLogicalKey,
+        aclRows.length ? (aclRows[0].plant_library_id || null) : null,
+        now.slice(0, 10),
+        '完成待办',
+        todo.title || '',
+        todoId,
+        now,
+        now
+      ]
+    );
   }
 
   await db.execute(`DELETE FROM todos WHERE id = ?`, [todoId]);
@@ -618,7 +826,11 @@ async function queryLatestByUser(db, openid, input) {
     const placeholders2 = plantLibraryIds.map(() => '?').join(', ');
     const [plantRows] = await db.execute(
       `SELECT id, name, family, scientific_name, feature, feature_text, category,
-              image_url, tags_json, description, care_light, care_water
+              image_url, tags_json, description, aliases_json, difficulty,
+              care_light, care_water, care_temperature, care_humidity, care_soil,
+              care_fertilizer, care_ventilation, seasonal_tips_json,
+              common_issues_json, faq_json, recommend_questions_json,
+              device_interpretation_json, agent_notes
        FROM plant_library WHERE id IN (${placeholders2}) AND is_active = 1`,
       plantLibraryIds
     );
@@ -1315,6 +1527,18 @@ exports.main = async (event) => {
 
     if (method === 'POST' && path.endsWith('/todo/toggle-urgent')) {
       return json(200, await toggleTodoUrgencyForUser(db, openid, body));
+    }
+
+    if (method === 'POST' && path.endsWith('/journal/month')) {
+      return json(200, await listJournalMonthForUser(db, openid, body));
+    }
+
+    if (method === 'POST' && path.endsWith('/journal/day')) {
+      return json(200, await listJournalDayForUser(db, openid, body));
+    }
+
+    if (method === 'POST' && path.endsWith('/journal/add')) {
+      return json(200, await addJournalRecordForUser(db, openid, body));
     }
 
     if (method === 'GET' && path.endsWith('/user/profile')) {

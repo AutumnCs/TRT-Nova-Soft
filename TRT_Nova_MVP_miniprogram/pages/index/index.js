@@ -19,6 +19,11 @@ const DEFAULT_EXTRA = {
   runState: null,
   irStatus: null,
   dsbTemp: '--',
+  isDead: null,
+  soulState: '--',
+  favorability: '--',
+  personality: '--',
+  reportedPlantType: '--',
   updatedAt: '--'
 };
 
@@ -44,14 +49,57 @@ function buildDefaultWeather() {
   return { icon: '🌤️', temp: '--', desc: '' };
 }
 
+function getStatusBarHeight() {
+  if (typeof wx.getWindowInfo === 'function') {
+    return wx.getWindowInfo().statusBarHeight || 20;
+  }
+  return wx.getSystemInfoSync().statusBarHeight || 20;
+}
+
+function buildDeviceMeta(item = {}) {
+  const plantType = String(item.plantType || item?.plant?.name || '').trim();
+  const location = String(item.location || '').trim();
+  return {
+    plantType,
+    location,
+    summary: [plantType, location].filter(Boolean).join(' · ') || '未设置植物种类与地点'
+  };
+}
+
+function normalizeBooleanMetric(raw) {
+  if (raw === true || raw === false) return raw;
+  if (raw === 1 || raw === '1') return true;
+  if (raw === 0 || raw === '0') return false;
+  if (typeof raw === 'string') {
+    const value = raw.trim().toLowerCase();
+    if (['true', 'yes', 'dead', '死亡'].includes(value)) return true;
+    if (['false', 'no', 'alive', '存活'].includes(value)) return false;
+  }
+  return null;
+}
+
+function normalizeDisplayMetric(raw, fallback = '--') {
+  if (raw === undefined || raw === null || raw === '') return fallback;
+  return String(raw);
+}
+
+function formatSoulStateByIr(raw) {
+  const normalized = normalizeBooleanMetric(raw);
+  if (normalized === true) return '没出窍';
+  if (normalized === false) return '出窍';
+  return '--';
+}
+
 Page({
   _refreshTimer: null,
   _loadingDevices: false,
   _deviceRows: [],
+  _redirectingToLogin: false,
 
   data: {
     statusBarHeight: 20,
     plantName: '未选择设备',
+    plantMeta: '未设置植物种类与地点',
     plantImageSource: '',
     plantImage: DEFAULT_PLANT_IMAGE,
     dialogue: '主人，我现在状态很好，继续保持哦。',
@@ -68,8 +116,7 @@ Page({
   },
 
   onLoad() {
-    const sysInfo = wx.getSystemInfoSync();
-    this.setData({ statusBarHeight: sysInfo.statusBarHeight || 20 });
+    this.setData({ statusBarHeight: getStatusBarHeight() });
     this.resolvePlantImage();
     this.checkLoginStatus();
   },
@@ -95,9 +142,13 @@ Page({
   checkLoginStatus() {
     app.checkLoginStatus();
     if (!app.globalData.hasLogin) {
-      setTimeout(() => app.gotoLoginPage(), 80);
+      if (!this._redirectingToLogin) {
+        this._redirectingToLogin = true;
+        setTimeout(() => app.gotoLoginPage(), 80);
+      }
       return false;
     }
+    this._redirectingToLogin = false;
     return true;
   },
 
@@ -132,6 +183,7 @@ Page({
   },
 
   async resolvePlantImage() {
+    this._imageFallbackUsed = false;
     const primary = this.data.plantImageSource || this.data.plantImage || DEFAULT_PLANT_IMAGE;
     const primaryUrl = await this.resolveAnySource(primary);
     if (primaryUrl) {
@@ -139,12 +191,16 @@ Page({
       return;
     }
     const fallbackUrl = await this.resolveAnySource(DEFAULT_PLANT_IMAGE);
-    this.setData({ plantImage: fallbackUrl || DEFAULT_PLANT_IMAGE });
+    // 两级都失败时设空字符串，避免再次触发 binderror 死循环
+    this.setData({ plantImage: fallbackUrl || '' });
   },
 
   async onPlantImageError() {
+    // 防止 fallback 本身也失败导致无限递归（App 模式本地路径可能不可用）
+    if (this._imageFallbackUsed) return;
+    this._imageFallbackUsed = true;
     const fallbackUrl = await this.resolveAnySource(DEFAULT_PLANT_IMAGE);
-    this.setData({ plantImage: fallbackUrl || DEFAULT_PLANT_IMAGE });
+    this.setData({ plantImage: fallbackUrl || '' });
   },
 
   async loadTodos(logicalKey = '') {
@@ -183,6 +239,7 @@ Page({
 
       const previousKey = this.data.selectedLogicalKey;
       const devices = raw.map((item) => ({
+        ...buildDeviceMeta(item),
         _id: item.logicalKey || '',
         logicalKey: item.logicalKey || '',
         name: item.alias || item.deviceName || '未命名设备',
@@ -207,6 +264,7 @@ Page({
         devices,
         selectedLogicalKey,
         plantName: selected ? selected.name : '未选择设备',
+        plantMeta: selected ? selected.summary : '未设置植物种类与地点',
         hasDevices: devices.length > 0
       });
 
@@ -229,16 +287,24 @@ Page({
       }
     } catch (error) {
       console.error('[index] loadDevices error:', error);
+      const authExpired = app.isAuthError && app.isAuthError(error);
+      if (authExpired || !app.globalData.hasLogin) {
+        this.stopAutoRefresh();
+      }
       this._deviceRows = [];
       this.setData({
         devices: [],
         selectedLogicalKey: '',
         plantName: '未选择设备',
+        plantMeta: '未设置植物种类与地点',
         todos: [],
         hasDevices: false
       });
       this.resetTelemetryDefaults();
       this.resetDeviceControlDefaults();
+      if (authExpired || !app.globalData.hasLogin) {
+        return;
+      }
       wx.showToast({
         title: '设备加载失败',
         icon: 'none',
@@ -253,7 +319,7 @@ Page({
     this.stopAutoRefresh();
     this._refreshTimer = setInterval(() => {
       if (!this.checkLoginStatus()) return;
-      this.loadDevices({ refreshTodos: false });
+      this.loadDevices({ refreshTodos: false, silent: true });
     }, 60000);
   },
 
@@ -342,10 +408,15 @@ Page({
     const dsbTempNode = getNode(['dsb_temp']);
     const runStateNode = params.run_state || null;
     const irStatusNode = params.ir_status || null;
+    const isDeadNode = params.is_dead || null;
+    const favorabilityNode = getNode(['favorability', 'favor', 'affinity', 'likability', 'haogandu']);
+    const personalityNode = getNode(['plant_personality', 'personality', 'character']);
+    const plantTypeNode = getNode(['plant_type', 'ptype']);
     const fanNode = params.fan_switch || params.test || null;
 
     const sensors = cloneSensors();
     const extraMetrics = cloneExtra();
+    extraMetrics.reportedPlantType = selected?.plantType || selected?.plant?.name || '--';
 
     if (tempNode) sensors.temp.value = String(tempNode.value);
     if (humidityNode) sensors.humidity.value = String(humidityNode.value);
@@ -355,8 +426,16 @@ Page({
     if (dsbTempNode) extraMetrics.dsbTemp = String(dsbTempNode.value);
     const runStateValue = getBooleanValue(runStateNode);
     const irStatusValue = getBooleanValue(irStatusNode);
+    const isDeadValue = normalizeBooleanMetric(isDeadNode && typeof isDeadNode === 'object' ? isDeadNode.value : isDeadNode);
     if (runStateValue !== null) extraMetrics.runState = runStateValue;
-    if (irStatusValue !== null) extraMetrics.irStatus = irStatusValue;
+    if (irStatusValue !== null) {
+      extraMetrics.irStatus = irStatusValue;
+      extraMetrics.soulState = formatSoulStateByIr(irStatusValue);
+    }
+    if (isDeadValue !== null) extraMetrics.isDead = isDeadValue;
+    if (favorabilityNode) extraMetrics.favorability = normalizeDisplayMetric(favorabilityNode.value);
+    if (personalityNode) extraMetrics.personality = normalizeDisplayMetric(personalityNode.value);
+    if (plantTypeNode) extraMetrics.reportedPlantType = normalizeDisplayMetric(plantTypeNode.value);
     extraMetrics.updatedAt = selected && selected.updatedAt ? this.formatTs(selected.updatedAt) : '--';
 
     const fanReportedState = getBooleanValue(fanNode);
@@ -377,7 +456,7 @@ Page({
       soil: { value: sensors.soil.value }
     };
     const bubbles = computeBubbles(latestSensors);
-    const moodEmoji = computeMoodEmoji(latestSensors);
+    const moodEmoji = computeMoodEmoji(latestSensors, extraMetrics);
     const warningBubble = bubbles.find((item) => item.type === 'warning');
     const dialogue = warningBubble
       ? `主人，${warningBubble.text}，请及时处理哦`
@@ -469,11 +548,34 @@ Page({
     this.setData({
       devices,
       selectedLogicalKey,
-      plantName: selected ? selected.name : '未选择设备'
+      plantName: selected ? selected.name : '未选择设备',
+      plantMeta: selected ? selected.summary : '未设置植物种类与地点'
     });
 
     this.applyLatestParams(this._deviceRows, selectedLogicalKey);
     this.loadTodos(selectedLogicalKey);
+  },
+
+  openDeviceDetail(e) {
+    const index = Number(e.currentTarget.dataset.index || 0);
+    const selected = this.data.devices[index] || null;
+    if (!selected || !selected.logicalKey) return;
+
+    this.switchDevice(e);
+
+    const bootstrapRow = Array.isArray(this._deviceRows)
+      ? this._deviceRows.find((item) => item && item.logicalKey === selected.logicalKey)
+      : null;
+
+    if (bootstrapRow) {
+      deviceService.setDeviceDetailBootstrap(selected.logicalKey, {
+        deviceData: [bootstrapRow]
+      });
+    }
+
+    wx.navigateTo({
+      url: `/pages/deviceDetail/deviceDetail?logicalKey=${encodeURIComponent(selected.logicalKey)}`
+    });
   },
 
   async refreshDeviceStatus() {

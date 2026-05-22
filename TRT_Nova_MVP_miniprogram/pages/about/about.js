@@ -1,5 +1,12 @@
 const app = getApp()
 
+function getStatusBarHeight() {
+  if (typeof wx.getWindowInfo === 'function') {
+    return wx.getWindowInfo().statusBarHeight || 20;
+  }
+  return wx.getSystemInfoSync().statusBarHeight || 20;
+}
+
 Page({
   data: {
     statusBarHeight: 20,
@@ -19,9 +26,8 @@ Page({
   },
 
   onLoad: function (options) {
-    const sysInfo = wx.getSystemInfoSync();
     this.setData({
-      statusBarHeight: sysInfo.statusBarHeight
+      statusBarHeight: getStatusBarHeight()
     });
     
     // 检查登录状态

@@ -106,10 +106,72 @@ function computeBubbles(sensors) {
   return ordered.slice(0, 2);
 }
 
+function normalizeNumericValue(raw) {
+  const num = Number(raw);
+  return Number.isFinite(num) ? num : null;
+}
+
+function normalizeBooleanValue(raw) {
+  if (raw === true || raw === false) return raw;
+  if (raw === 1 || raw === '1') return true;
+  if (raw === 0 || raw === '0') return false;
+  if (typeof raw === 'string') {
+    const value = raw.trim().toLowerCase();
+    if (['true', 'yes', 'alive', 'normal'].includes(value)) return true;
+    if (['false', 'no', 'dead'].includes(value)) return false;
+  }
+  return null;
+}
+
+function resolveMoodByPersonality(personality) {
+  const value = typeof personality === 'string' ? personality.trim().toLowerCase() : '';
+  if (!value) {
+    const code = normalizeNumericValue(personality);
+    if (code === null) return '';
+    if (code === 1) return '😄';
+    if (code === 2) return '🥰';
+    if (code === 3) return '😤';
+    if (code === 4) return '🥺';
+    if (code === 5) return '😪';
+    return '😌';
+  }
+
+  if (value.includes('开心') || value.includes('happy') || value.includes('cheerful') || value.includes('活泼')) return '😄';
+  if (value.includes('平静') || value.includes('calm') || value.includes('gentle') || value.includes('温柔')) return '😌';
+  if (value.includes('害羞') || value.includes('shy') || value.includes('可爱') || value.includes('cute')) return '🥰';
+  if (value.includes('生气') || value.includes('angry') || value.includes('傲娇') || value.includes('倔强')) return '😤';
+  if (value.includes('难过') || value.includes('sad') || value.includes('低落') || value.includes('孤单')) return '🥺';
+  if (value.includes('困') || value.includes('sleepy') || value.includes('lazy') || value.includes('慵懒')) return '😪';
+  return '';
+}
+
 /**
  * 计算植物心情 emoji（根据异常条数）
  */
-function computeMoodEmoji(sensors) {
+function computeMoodEmoji(sensors, extra = {}) {
+  const deadFlag = normalizeBooleanValue(extra.isDead);
+  if (deadFlag === true) return '😵';
+
+  const personalityMood = resolveMoodByPersonality(extra.personality);
+  if (personalityMood) return personalityMood;
+
+  const favorability = normalizeNumericValue(extra.favorability);
+  if (favorability !== null) {
+    if (favorability >= 85) return '🥰';
+    if (favorability >= 65) return '😊';
+    if (favorability >= 40) return '🙂';
+    if (favorability >= 20) return '😟';
+    return '🥺';
+  }
+
+  const soulState = normalizeNumericValue(extra.soulState);
+  if (soulState !== null) {
+    if (soulState >= 80) return '🤩';
+    if (soulState >= 60) return '😊';
+    if (soulState >= 30) return '😐';
+    return '😵';
+  }
+
   const bubbles = computeBubbles(sensors);
   const warningCount = bubbles.filter(b => b.type === 'warning').length;
   if (warningCount === 0) return '😊';

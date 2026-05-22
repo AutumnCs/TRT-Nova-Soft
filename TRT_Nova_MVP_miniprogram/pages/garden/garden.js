@@ -53,6 +53,13 @@ function mapRowsToDevices(rows) {
   });
 }
 
+function getStatusBarHeight() {
+  if (typeof wx.getWindowInfo === 'function') {
+    return wx.getWindowInfo().statusBarHeight || 20;
+  }
+  return wx.getSystemInfoSync().statusBarHeight || 20;
+}
+
 Page({
   _refreshTimer: null,
   _loading: false,
@@ -67,9 +74,8 @@ Page({
   },
 
   onLoad() {
-    const sys = wx.getSystemInfoSync();
     this._bootstrapRetryCount = 0;
-    this.setData({ statusBarHeight: sys.statusBarHeight || 20 });
+    this.setData({ statusBarHeight: getStatusBarHeight() });
     this.loadDevices();
   },
 

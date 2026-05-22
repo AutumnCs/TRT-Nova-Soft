@@ -1,7 +1,20 @@
-﻿<view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
+<view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
   <view class="header-bar">
     <view class="plant-picker">
-      <text class="plant-name">{{plantName}}</text>
+      <view class="plant-picker-content">
+        <text class="plant-name">{{plantName}}</text>
+        <text class="plant-meta">{{plantMeta}}</text>
+        <view wx:if="{{(extraMetrics.personality && extraMetrics.personality !== '--') || (extraMetrics.isDead !== true && extraMetrics.favorability && extraMetrics.favorability !== '--')}}" class="plant-chip-row">
+          <view wx:if="{{extraMetrics.personality && extraMetrics.personality !== '--'}}" class="plant-personality-chip">
+            <text class="plant-personality-label">性格</text>
+            <text class="plant-personality-value">{{extraMetrics.personality}}</text>
+          </view>
+          <view wx:if="{{extraMetrics.isDead !== true && extraMetrics.favorability && extraMetrics.favorability !== '--'}}" class="plant-favorability-chip">
+            <text class="plant-favorability-label">好感度</text>
+            <text class="plant-favorability-value">{{extraMetrics.favorability}}</text>
+          </view>
+        </view>
+      </view>
     </view>
   </view>
 
@@ -88,9 +101,11 @@
 
       <view wx:else class="device-scroll">
         <view class="device-list">
-          <view wx:for="{{devices}}" wx:key="_id" class="device-item {{item.active ? 'active' : ''}}" bindtap="switchDevice" data-index="{{index}}">
+          <view wx:for="{{devices}}" wx:key="_id" class="device-item {{item.active ? 'active' : ''}}" bindtap="openDeviceDetail" data-index="{{index}}">
             <text class="device-item-icon">{{item.icon}}</text>
             <text class="device-item-name">{{item.name}}</text>
+            <text class="device-item-plant">{{item.plantType || '未设植物'}}</text>
+            <text class="device-item-location">{{item.location || '未设地点'}}</text>
             <text class="device-item-status {{item.status === '在线' ? 'status-text-online' : 'status-text-offline'}}">{{item.status}}</text>
           </view>
           <view class="add-device" bindtap="goToDeviceManagement">
@@ -153,12 +168,20 @@
           <text class="extra-value">{{extraMetrics.runState === true ? 'ON' : (extraMetrics.runState === false ? 'OFF' : '--')}}</text>
         </view>
         <view class="extra-item">
-          <text class="extra-label">红外状态</text>
-          <text class="extra-value">{{extraMetrics.irStatus === true ? 'TRIGGERED' : (extraMetrics.irStatus === false ? 'NORMAL' : '--')}}</text>
-        </view>
-        <view class="extra-item">
           <text class="extra-label">DS18B20 温度</text>
           <text class="extra-value">{{extraMetrics.dsbTemp}} ℃</text>
+        </view>
+        <view class="extra-item">
+          <text class="extra-label">{{extraMetrics.isDead === true ? '死亡状态' : '好感度'}}</text>
+          <text class="extra-value">{{extraMetrics.isDead === true ? '已死亡' : extraMetrics.favorability}}</text>
+        </view>
+        <view class="extra-item">
+          <text class="extra-label">灵魂状态</text>
+          <text class="extra-value">{{extraMetrics.soulState}}</text>
+        </view>
+        <view class="extra-item">
+          <text class="extra-label">植物类型</text>
+          <text class="extra-value">{{extraMetrics.reportedPlantType}}</text>
         </view>
         <view class="extra-item full">
           <text class="extra-label">上报时间戳</text>

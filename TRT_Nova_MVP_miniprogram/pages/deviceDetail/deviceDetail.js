@@ -14,11 +14,17 @@ const METRIC_DEFS = [
   { key: 'soil_percent', label: '土壤湿度', unit: '%' },
   { key: 'dht_temp', label: '环境温度', unit: '℃' },
   { key: 'dht_humi', label: '环境湿度', unit: '%' },
-  { key: 'light_val', label: '光照强度', unit: 'lx' },
-  { key: 'dsb_temp', label: '探针温度', unit: '℃' },
-  { key: 'run_state', label: '运行状态', unit: '' },
-  { key: 'ir_status', label: '红外状态', unit: '' }
+  { key: 'light_val', label: '光照强度', unit: 'lx' }
 ];
+
+const DEFAULT_EXTRA_INFO = {
+  isDead: '--',
+  soulState: '--',
+  favorability: '--',
+  personality: '--',
+  reportedPlantType: '--',
+  irStatus: null
+};
 
 function parseMetricValue(raw, key) {
   if (key === 'run_state' || key === 'ir_status') {
@@ -37,6 +43,37 @@ function formatMetricValue(raw, key) {
   return String(raw);
 }
 
+function normalizeBooleanMetric(raw) {
+  if (raw === true || raw === false) return raw;
+  if (raw === 1 || raw === '1') return true;
+  if (raw === 0 || raw === '0') return false;
+  if (typeof raw === 'string') {
+    const value = raw.trim().toLowerCase();
+    if (['true', 'yes', 'dead', '死亡'].includes(value)) return true;
+    if (['false', 'no', 'alive', '存活'].includes(value)) return false;
+  }
+  return null;
+}
+
+function formatDeadMetric(raw) {
+  const value = normalizeBooleanMetric(raw);
+  if (value === null) return '--';
+  return value ? '是' : '否';
+}
+
+function formatSoulStateByIr(raw) {
+  const value = normalizeBooleanMetric(raw);
+  if (value === null) return '--';
+  return value ? '没出窍' : '出窍';
+}
+
+function getStatusBarHeight() {
+  if (typeof wx.getWindowInfo === 'function') {
+    return wx.getWindowInfo().statusBarHeight || 20;
+  }
+  return wx.getSystemInfoSync().statusBarHeight || 20;
+}
+
 Page({
   _refreshTimer: null,
   _canvasW: 0,
@@ -48,6 +85,7 @@ Page({
     logicalKey: '',
     loading: true,
     device: null,
+    extraInfo: { ...DEFAULT_EXTRA_INFO },
     metricTabs: [],
     hasTrendData: false,
     selectedMetricKey: 'soil_percent',
@@ -65,9 +103,8 @@ Page({
 
   onLoad(options) {
     const logicalKey = decodeURIComponent(options?.logicalKey || '');
-    const sysInfo = wx.getSystemInfoSync();
     this.setData({
-      statusBarHeight: sysInfo.statusBarHeight || 20,
+      statusBarHeight: getStatusBarHeight(),
       logicalKey: logicalKey || ''
     });
 
@@ -125,9 +162,10 @@ Page({
   applyDevicePayload(result) {
     const row = (result?.deviceData || [])[0] || null;
     if (!row) return false;
+    const params = row.params || {};
 
     const metricTabs = METRIC_DEFS.map((def) => {
-      const node = row.params?.[def.key];
+      const node = params[def.key];
       const rawValue = node ? node.value : null;
       return {
         ...def,
@@ -135,6 +173,15 @@ Page({
         active: def.key === this.data.selectedMetricKey
       };
     });
+
+    const extraInfo = {
+      isDead: formatDeadMetric(params.is_dead && typeof params.is_dead === 'object' ? params.is_dead.value : params.is_dead),
+      soulState: formatSoulStateByIr(params.ir_status && typeof params.ir_status === 'object' ? params.ir_status.value : params.ir_status),
+      favorability: formatMetricValue((params.favorability || params.favor || params.affinity || params.likability || params.haogandu || {}).value, 'text'),
+      personality: formatMetricValue((params.plant_personality || params.personality || params.character || {}).value, 'text'),
+      reportedPlantType: formatMetricValue((params.plant_type || params.ptype || {}).value || row.plantType, 'text'),
+      irStatus: normalizeBooleanMetric(params.ir_status && typeof params.ir_status === 'object' ? params.ir_status.value : params.ir_status)
+    };
 
     this.setData({
       device: {
@@ -145,6 +192,7 @@ Page({
         online: !alertService.isDeviceOffline(row),
         image: PLANT_IMAGE_MAP[row.plantType || '其他'] || PLANT_IMAGE_MAP.其他
       },
+      extraInfo,
       metricTabs
     });
 
@@ -429,6 +477,14 @@ Page({
     if (!logicalKey) return;
     wx.navigateTo({
       url: `/pages/deviceSettings/deviceSettings?logicalKey=${encodeURIComponent(logicalKey)}`
+    });
+  },
+
+  goPlantJournal() {
+    const logicalKey = this.data.logicalKey;
+    if (!logicalKey) return;
+    wx.navigateTo({
+      url: `/pages/plantJournal/plantJournal?logicalKey=${encodeURIComponent(logicalKey)}`
     });
   }
 });

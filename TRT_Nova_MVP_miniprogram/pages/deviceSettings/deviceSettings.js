@@ -1,6 +1,5 @@
 const deviceService = require('../../services/modules/DeviceService');
 const plantService = require('../../services/modules/PlantService');
-const { PLANTS } = require('../../data/plants');
 
 const PROVISION_URL = 'http://192.168.4.1';
 
@@ -89,7 +88,13 @@ Page({
 
       let selectedPlant = row.plant || null;
       if (!selectedPlant && row.plantType) {
-        selectedPlant = PLANTS.find((item) => item.name === row.plantType) || null;
+        const referencePlants = plantService.getCachedPlants().length
+          ? plantService.getCachedPlants()
+          : plantService.getFallbackPlants();
+        selectedPlant = plantService.findPlantByIdentity(referencePlants, {
+          plantId: row.plantLibraryId,
+          plantName: row.plantType
+        });
       }
 
       this.setData({
