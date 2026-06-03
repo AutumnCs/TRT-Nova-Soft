@@ -35,6 +35,17 @@ Page({
     this.stopAutoRefresh();
   },
 
+  goBack() {
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      wx.navigateBack({ delta: 1 });
+      return;
+    }
+    wx.switchTab({
+      url: '/pages/index/index'
+    });
+  },
+
   async loadPlantOptions() {
     const buildOptions = (plants) => plantService.buildPlantOptions(plants);
 

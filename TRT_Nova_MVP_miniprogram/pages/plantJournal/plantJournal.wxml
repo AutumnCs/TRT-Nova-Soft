@@ -1,31 +1,73 @@
-<view class="page" style="padding-top: {{statusBarHeight}}px;">
-  <view class="nav">
-    <view class="nav-btn" bindtap="goBack">〈</view>
-    <view class="nav-title">植物成长日历</view>
-    <view class="nav-btn ghost"></view>
+<view class="page">
+  <view class="bg-grid"></view>
+  <view class="bg-glow bg-glow-1"></view>
+  <view class="bg-glow bg-glow-2"></view>
+
+  <view class="topbar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="topbar-inner">
+      <view class="icon-btn" bindtap="goBack">
+        <text class="icon-btn-text">‹</text>
+      </view>
+
+      <view class="brand-block">
+        <text class="brand-kicker">LUNA JOURNAL</text>
+        <text class="brand-title">植物成长日历</text>
+      </view>
+
+      <view class="signal-pill">
+        <text class="signal-wave">◉</text>
+        <text class="signal-text">SYNC</text>
+      </view>
+    </view>
   </view>
 
   <scroll-view class="content" scroll-y>
-    <view class="device-card" wx:if="{{devices.length > 0}}" bindtap="onChooseDevice">
-      <text class="device-card-label">当前设备</text>
-      <text class="device-card-title">{{selectedDeviceLabel}}</text>
-      <text class="device-card-arrow">切换设备</text>
-    </view>
-
-    <view wx:else class="empty-card">
-      <text class="empty-title">还没有已绑定设备</text>
-      <text class="empty-desc">先去设备管理绑定一台设备，再开始记录成长轨迹。</text>
-    </view>
-
-    <view class="calendar-card">
-      <view class="calendar-top">
-        <view class="month-switch" bindtap="onPrevMonth">〈</view>
-        <text class="month-label">{{monthLabel}}</text>
-        <view class="month-switch" bindtap="onNextMonth">〉</view>
+    <view class="hero-card">
+      <view class="hero-chip-row">
+        <view class="hero-chip">
+          <text class="hero-chip-label">当前设备</text>
+        </view>
+        <view class="hero-chip ghost">
+          <text class="hero-chip-label">成长时间轴</text>
+        </view>
       </view>
+
+      <view wx:if="{{devices.length > 0}}" class="device-row" bindtap="onChooseDevice">
+        <view class="device-avatar">
+          <text class="device-avatar-text">🌿</text>
+        </view>
+        <view class="device-info">
+          <text class="device-name">{{selectedDeviceLabel}}</text>
+          <text class="device-subtitle">点按切换设备，记录会同步到当前选中的植物</text>
+        </view>
+        <view class="device-cta">
+          <text class="device-cta-text">切换</text>
+          <text class="device-cta-arrow">›</text>
+        </view>
+      </view>
+
+      <view wx:else class="empty-device">
+        <text class="empty-device-title">还没有绑定设备</text>
+        <text class="empty-device-desc">先去设备管理绑定一台设备，再来记录成长之路。</text>
+      </view>
+    </view>
+
+    <view class="panel calendar-panel">
+      <view class="panel-head">
+        <view>
+          <text class="panel-kicker">Monthly Scan</text>
+          <text class="panel-title">{{monthLabel}}</text>
+        </view>
+        <view class="month-nav">
+          <view class="nav-arrow" bindtap="onPrevMonth">‹</view>
+          <view class="nav-arrow active" bindtap="onNextMonth">›</view>
+        </view>
+      </view>
+
       <view class="week-row">
-        <text wx:for="{{['一','二','三','四','五','六','日']}}" wx:key="*this" class="week-item">{{item}}</text>
+        <text wx:for="{{['S','M','T','W','T','F','S']}}" wx:key="*this" class="week-item">{{item}}</text>
       </view>
+
       <view class="day-grid">
         <view
           wx:for="{{calendarDays}}"
@@ -40,39 +82,60 @@
       </view>
     </view>
 
-    <view class="day-header">
-      <view>
-        <text class="day-title">{{selectedDate}}</text>
-        <text class="day-subtitle">手动记录与当天待办完成情况</text>
-      </view>
-      <view class="day-actions">
-        <view class="trend-btn" bindtap="goTrend">查看设备趋势</view>
-        <view class="add-btn" bindtap="showComposer">+ 记录</view>
-      </view>
-    </view>
+    <view class="panel day-panel">
+      <view class="day-header">
+        <view class="day-copy">
+          <text class="day-title">{{selectedDate}}</text>
+          <text class="day-subtitle">手动记录、待办完成和图片备注都会显示在这里</text>
+        </view>
 
-    <view wx:if="{{dayRecords.length > 0}}" class="record-list">
-      <view wx:for="{{dayRecords}}" wx:key="id" class="record-card">
-        <view class="record-icon">{{item.icon}}</view>
-        <view class="record-body">
-          <view class="record-head">
-            <text class="record-title">{{item.title}}</text>
-            <text class="record-type">{{item.typeLabel}}</text>
-          </view>
-          <text wx:if="{{item.content}}" class="record-content">{{item.content}}</text>
-          <text class="record-time">{{item.createdAt}}</text>
+        <view class="day-actions">
+          <view class="action-btn ghost" bindtap="goTrend">查看趋势</view>
+          <view class="action-btn primary" bindtap="showComposer">+ 记录</view>
         </view>
       </view>
     </view>
 
-    <view wx:else class="empty-records">
-      <text>这一天还没有成长记录，点右上角加一条吧。</text>
+    <view wx:if="{{dayRecords.length > 0}}" class="timeline-wrap">
+      <view class="timeline-rail"></view>
+      <view
+        wx:for="{{dayRecords}}"
+        wx:key="id"
+        class="timeline-item event-{{item.eventType}}"
+      >
+        <view class="timeline-dot"></view>
+        <view class="record-card">
+          <view class="record-head">
+            <view class="record-icon">
+              <text class="record-icon-text">{{item.icon}}</text>
+            </view>
+            <view class="record-meta">
+              <text class="record-title">{{item.title}}</text>
+              <text class="record-type">{{item.typeLabel}}</text>
+            </view>
+            <text class="record-time">{{item.createdAt}}</text>
+          </view>
+          <text wx:if="{{item.content}}" class="record-content">{{item.content}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="panel empty-panel">
+      <text class="empty-title">今天还没有成长记录</text>
+      <text class="empty-desc">点右上角“记录”写下一条浇水、施肥、修剪或备注吧。</text>
     </view>
   </scroll-view>
 
   <view wx:if="{{showComposer}}" class="composer-mask" bindtap="hideComposer">
     <view class="composer" catchtap="noop">
-      <text class="composer-title">新增记录</text>
+      <view class="composer-top">
+        <view>
+          <text class="composer-kicker">New Entry</text>
+          <text class="composer-title">新增记录</text>
+        </view>
+        <view class="composer-close" bindtap="hideComposer">×</view>
+      </view>
+
       <picker
         class="composer-field"
         mode="selector"
@@ -82,20 +145,27 @@
         bindchange="onTypeChange"
       >
         <view class="composer-picker">
-          <text class="composer-picker-text">{{eventTypeOptions[eventTypeIndex].label}}</text>
-          <text class="composer-picker-arrow">▾</text>
+          <view>
+            <text class="composer-field-label">记录类型</text>
+            <text class="composer-picker-text">{{eventTypeOptions[eventTypeIndex].label}}</text>
+          </view>
+          <text class="composer-picker-arrow">⌄</text>
         </view>
       </picker>
+
       <view class="composer-field composer-input-wrap">
+        <view class="composer-field-label">标题</view>
         <input
           class="composer-input"
-          placeholder="标题，例如：今天浇水了"
+          placeholder="例如：今天浇水了"
           placeholder-class="composer-placeholder"
           value="{{draftTitle}}"
           bindinput="onTitleInput"
         />
       </view>
+
       <view class="composer-field composer-textarea-wrap">
+        <view class="composer-field-label">备注</view>
         <textarea
           class="composer-textarea"
           placeholder="补充一点备注（可选）"
@@ -104,6 +174,7 @@
           bindinput="onContentInput"
         ></textarea>
       </view>
+
       <view class="composer-actions">
         <view class="composer-btn secondary" bindtap="hideComposer">取消</view>
         <view class="composer-btn primary" bindtap="submitRecord">保存</view>

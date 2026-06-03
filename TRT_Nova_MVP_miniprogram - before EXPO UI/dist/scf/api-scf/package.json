@@ -1,0 +1,11 @@
+{
+  "name": "trt-nova-api-scf",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "mqtt": "^5.10.1",
+    "mysql2": "^3.14.0"
+  }
+}

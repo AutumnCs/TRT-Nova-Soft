@@ -1,54 +1,75 @@
 <view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
-  <view class="header-bar">
-    <view class="plant-picker">
-      <view class="plant-picker-content">
-        <text class="plant-name">{{plantName}}</text>
-        <text class="plant-meta">{{plantMeta}}</text>
-        <view wx:if="{{(extraMetrics.personality && extraMetrics.personality !== '--') || (extraMetrics.isDead !== true && extraMetrics.favorability && extraMetrics.favorability !== '--')}}" class="plant-chip-row">
-          <view wx:if="{{extraMetrics.personality && extraMetrics.personality !== '--'}}" class="plant-personality-chip">
-            <text class="plant-personality-label">性格</text>
-            <text class="plant-personality-value">{{extraMetrics.personality}}</text>
+  <view class="topbar">
+    <view class="topbar-inner">
+      <view class="topbar-brand">
+        <text class="topbar-kicker">TRT Nova</text>
+        <view class="plant-picker" bindtap="goToDeviceManagement">
+          <view class="plant-picker-content">
+            <text class="plant-name">{{plantName}}</text>
+            <text class="plant-meta">{{plantMeta}}</text>
           </view>
-          <view wx:if="{{extraMetrics.isDead !== true && extraMetrics.favorability && extraMetrics.favorability !== '--'}}" class="plant-favorability-chip">
-            <text class="plant-favorability-label">好感度</text>
-            <text class="plant-favorability-value">{{extraMetrics.favorability}}</text>
-          </view>
+          <view class="plant-picker-arrow">⌄</view>
         </view>
+      </view>
+
+      <view class="topbar-signal">
+        <text class="topbar-signal-icon">◉</text>
+      </view>
+    </view>
+
+    <view
+      wx:if="{{(extraMetrics.personality && extraMetrics.personality !== '--') || (extraMetrics.isDead !== true && extraMetrics.favorability && extraMetrics.favorability !== '--')}}"
+      class="plant-chip-row"
+    >
+      <view wx:if="{{extraMetrics.personality && extraMetrics.personality !== '--'}}" class="plant-personality-chip">
+        <text class="plant-personality-label">性格</text>
+        <text class="plant-personality-value">{{extraMetrics.personality}}</text>
+      </view>
+      <view wx:if="{{extraMetrics.isDead !== true && extraMetrics.favorability && extraMetrics.favorability !== '--'}}" class="plant-favorability-chip">
+        <text class="plant-favorability-label">好感度</text>
+        <text class="plant-favorability-value">{{extraMetrics.favorability}}</text>
       </view>
     </view>
   </view>
 
   <view class="scroll-content">
-    <view class="plant-section">
+    <view class="plant-section dark-panel">
+      <view class="grid-overlay"></view>
       <view class="glow-bg"></view>
       <view class="plant-circle">
         <image src="{{plantImage}}" mode="aspectFill" class="plant-img" binderror="onPlantImageError"></image>
       </view>
 
-      <!-- 天气小部件（真实数据） -->
+      <view class="status-pill status-pill-left">
+        <text class="status-pill-label">{{extraMetrics.isDead === true ? 'OFFLINE' : 'OPTIMAL'}}</text>
+      </view>
+
+      <view class="status-pill status-pill-right">
+        <text class="status-pill-label">REC</text>
+        <text class="status-pill-value">{{extraMetrics.updatedAt || '--'}}</text>
+      </view>
+
       <view class="weather-widget">
         <text class="weather-icon">{{weather.icon}}</text>
         <text class="weather-temp">{{weather.temp}}</text>
       </view>
 
-      <!-- 动态气泡（由传感器阈值计算，最多 2 条） -->
       <block wx:for="{{bubbles}}" wx:key="index">
         <view
           class="bubble {{item.type === 'warning' ? 'bubble-warning' : 'bubble-success'}}"
-          style="{{index === 0 ? 'top: 20rpx; right: 120rpx;' : 'bottom: 40rpx; left: 40rpx;'}}"
+          style="{{index === 0 ? 'top: 96rpx; left: 24rpx;' : 'bottom: 40rpx; left: 40rpx;'}}"
         >
           <text class="bubble-icon">{{item.icon}}</text>
           <text class="bubble-text">{{item.text}}</text>
         </view>
       </block>
 
-      <!-- 心情 emoji（根据告警数量变化） -->
       <view class="mood-icon">
         <text>{{moodEmoji}}</text>
       </view>
     </view>
 
-    <view class="dialogue-section">
+    <view class="dialogue-section dark-card">
       <view class="chat-bubble">
         <text class="chat-text">{{dialogue}}</text>
       </view>
@@ -63,7 +84,7 @@
         <view
           wx:for="{{todos}}"
           wx:key="_id"
-          class="card {{item.urgent ? 'border-l-red' : 'border-l-blue'}}"
+          class="card dark-task-card {{item.urgent ? 'border-l-red' : 'border-l-blue'}}"
           bindtap="onTaskDone"
           data-id="{{item._id || item.id}}"
           bindlongpress="toggleUrgency"
@@ -79,7 +100,7 @@
           </view>
         </view>
         <view wx:if="{{todos.length === 0}}" class="empty-state">
-          <text>暂无待办，点击右上角 + 添加</text>
+          <text>暂无待办，点右上角 + 添加</text>
         </view>
       </view>
     </view>
@@ -92,11 +113,10 @@
         </view>
       </view>
 
-      <!-- 无设备时的引导卡片 -->
-      <view wx:if="{{!hasDevices}}" class="no-device-guide" bindtap="goToDeviceManagement">
-        <text class="no-device-icon">📡</text>
+      <view wx:if="{{!hasDevices}}" class="no-device-guide dark-card" bindtap="goToDeviceManagement">
+        <text class="no-device-icon">🔌</text>
         <text class="no-device-title">还没有绑定设备</text>
-        <text class="no-device-desc">点击前往设备管理，绑定你的智能花盆</text>
+        <text class="no-device-desc">前往设备管理，绑定你的智能花盆。</text>
       </view>
 
       <view wx:else class="device-scroll">
@@ -116,7 +136,6 @@
       </view>
     </view>
 
-    <!-- 实时监测：仅有设备时显示 -->
     <view wx:if="{{hasDevices}}" class="section">
       <view class="section-header">
         <text class="section-title">实时监测</text>
@@ -124,14 +143,14 @@
       <view class="grid">
         <view class="grid-item grid-temp">
           <view class="grid-icon-wrap grid-icon-temp">
-            <text class="grid-icon-emoji">🌡️</text>
+            <text class="grid-icon-emoji">🌡</text>
           </view>
           <view class="grid-value">{{sensors.temp.value}}<text class="unit">{{sensors.temp.unit}}</text></view>
           <text class="grid-label">{{sensors.temp.label}}</text>
         </view>
         <view class="grid-item grid-light">
           <view class="grid-icon-wrap grid-icon-light">
-            <text class="grid-icon-emoji">☀️</text>
+            <text class="grid-icon-emoji">☀</text>
           </view>
           <view class="grid-value">{{sensors.light.value}}<text class="unit">{{sensors.light.unit}}</text></view>
           <text class="grid-label">{{sensors.light.label}}</text>
@@ -153,7 +172,6 @@
       </view>
     </view>
 
-    <!-- 扩展数据：仅有设备时显示 -->
     <view wx:if="{{hasDevices}}" class="section">
       <view class="section-header">
         <text class="section-title">扩展数据</text>
@@ -190,8 +208,7 @@
       </view>
     </view>
 
-    <!-- 设备控制：仅有设备时显示 -->
-    <view wx:if="{{hasDevices}}" class="section" style="padding-bottom: 120px;">
+    <view wx:if="{{hasDevices}}" class="section control-section" style="padding-bottom: 120px;">
       <view class="section-header">
         <text class="section-title">设备控制</text>
       </view>
@@ -212,8 +229,6 @@
       </view>
     </view>
 
-    <!-- 无设备时的底部间距 -->
     <view wx:if="{{!hasDevices}}" style="padding-bottom: 120px;"></view>
   </view>
 </view>
-

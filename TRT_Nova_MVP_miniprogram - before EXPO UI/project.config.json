@@ -1,0 +1,43 @@
+{
+  "appid": "wxdc477b4c865f11cb",
+  "setting": {
+    "condition": true,
+    "es6": true,
+    "enhance": true,
+    "minified": true,
+    "uglifyFileName": false
+  },
+  "packOptions": {
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "legacy"
+      },
+      {
+        "type": "folder",
+        "value": "dist"
+      },
+      {
+        "type": "folder",
+        "value": "docs"
+      },
+      {
+        "type": "folder",
+        "value": "reference"
+      },
+      {
+        "type": "folder",
+        "value": "scripts"
+      },
+      {
+        "type": "folder",
+        "value": ".vscode"
+      }
+    ]
+  },
+  "simulatorPluginLibVersion": {
+    "wxext14566970e7e9f62": "3.6.5-41"
+  },
+  "compileType": "miniprogram",
+  "projectArchitecture": "multiPlatform"
+}

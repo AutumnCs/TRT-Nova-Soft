@@ -1,18 +1,18 @@
-<!--custom-tab-bar/index.wxml-->
-<view class="tab-bar">
-  <view
-    wx:for="{{list}}"
-    wx:key="index"
-    class="tab-item {{selected === index ? 'active' : ''}}"
-    data-path="{{item.pagePath}}"
-    data-index="{{index}}"
-    bindtap="switchTab"
-  >
-    <!-- 激活时的 pill 背景 -->
-    <view class="tab-pill"></view>
-    <text class="tab-icon">{{item.icon}}</text>
-    <text class="tab-text">{{item.text}}</text>
+<view class="tab-shell">
+  <view class="tab-bar">
+    <view
+      wx:for="{{list}}"
+      wx:key="pagePath"
+      class="tab-item {{selected === index ? 'active' : ''}}"
+      data-path="{{item.pagePath}}"
+      data-index="{{index}}"
+      bindtap="switchTab"
+    >
+      <view class="tab-icon-wrap">
+        <text class="tab-icon">{{item.icon}}</text>
+      </view>
+      <text class="tab-text">{{item.text}}</text>
+      <view class="tab-indicator"></view>
+    </view>
   </view>
-  <!-- iPhone 底部安全区占位 -->
-  <view class="safe-area-placeholder"></view>
 </view>

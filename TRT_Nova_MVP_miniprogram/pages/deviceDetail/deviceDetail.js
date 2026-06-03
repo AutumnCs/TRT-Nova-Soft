@@ -372,11 +372,11 @@ Page({
       const bottom = h - 28;
 
       ctx.clearRect(0, 0, w, h);
-      ctx.setFillStyle('#f8fafc');
+      ctx.setFillStyle('#0a1112');
       ctx.fillRect(0, 0, w, h);
 
       const gridCount = 4;
-      ctx.setStrokeStyle('#e5e7eb');
+      ctx.setStrokeStyle('rgba(57, 255, 136, 0.08)');
       ctx.setLineWidth(1);
       for (let i = 0; i <= gridCount; i += 1) {
         const y = top + ((bottom - top) / gridCount) * i;
@@ -387,7 +387,7 @@ Page({
       }
 
       if (!points.length) {
-        ctx.setFillStyle('#9ca3af');
+        ctx.setFillStyle('#86a892');
         ctx.setFontSize(13);
         ctx.setTextAlign('center');
         ctx.fillText('暂无历史数据', w / 2, h / 2);
@@ -408,7 +408,7 @@ Page({
       const mapX = (ts) => left + ((ts - minTs) / tsSpan) * (right - left);
       const mapY = (value) => bottom - ((value - minVal) / valSpan) * (bottom - top);
 
-      ctx.setFillStyle('#9ca3af');
+      ctx.setFillStyle('#86a892');
       ctx.setFontSize(10);
       ctx.setTextAlign('right');
       for (let i = 0; i <= gridCount; i += 1) {
@@ -424,7 +424,7 @@ Page({
         ctx.fillText(label, mapX(ts), bottom + 18);
       });
 
-      ctx.setFillStyle('rgba(125, 164, 216, 0.15)');
+      ctx.setFillStyle('rgba(57, 255, 136, 0.12)');
       ctx.beginPath();
       ctx.moveTo(mapX(points[0].ts), bottom);
       points.forEach((item) => {
@@ -434,7 +434,7 @@ Page({
       ctx.closePath();
       ctx.fill();
 
-      ctx.setStrokeStyle('#4a90d9');
+      ctx.setStrokeStyle('#39ff88');
       ctx.setLineWidth(2.5);
       ctx.setLineCap('round');
       ctx.setLineJoin('round');
@@ -456,7 +456,7 @@ Page({
       ctx.stroke();
 
       if (points.length <= 30) {
-        ctx.setFillStyle('#4a90d9');
+        ctx.setFillStyle('#39ff88');
         points.forEach((item) => {
           ctx.beginPath();
           ctx.arc(mapX(item.ts), mapY(item.value), 3, 0, Math.PI * 2);

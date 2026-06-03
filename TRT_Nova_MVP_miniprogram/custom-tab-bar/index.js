@@ -1,35 +1,57 @@
 Component({
   data: {
     selected: 0,
-    color: '#9CA3AF',
-    selectedColor: '#10B981',
+    color: '#6b7280',
+    selectedColor: '#39ff88',
     list: [
       {
         pagePath: '/pages/index/index',
         text: '首页',
-        icon: '🏠'
+        icon: '⌂'
       },
       {
         pagePath: '/pages/assistant/assistant',
         text: '助手',
-        icon: '🌿'
+        icon: '⌘'
       },
       {
         pagePath: '/pages/wiki/wiki',
         text: '植物库',
-        icon: '📚'
+        icon: '◫'
       },
       {
         pagePath: '/pages/profile/profile',
         text: '我的',
-        icon: '👤'
+        icon: '◌'
       }
     ]
   },
+
+  attached() {
+    this.syncSelected();
+  },
+
+  pageLifetimes: {
+    show() {
+      this.syncSelected();
+    }
+  },
+
   methods: {
+    syncSelected() {
+      const pages = getCurrentPages();
+      const current = pages[pages.length - 1];
+      const route = current ? `/${current.route}` : '';
+      const selected = this.data.list.findIndex((item) => item.pagePath === route);
+      this.setData({
+        selected: selected >= 0 ? selected : 0
+      });
+    },
+
     switchTab(e) {
-      const url = e.currentTarget.dataset.path;
-      wx.switchTab({ url });
+      const { path } = e.currentTarget.dataset;
+      if (!path) return;
+      wx.switchTab({ url: path });
     }
   }
 });

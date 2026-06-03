@@ -1,0 +1,9 @@
+{
+  "name": "update-bound-device-info",
+  "version": "1.0.0",
+  "description": "Update bound device profile fields in device_acl",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

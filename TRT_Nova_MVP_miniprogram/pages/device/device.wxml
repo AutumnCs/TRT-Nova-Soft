@@ -1,111 +1,136 @@
-<view class="container fade-in">
-  <view class="header-section">
-    <view class="header-content">
-      <view class="title-large">设备管理</view>
-      <view class="subtitle">绑定、设置并管理你的设备</view>
+<view class="device-page">
+  <view class="topbar">
+    <view class="back-btn" bindtap="goBack" hover-class="back-btn-hover">
+      <text class="back-icon">←</text>
     </view>
-    <view class="header-icon-bg">
-      <text class="header-icon">📣</text>
+    <view class="brand-block">
+      <text class="brand">NOVA_SYS.v1</text>
+      <text class="brand-sub">DEVICE CONSOLE</text>
     </view>
+    <view class="more-btn">···</view>
   </view>
 
-  <view class="section">
-    <view class="card bind-card">
-      <view class="card-header">
-        <text class="card-title">绑定设备</text>
-      </view>
-      <view class="input-group">
-        <view class="input-wrapper">
-          <text class="input-icon">🔽</text>
-          <input
-            class="modern-input"
-            placeholder="请输入设备唯一码"
-            placeholder-class="input-placeholder"
-            bindinput="onDeviceCodeInput"
-            value="{{deviceCode}}"
-          />
-        </view>
-        <view class="input-wrapper">
-          <text class="input-icon">🏷️</text>
-          <input
-            class="modern-input"
-            placeholder="设备名称（用户别名）"
-            placeholder-class="input-placeholder"
-            bindinput="onAliasInput"
-            value="{{alias}}"
-          />
-        </view>
-        <view class="input-wrapper">
-          <text class="input-icon">📍</text>
-          <input
-            class="modern-input"
-            placeholder="种植地点（例如：客厅）"
-            placeholder-class="input-placeholder"
-            bindinput="onLocationInput"
-            value="{{location}}"
-          />
-        </view>
-        <view class="input-wrapper" bindtap="choosePlantType">
-          <text class="input-icon">🌿</text>
-          <view class="picker-text">植物类型：{{plantOptions[plantTypeIndex]}}</view>
-        </view>
-      </view>
-      <button class="primary-btn" bindtap="bindDevice" hover-class="btn-hover">
-        <text>立即绑定</text>
-      </button>
+  <view class="hero">
+    <view class="hero-copy">
+      <text class="hero-kicker">CONFIG MODE</text>
+      <text class="hero-title">设备管理</text>
+      <text class="hero-subtitle">绑定、设置并管理你的设备，保持状态同步与命令下发</text>
     </view>
+    <view class="hero-orb"></view>
   </view>
 
-  <view class="section">
-    <view class="section-header">
+  <view class="bind-panel panel">
+    <view class="panel-head">
+      <text class="panel-title">绑定设备</text>
+      <text class="panel-tag">写入数据库前请确认信息</text>
+    </view>
+
+    <view class="form-stack">
+      <view class="field">
+        <text class="field-icon">⌁</text>
+        <input
+          class="field-input"
+          placeholder="请输入设备唯一编码"
+          placeholder-class="field-placeholder"
+          bindinput="onDeviceCodeInput"
+          value="{{deviceCode}}"
+        />
+      </view>
+
+      <view class="field">
+        <text class="field-icon">✎</text>
+        <input
+          class="field-input"
+          placeholder="设备名称（用户别名）"
+          placeholder-class="field-placeholder"
+          bindinput="onAliasInput"
+          value="{{alias}}"
+        />
+      </view>
+
+      <view class="field">
+        <text class="field-icon">⌖</text>
+        <input
+          class="field-input"
+          placeholder="种植地点（例如：客厅）"
+          placeholder-class="field-placeholder"
+          bindinput="onLocationInput"
+          value="{{location}}"
+        />
+      </view>
+
+      <view class="field picker-field" bindtap="choosePlantType">
+        <text class="field-icon">✦</text>
+        <view class="field-picker">
+          <text class="field-label">植物类型</text>
+          <text class="field-value">{{plantOptions[plantTypeIndex]}}</text>
+        </view>
+        <text class="field-chevron">▾</text>
+      </view>
+    </view>
+
+    <button class="bind-btn" bindtap="bindDevice" hover-class="bind-btn-hover">
+      <text>立即绑定</text>
+    </button>
+  </view>
+
+  <view class="section-head">
+    <view class="section-title-wrap">
+      <text class="section-kicker"></text>
       <text class="section-title">我的设备</text>
-      <view class="refresh-btn" bindtap="refreshData" hover-class="refresh-hover">
-        <text class="refresh-icon">🔄</text>
-        <text>刷新</text>
-      </view>
     </view>
+    <view class="refresh-btn" bindtap="refreshData" hover-class="refresh-hover">
+      <text class="refresh-icon">⟳</text>
+      <text>刷新</text>
+    </view>
+  </view>
 
-    <view class="device-list-container">
-      <block wx:for="{{deviceList}}" wx:key="_id">
-        <view class="device-card fade-in-up" style="animation-delay: {{index * 0.1}}s">
-          <view class="device-card-top">
-            <view class="device-icon-circle">
-              <text>📃</text>
-            </view>
-            <view class="device-info">
-              <text class="device-name">{{item.alias || item.deviceName || '未命名设备'}}</text>
-              <text class="device-id">{{item.location || '未设置地点'}} · {{item.plantType || '未设置植物'}}</text>
-            </view>
-            <view class="device-status-badge {{item.online ? '' : 'offline'}}">
-              <text class="status-dot"></text>
-              <text>{{item.online ? '在线' : '离线'}}</text>
-            </view>
+  <view class="device-list-container">
+    <block wx:for="{{deviceList}}" wx:key="_id">
+      <view class="device-card" style="animation-delay: {{index * 0.06}}s">
+        <view class="device-card-top">
+          <view class="device-icon-circle">
+            <text>▣</text>
           </view>
+          <view class="device-info">
+            <view class="device-title-row">
+              <text class="device-name">{{item.alias || item.deviceName || '未命名设备'}}</text>
+              <view class="device-status-badge {{item.online ? '' : 'offline'}}">
+                <text class="status-dot"></text>
+                <text>{{item.online ? '在线' : '离线'}}</text>
+              </view>
+            </view>
+            <text class="device-meta">{{item.location || '未设置地点'}} · {{item.plantType || '未设置植物类型'}}</text>
+            <text class="device-desc">设备识别：{{item.logicalKey || '--'}}</text>
+          </view>
+        </view>
 
-          <view class="device-data-area">
+        <view class="device-data-area">
+          <view>
             <text class="data-label">最新状态</text>
             <text class="data-value">{{item.hasData ? '已有上报数据' : '暂无上报数据'}}</text>
-            <view class="time-tag">{{item.updatedAt || '刚刚'}}</view>
           </view>
-
-          <view class="device-actions">
-            <view class="cmd-input-wrapper">
-              <input class="cmd-input" placeholder="输入命令..." bindinput="onCmdInput" data-index="{{index}}" />
-            </view>
-            <button class="send-btn" bindtap="sendCmd" data-logicalkey="{{item.logicalKey}}" hover-class="send-btn-hover">
-              <text>发送</text>
-            </button>
-            <button class="send-btn" bindtap="unbindDevice" data-logicalkey="{{item.logicalKey}}" hover-class="send-btn-hover">
-              <text>解绑</text>
-            </button>
-          </view>
+          <view class="time-tag">{{item.updatedAt || '刚刚'}}</view>
         </view>
-      </block>
 
-      <view wx:if="{{deviceList.length === 0}}" class="empty-state">
-        <view class="empty-icon">🛰</view>
-        <text class="empty-text">还没有绑定设备</text>
+        <view class="device-actions">
+          <view class="cmd-input-wrapper">
+            <input class="cmd-input" placeholder="输入 JSON 命令..." bindinput="onCmdInput" data-index="{{index}}" />
+          </view>
+          <button class="send-btn" bindtap="sendCmd" data-logicalkey="{{item.logicalKey}}" hover-class="send-btn-hover">
+            <text>发送</text>
+          </button>
+          <button class="unbind-btn" bindtap="unbindDevice" data-logicalkey="{{item.logicalKey}}" hover-class="unbind-btn-hover">
+            <text>解绑</text>
+          </button>
+        </view>
       </view>
+    </block>
+
+    <view wx:if="{{deviceList.length === 0}}" class="empty-state">
+      <view class="empty-icon">⌁</view>
+      <text class="empty-title">还没有绑定设备</text>
+      <text class="empty-desc">先绑定一台智能花盆，设备状态和命令才会开始流转。</text>
     </view>
   </view>
 </view>

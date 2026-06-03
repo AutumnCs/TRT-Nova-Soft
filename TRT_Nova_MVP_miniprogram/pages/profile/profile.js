@@ -13,15 +13,46 @@ Page({
   data: {
     statusBarHeight: 20,
     user: {
-      name: '园艺大师',
+      name: 'Fourier',
       level: 'LV.1 新手指南',
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=100&auto=format&fit=crop'
     },
     menu: [
-      { key: 'garden', icon: '🌶', title: '我的花园', desc: '植物管理' },
-      { key: 'notice', icon: '🔂', title: '通知设置', desc: '已开启' },
-      { key: 'setting', icon: '⚙️', title: '系统设置', desc: '' },
-      { key: 'about', icon: 'ℹ️', title: '关于我们', desc: '小程序信息' }
+      {
+        key: 'edit',
+        icon: '📝',
+        title: '资料编辑',
+        desc: '编辑头像 / 昵称 / 资料',
+        tail: '去修改'
+      },
+      {
+        key: 'garden',
+        icon: '🌿',
+        title: '我的花园',
+        desc: '植物管理',
+        tail: '植物管理'
+      },
+      {
+        key: 'notice',
+        icon: '🔔',
+        title: '通知设置',
+        desc: '已开启',
+        tail: '已开启'
+      },
+      {
+        key: 'setting',
+        icon: '⚙️',
+        title: '系统设置',
+        desc: '',
+        tail: ''
+      },
+      {
+        key: 'about',
+        icon: 'ℹ️',
+        title: '关于我们',
+        desc: '小程序信息',
+        tail: '小程序信息'
+      }
     ]
   },
 
@@ -90,6 +121,11 @@ Page({
     wx.vibrateShort({ type: 'light' });
 
     if (!item) return;
+
+    if (item.key === 'edit') {
+      this.onEditProfile();
+      return;
+    }
 
     if (item.key === 'garden') {
       wx.navigateTo({ url: '/pages/garden/garden' });

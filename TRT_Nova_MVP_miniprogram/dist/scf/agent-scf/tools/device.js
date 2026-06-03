@@ -76,14 +76,15 @@ function getRangeStartMs(range) {
 }
 
 async function getHistorySummary(db, logicalKey, paramKey, range = '24h', granularity = '5m', limit = 288) {
-  const startMs = getRangeStartMs(range);
-  const [rows] = await db.execute(
+  const startMs = Math.max(0, Number(getRangeStartMs(range)) || 0);
+  const safeLimit = Math.max(1, Number(limit) || 288);
+  const [rows] = await db.query(
     `SELECT bucket_start_ms, min_value, max_value, avg_value, sample_count
      FROM device_history_agg
-     WHERE logical_key = ? AND granularity = ? AND param_key = ? AND bucket_start_ms >= ?
+     WHERE logical_key = ? AND granularity = ? AND param_key = ? AND bucket_start_ms >= ${startMs}
      ORDER BY bucket_start_ms ASC
-     LIMIT ?`,
-    [logicalKey, granularity, paramKey, startMs, limit]
+     LIMIT ${safeLimit}`,
+    [logicalKey, granularity, paramKey]
   );
 
   const points = rows

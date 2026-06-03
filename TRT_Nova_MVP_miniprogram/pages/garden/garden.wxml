@@ -1,10 +1,16 @@
 <view class="garden-page" style="padding-top: {{statusBarHeight}}px;">
-  <view class="header">
-    <view class="header-top">
-      <view class="back-btn" bindtap="goBackHome">←</view>
-      <text class="title">我的花园</text>
-      <view class="back-placeholder"></view>
+  <view class="topbar">
+    <button class="back-btn" bindtap="goBackHome">←</button>
+    <view class="brand-block">
+      <text class="brand">NOVA_SYS.v1</text>
+      <text class="brand-sub">PLANT GALLERY</text>
     </view>
+    <view class="more-btn">···</view>
+  </view>
+
+  <view class="hero">
+    <text class="hero-kicker">GARDEN LOG</text>
+    <text class="title">我的花园</text>
     <text class="subtitle">{{summaryText}}</text>
   </view>
 
@@ -28,9 +34,9 @@
       </block>
 
       <view wx:if="{{!hasDevices}}" class="empty-state" bindtap="openDeviceManager">
-        <text class="empty-icon">🪴</text>
+        <text class="empty-icon">⌁</text>
         <text class="empty-title">还没有绑定设备</text>
-        <text class="empty-desc">点击右下角 + 绑定你的智能花盆</text>
+        <text class="empty-desc">点右下角 + 绑定一台智能花盆，成长记录和状态卡才会开始出现。</text>
         <view class="empty-btn">
           <text class="empty-btn-text">去绑定设备</text>
         </view>

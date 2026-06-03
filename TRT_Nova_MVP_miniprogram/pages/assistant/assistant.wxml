@@ -2,61 +2,74 @@
   <view class="assistant-shell">
     <view class="assistant-header" style="padding-top: calc({{statusBarHeight}}px + {{headerTopGap}}rpx);">
       <view class="header-topbar">
-        <view class="header-copy">
-          <text class="header-title">AI植宠助手 <text class="header-leaf">🌿</text></text>
-          <text class="header-subtitle">你的专属植物养护伙伴</text>
+        <view class="header-title-wrap">
+          <view class="header-brand">
+            <text class="header-brand-icon">🌱</text>
+            <text class="header-brand-text">TRT NOVA_AI</text>
+          </view>
+          <text class="header-subtitle">PLANT CARE CONSOLE</text>
         </view>
 
         <view class="header-actions">
           <view class="header-icon-button">
-            <text class="header-icon">↻</text>
+            <text class="header-icon">⟲</text>
           </view>
           <view class="header-icon-button">
-            <text class="header-icon">···</text>
+            <text class="header-icon">◌</text>
           </view>
         </view>
       </view>
 
+      <view class="assistant-status-strip">
+        <view class="assistant-status-led"></view>
+        <text class="assistant-status-text">{{selectedLogicalKey ? selectedDeviceName : 'NOVA HUB-01'}} // LINK: {{selectedLogicalKey ? 'ACTIVE' : 'STANDBY'}}</text>
+        <view class="assistant-status-badge">{{devices.length > 0 ? 'ONLINE' : 'IDLE'}}</view>
+      </view>
+
+      <picker wx:if="{{devices.length > 0}}" range="{{devices}}" range-key="name" bindchange="onDeviceChange">
+        <view class="device-chip">
+          <view class="device-chip-left">
+            <text class="device-chip-label">DEVICE</text>
+            <text class="device-chip-value">{{selectedDeviceName}}</text>
+          </view>
+          <view class="device-chip-row">
+            <text class="device-chip-meta">{{selectedLogicalKey ? selectedLogicalKey : 'NO_LINK'}}</text>
+            <text class="device-chip-arrow">▼</text>
+          </view>
+        </view>
+      </picker>
+
       <view class="hero-card">
         <view class="hero-avatar-wrap">
-          <view class="hero-avatar">🌱</view>
-          <view class="hero-avatar-badge">❤</view>
+          <view class="hero-avatar">🤖</view>
+          <view class="hero-avatar-rim"></view>
         </view>
 
         <view class="hero-copy">
-          <text class="hero-title">你好，我是 TRT Nova 植物养护助手，</text>
-          <text class="hero-desc">可以帮你查看植物状态、分析浇水与光照建议，并解答养护问题。</text>
+          <text class="hero-kicker">NOVA-AI // SYS.MSG</text>
+          <text class="hero-title">我会结合当前设备状态，给你最直接的养护建议。</text>
+          <text class="hero-desc">可以问我浇水、光照、湿度、好感度和历史趋势，我会优先围绕当前设备回答。</text>
         </view>
       </view>
 
       <view class="hero-shortcuts">
         <view class="hero-shortcut" data-text="我的植物现在状态怎么样？" bindtap="onQuickQuestionTap">
-          <text class="hero-shortcut-icon">🌿</text>
-          <text class="hero-shortcut-text">我的植物状态怎么样？</text>
+          <text class="hero-shortcut-icon">CHK_NTR</text>
+          <text class="hero-shortcut-text">状态检测</text>
         </view>
         <view class="hero-shortcut" data-text="我现在要不要浇水？" bindtap="onQuickQuestionTap">
-          <text class="hero-shortcut-icon">💧</text>
-          <text class="hero-shortcut-text">现在要不要浇水？</text>
+          <text class="hero-shortcut-icon">H2O</text>
+          <text class="hero-shortcut-text">浇水建议</text>
         </view>
         <view class="hero-shortcut" data-text="最近湿度变化如何？" bindtap="onQuickQuestionTap">
-          <text class="hero-shortcut-icon">🌡</text>
-          <text class="hero-shortcut-text">最近湿度变化如何？</text>
+          <text class="hero-shortcut-icon">TMP</text>
+          <text class="hero-shortcut-text">温度分析</text>
         </view>
         <view class="hero-shortcut" data-text="如何提高好感度？" bindtap="onQuickQuestionTap">
-          <text class="hero-shortcut-icon">⭐</text>
-          <text class="hero-shortcut-text">如何提高好感度？</text>
+          <text class="hero-shortcut-icon">SYNC</text>
+          <text class="hero-shortcut-text">好感度</text>
         </view>
       </view>
-
-      <picker wx:if="{{devices.length > 0}}" range="{{devices}}" range-key="name" bindchange="onDeviceChange">
-        <view class="device-chip">
-          <text class="device-chip-label">当前设备</text>
-          <view class="device-chip-row">
-            <text class="device-chip-value">{{selectedDeviceName}}</text>
-            <text class="device-chip-arrow">切换</text>
-          </view>
-        </view>
-      </picker>
     </view>
 
     <scroll-view
@@ -67,10 +80,15 @@
     >
       <view class="message-list">
         <block wx:for="{{messages}}" wx:key="id">
-          <view wx:if="{{index === 1}}" class="timeline-hint">今天 {{messages[index].timeLabel}}</view>
+          <view wx:if="{{index === 1}}" class="timeline-hint">SESSION // {{messages[index].timeLabel}}</view>
           <view id="msg-{{index}}" class="message-row {{item.role === 'user' ? 'is-user' : 'is-assistant'}}">
-            <view wx:if="{{item.role === 'assistant'}}" class="message-avatar assistant-avatar">🌱</view>
+            <view wx:if="{{item.role === 'assistant'}}" class="message-avatar assistant-avatar">AI</view>
             <view class="message-bubble {{item.role === 'user' ? 'user-bubble' : 'assistant-bubble'}}">
+              <view class="bubble-topline">
+                <text class="bubble-role">{{item.role === 'assistant' ? 'NOVA-AI // SYS.MSG' : 'USR // CMD'}}</text>
+                <text wx:if="{{item.timeLabel}}" class="bubble-time">{{item.timeLabel}}</text>
+              </view>
+
               <view wx:if="{{item.loading}}" class="thinking-block">
                 <view class="thinking-dots">
                   <text class="thinking-dot dot-1"></text>
@@ -79,8 +97,11 @@
                 </view>
                 <text class="thinking-text">{{item.text}}</text>
               </view>
+
               <text wx:else class="message-text">{{item.text}}</text>
+
               <text wx:if="{{item.summary}}" class="message-summary">{{item.summary}}</text>
+
               <view wx:if="{{item.suggestions && item.suggestions.length}}" class="message-tags">
                 <view
                   wx:for="{{item.suggestions}}"
@@ -92,29 +113,41 @@
                   <text>{{item}}</text>
                 </view>
               </view>
-              <text wx:if="{{item.timeLabel}}" class="message-time">{{item.timeLabel}}</text>
+
               <view wx:if="{{item.role === 'assistant' && !item.loading}}" class="message-actions">
-                <view class="message-action">👍</view>
-                <view class="message-action">👎</view>
+                <view class="message-action">◎</view>
                 <view class="message-action">⧉</view>
+                <view class="message-action">↻</view>
               </view>
             </view>
-            <view wx:if="{{item.role === 'user'}}" class="message-avatar user-avatar">我</view>
+            <view wx:if="{{item.role === 'user'}}" class="message-avatar user-avatar">USR</view>
           </view>
         </block>
       </view>
     </scroll-view>
 
     <view class="input-panel">
+      <view class="quick-row">
+        <view class="quick-chip" data-text="我的植物现在状态怎么样？" bindtap="onQuickQuestionTap">
+          <text>CHK_NTR</text>
+        </view>
+        <view class="quick-chip" data-text="我现在要不要浇水？" bindtap="onQuickQuestionTap">
+          <text>LGT_EXP</text>
+        </view>
+        <view class="quick-chip" data-text="最近湿度变化如何？" bindtap="onQuickQuestionTap">
+          <text>TMP_HST</text>
+        </view>
+      </view>
+
       <view class="input-card">
         <view class="input-box">
           <view class="input-side-button">
-            <text class="input-side-icon">◉</text>
+            <text class="input-side-icon">＋</text>
           </view>
 
           <textarea
             class="assistant-input"
-            placeholder="输入养护问题，例如：我的植物现在需要浇水吗"
+            placeholder="> Enter command..."
             maxlength="300"
             auto-height="true"
             cursor-spacing="24"
@@ -127,18 +160,6 @@
             bindtap="sendMessage"
           >
             <text class="send-fab-icon">{{sending ? '...' : '➤'}}</text>
-          </view>
-        </view>
-
-        <view class="quick-row">
-          <view class="quick-chip" data-text="我的植物现在状态怎么样？" bindtap="onQuickQuestionTap">
-            <text>状态解读</text>
-          </view>
-          <view class="quick-chip" data-text="我现在要不要浇水？" bindtap="onQuickQuestionTap">
-            <text>浇水建议</text>
-          </view>
-          <view class="quick-chip" data-text="最近湿度变化如何？" bindtap="onQuickQuestionTap">
-            <text>历史趋势</text>
           </view>
         </view>
       </view>

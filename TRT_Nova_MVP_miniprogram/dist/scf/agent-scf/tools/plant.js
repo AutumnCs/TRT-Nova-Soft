@@ -123,7 +123,7 @@ async function searchPlantProfiles(db, options = {}) {
   let rows = [];
 
   if (plantLibraryId) {
-    const [exactRows] = await db.execute(
+    const [exactRows] = await db.query(
       `SELECT id, name, family, scientific_name, feature, feature_text, category,
               tags_json, description, aliases_json, difficulty,
               care_light, care_water, care_temperature, care_humidity, care_soil,
@@ -137,7 +137,7 @@ async function searchPlantProfiles(db, options = {}) {
     );
     rows = exactRows;
   } else {
-    const [allRows] = await db.execute(
+    const [allRows] = await db.query(
       `SELECT id, name, family, scientific_name, feature, feature_text, category,
               tags_json, description, aliases_json, difficulty,
               care_light, care_water, care_temperature, care_humidity, care_soil,

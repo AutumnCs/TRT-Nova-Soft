@@ -1,41 +1,64 @@
-<view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
+<view class="page">
+  <view class="grid-bg"></view>
   <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}">
-    <view class="user-header">
-      <view class="header-blob blob-tl"></view>
-      <view class="header-blob blob-br"></view>
-      <view class="edit-profile-btn" bindtap="onEditProfile">
-        <text class="edit-profile-text">编辑资料</text>
+    <view class="top-shell" style="padding-top: {{statusBarHeight}}px;">
+      <view class="top-bar">
+        <view class="top-icon">▦</view>
+        <view class="top-title">NOVA_SYS.V1</view>
+        <view class="top-signal">◉</view>
       </view>
-      <view class="avatar-ring">
-        <image src="{{user.avatar}}" mode="aspectFill" class="avatar-lg"></image>
+
+      <view class="hero-card">
+        <view class="hero-avatar-wrap">
+          <view class="avatar-ring"></view>
+          <image src="{{user.avatar}}" mode="aspectFill" class="avatar-lg"></image>
+          <view class="avatar-status"></view>
+        </view>
+
+        <text class="user-name">{{user.name}}</text>
+        <view class="user-level-pill">
+          <text class="user-level-icon">◌</text>
+          <text class="user-level">{{user.level}}</text>
+        </view>
       </view>
-      <text class="user-name">{{user.name}}</text>
-      <text class="user-level">{{user.level}}</text>
     </view>
 
-    <view class="menu-list" style="padding-bottom: 120px;">
+    <view class="menu-list">
       <block wx:for="{{menu}}" wx:key="index">
         <view class="menu-item" bindtap="onMenuItemTap" data-index="{{index}}">
           <view class="menu-left">
-            <text class="menu-icon">{{item.icon}}</text>
-            <text class="menu-title">{{item.title}}</text>
+            <view class="menu-icon-wrap">
+              <text class="menu-icon">{{item.icon}}</text>
+            </view>
+            <view class="menu-copy">
+              <text class="menu-title">{{item.title}}</text>
+              <text class="menu-desc">{{item.desc}}</text>
+            </view>
           </view>
           <view class="menu-right">
-            <text class="menu-desc">{{item.desc}}</text>
-            <text class="arrow">></text>
+            <text class="menu-tail">{{item.tail}}</text>
+            <text class="arrow">›</text>
           </view>
         </view>
       </block>
 
       <view class="menu-item logout-item" bindtap="onLogout">
         <view class="menu-left">
-          <text class="menu-icon logout-icon">🚪</text>
-          <text class="menu-title logout-title">退出登录</text>
+          <view class="menu-icon-wrap logout-wrap">
+            <text class="menu-icon logout-icon">↩</text>
+          </view>
+          <view class="menu-copy">
+            <text class="menu-title logout-title">退出登录</text>
+            <text class="menu-desc logout-desc">清除本地登录态</text>
+          </view>
         </view>
         <view class="menu-right">
-          <text class="arrow">></text>
+          <text class="menu-tail logout-tail">Danger Zone</text>
+          <text class="arrow logout-arrow">›</text>
         </view>
       </view>
     </view>
+
+    <view class="bottom-spacer"></view>
   </scroll-view>
 </view>

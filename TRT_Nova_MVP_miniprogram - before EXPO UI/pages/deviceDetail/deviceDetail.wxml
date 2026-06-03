@@ -1,0 +1,93 @@
+<view class="page" style="padding-top: {{statusBarHeight}}px;">
+  <view class="nav">
+    <view class="nav-btn" bindtap="goBack">←</view>
+    <view class="nav-title">{{device ? device.alias : '设备详情'}}</view>
+    <view class="nav-placeholder"></view>
+  </view>
+
+  <scroll-view class="content" scroll-y>
+    <view wx:if="{{device}}" class="device-card">
+      <image class="device-img" src="{{device.image}}" mode="aspectFill" />
+      <view class="device-main">
+        <view class="device-head">
+          <text class="device-name">{{device.alias}}</text>
+          <view class="device-actions">
+            <view class="device-journal-btn" bindtap="goPlantJournal">成长日历</view>
+            <view class="device-settings-btn" bindtap="goSettings">设置</view>
+          </view>
+        </view>
+        <text class="device-meta">{{device.location}} · {{device.plantType}}</text>
+        <text class="device-online {{device.online ? 'ok' : 'offline'}}">{{device.online ? '在线运行中' : '离线'}}</text>
+        <view wx:if="{{extraInfo.personality && extraInfo.personality !== '--'}}" class="device-personality-chip">
+          <text class="device-personality-label">性格</text>
+          <text class="device-personality-value">{{extraInfo.personality}}</text>
+        </view>
+      </view>
+    </view>
+
+    <scroll-view wx:if="{{metricTabs.length > 0}}" class="metric-scroll" scroll-x show-scrollbar="{{false}}">
+      <view class="metric-row">
+        <view
+          wx:for="{{metricTabs}}"
+          wx:key="key"
+          class="metric-card {{item.active ? 'active' : ''}}"
+          bindtap="onMetricTap"
+          data-key="{{item.key}}"
+        >
+          <text class="metric-value">{{item.value}}<text class="metric-unit">{{item.unit}}</text></text>
+          <text class="metric-label">{{item.label}}</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view wx:if="{{device}}" class="info-card">
+      <view class="info-grid">
+        <view class="info-item">
+          <text class="info-label">{{extraInfo.isDead === '是' ? '死亡状态' : '好感度'}}</text>
+          <text class="info-value">{{extraInfo.isDead === '是' ? '已死亡' : extraInfo.favorability}}</text>
+        </view>
+        <view class="info-item">
+          <text class="info-label">灵魂状态</text>
+          <text class="info-value">{{extraInfo.soulState}}</text>
+        </view>
+        <view class="info-item info-item-full">
+          <text class="info-label">植物类型</text>
+          <text class="info-value">{{extraInfo.reportedPlantType}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{device}}" class="trend-card">
+      <view class="trend-top">
+        <view>
+          <text class="trend-title">传感器趋势</text>
+          <text class="trend-tip">{{trendTip}}</text>
+        </view>
+        <view class="range-switch">
+          <view
+            wx:for="{{rangeOptions}}"
+            wx:key="key"
+            class="range-item {{rangeKey===item.key ? 'active' : ''}}"
+            bindtap="onRangeTap"
+            data-key="{{item.key}}"
+          >{{item.label}}</view>
+        </view>
+      </view>
+      <canvas id="trendCanvas" canvas-id="trendCanvas" class="chart"></canvas>
+      <view class="stat-row">
+        <view class="stat-item">
+          <text class="stat-value">{{trendMin}}</text>
+          <text class="stat-label">最低</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{trendAvg}}</text>
+          <text class="stat-label">平均</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-value">{{trendMax}}</text>
+          <text class="stat-label">最高</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

@@ -1,0 +1,111 @@
+<view class="container fade-in">
+  <view class="header-section">
+    <view class="header-content">
+      <view class="title-large">设备管理</view>
+      <view class="subtitle">绑定、设置并管理你的设备</view>
+    </view>
+    <view class="header-icon-bg">
+      <text class="header-icon">📣</text>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="card bind-card">
+      <view class="card-header">
+        <text class="card-title">绑定设备</text>
+      </view>
+      <view class="input-group">
+        <view class="input-wrapper">
+          <text class="input-icon">🔽</text>
+          <input
+            class="modern-input"
+            placeholder="请输入设备唯一码"
+            placeholder-class="input-placeholder"
+            bindinput="onDeviceCodeInput"
+            value="{{deviceCode}}"
+          />
+        </view>
+        <view class="input-wrapper">
+          <text class="input-icon">🏷️</text>
+          <input
+            class="modern-input"
+            placeholder="设备名称（用户别名）"
+            placeholder-class="input-placeholder"
+            bindinput="onAliasInput"
+            value="{{alias}}"
+          />
+        </view>
+        <view class="input-wrapper">
+          <text class="input-icon">📍</text>
+          <input
+            class="modern-input"
+            placeholder="种植地点（例如：客厅）"
+            placeholder-class="input-placeholder"
+            bindinput="onLocationInput"
+            value="{{location}}"
+          />
+        </view>
+        <view class="input-wrapper" bindtap="choosePlantType">
+          <text class="input-icon">🌿</text>
+          <view class="picker-text">植物类型：{{plantOptions[plantTypeIndex]}}</view>
+        </view>
+      </view>
+      <button class="primary-btn" bindtap="bindDevice" hover-class="btn-hover">
+        <text>立即绑定</text>
+      </button>
+    </view>
+  </view>
+
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">我的设备</text>
+      <view class="refresh-btn" bindtap="refreshData" hover-class="refresh-hover">
+        <text class="refresh-icon">🔄</text>
+        <text>刷新</text>
+      </view>
+    </view>
+
+    <view class="device-list-container">
+      <block wx:for="{{deviceList}}" wx:key="_id">
+        <view class="device-card fade-in-up" style="animation-delay: {{index * 0.1}}s">
+          <view class="device-card-top">
+            <view class="device-icon-circle">
+              <text>📃</text>
+            </view>
+            <view class="device-info">
+              <text class="device-name">{{item.alias || item.deviceName || '未命名设备'}}</text>
+              <text class="device-id">{{item.location || '未设置地点'}} · {{item.plantType || '未设置植物'}}</text>
+            </view>
+            <view class="device-status-badge {{item.online ? '' : 'offline'}}">
+              <text class="status-dot"></text>
+              <text>{{item.online ? '在线' : '离线'}}</text>
+            </view>
+          </view>
+
+          <view class="device-data-area">
+            <text class="data-label">最新状态</text>
+            <text class="data-value">{{item.hasData ? '已有上报数据' : '暂无上报数据'}}</text>
+            <view class="time-tag">{{item.updatedAt || '刚刚'}}</view>
+          </view>
+
+          <view class="device-actions">
+            <view class="cmd-input-wrapper">
+              <input class="cmd-input" placeholder="输入命令..." bindinput="onCmdInput" data-index="{{index}}" />
+            </view>
+            <button class="send-btn" bindtap="sendCmd" data-logicalkey="{{item.logicalKey}}" hover-class="send-btn-hover">
+              <text>发送</text>
+            </button>
+            <button class="send-btn" bindtap="unbindDevice" data-logicalkey="{{item.logicalKey}}" hover-class="send-btn-hover">
+              <text>解绑</text>
+            </button>
+          </view>
+        </view>
+      </block>
+
+      <view wx:if="{{deviceList.length === 0}}" class="empty-state">
+        <view class="empty-icon">🛰</view>
+        <text class="empty-text">还没有绑定设备</text>
+      </view>
+    </view>
+  </view>
+</view>

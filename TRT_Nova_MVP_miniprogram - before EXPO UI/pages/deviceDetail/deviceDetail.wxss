@@ -1,0 +1,300 @@
+.page {
+  width: 100%;
+  min-height: 100vh;
+  background: #f5f6f8;
+}
+
+.nav {
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24rpx;
+  background: #f5f6f8;
+}
+
+.nav-btn {
+  width: 64rpx;
+  text-align: center;
+  font-size: 34rpx;
+  color: #111827;
+}
+
+.nav-placeholder {
+  width: 64rpx;
+}
+
+.nav-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #111827;
+}
+
+.content {
+  height: calc(100vh - 88rpx);
+  padding: 12rpx 24rpx 120rpx;
+  box-sizing: border-box;
+}
+
+.device-card {
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 16rpx;
+  display: flex;
+  align-items: center;
+}
+
+.device-img {
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 18rpx;
+}
+
+.device-main {
+  margin-left: 16rpx;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.device-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.device-actions {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-shrink: 0;
+}
+
+.device-name {
+  font-size: 38rpx;
+  font-weight: 700;
+  color: #111827;
+  flex: 1;
+  min-width: 0;
+}
+
+.device-settings-btn {
+  flex-shrink: 0;
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  background: #eef2ff;
+  color: #3758f9;
+  font-size: 22rpx;
+  line-height: 1;
+}
+
+.device-journal-btn {
+  flex-shrink: 0;
+  padding: 10rpx 18rpx;
+  border-radius: 999rpx;
+  background: #ecfdf5;
+  color: #16a34a;
+  font-size: 22rpx;
+  line-height: 1;
+}
+
+.device-meta {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #6b7280;
+}
+
+.device-online {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+}
+
+.device-online.ok {
+  color: #16a34a;
+}
+
+.device-online.offline {
+  color: #6b7280;
+}
+
+.device-personality-chip {
+  margin-top: 12rpx;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 14rpx;
+  border-radius: 999rpx;
+  background: #f4f8f1;
+}
+
+.device-personality-label {
+  font-size: 20rpx;
+  color: #6b7280;
+}
+
+.device-personality-value {
+  font-size: 22rpx;
+  color: #4b7d4a;
+  font-weight: 600;
+}
+
+.metric-scroll {
+  margin-top: 20rpx;
+  white-space: nowrap;
+}
+
+.metric-row {
+  display: inline-flex;
+  gap: 14rpx;
+  padding-bottom: 4rpx;
+}
+
+.metric-card {
+  width: 190rpx;
+  padding: 18rpx 16rpx;
+  background: #fff;
+  border-radius: 20rpx;
+  box-sizing: border-box;
+}
+
+.metric-card.active {
+  background: #e9f0ff;
+}
+
+.metric-value {
+  font-size: 42rpx;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.metric-unit {
+  font-size: 24rpx;
+  margin-left: 4rpx;
+}
+
+.metric-label {
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: #6b7280;
+  display: block;
+}
+
+.info-card {
+  margin-top: 20rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 20rpx;
+}
+
+.info-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.info-item {
+  width: calc(50% - 6rpx);
+  background: #f8fafc;
+  border-radius: 16rpx;
+  padding: 16rpx;
+  box-sizing: border-box;
+}
+
+.info-item-full {
+  width: 100%;
+}
+
+.info-label {
+  display: block;
+  font-size: 22rpx;
+  color: #6b7280;
+  margin-bottom: 8rpx;
+}
+
+.info-value {
+  display: block;
+  font-size: 28rpx;
+  color: #111827;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.trend-card {
+  margin-top: 20rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 20rpx;
+}
+
+.trend-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.trend-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.trend-tip {
+  display: block;
+  margin-top: 4rpx;
+  font-size: 22rpx;
+  color: #9ca3af;
+}
+
+.range-switch {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 999rpx;
+  padding: 4rpx;
+}
+
+.range-item {
+  width: 52rpx;
+  text-align: center;
+  line-height: 40rpx;
+  border-radius: 999rpx;
+  color: #6b7280;
+  font-size: 22rpx;
+}
+
+.range-item.active {
+  background: #fff;
+  color: #111827;
+}
+
+.chart {
+  margin-top: 16rpx;
+  width: 100%;
+  height: 360rpx;
+  border-radius: 14rpx;
+}
+
+.stat-row {
+  margin-top: 18rpx;
+  display: flex;
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 42rpx;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.stat-label {
+  display: block;
+  margin-top: 6rpx;
+  color: #9ca3af;
+  font-size: 22rpx;
+}
