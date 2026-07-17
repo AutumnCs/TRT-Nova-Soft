@@ -1,0 +1,234 @@
+<view class="container fade-in" style="padding-top: {{statusBarHeight}}px;">
+  <view class="topbar">
+    <view class="topbar-inner">
+      <view class="topbar-brand">
+        <text class="topbar-kicker">TRT Nova</text>
+        <view class="plant-picker" bindtap="goToDeviceManagement">
+          <view class="plant-picker-content">
+            <text class="plant-name">{{plantName}}</text>
+            <text class="plant-meta">{{plantMeta}}</text>
+          </view>
+          <view class="plant-picker-arrow">⌄</view>
+        </view>
+      </view>
+
+      <view class="topbar-signal">
+        <text class="topbar-signal-icon">◉</text>
+      </view>
+    </view>
+
+    <view
+      wx:if="{{(extraMetrics.personality && extraMetrics.personality !== '--') || (extraMetrics.isDead !== true && extraMetrics.favorability && extraMetrics.favorability !== '--')}}"
+      class="plant-chip-row"
+    >
+      <view wx:if="{{extraMetrics.personality && extraMetrics.personality !== '--'}}" class="plant-personality-chip">
+        <text class="plant-personality-label">性格</text>
+        <text class="plant-personality-value">{{extraMetrics.personality}}</text>
+      </view>
+      <view wx:if="{{extraMetrics.isDead !== true && extraMetrics.favorability && extraMetrics.favorability !== '--'}}" class="plant-favorability-chip">
+        <text class="plant-favorability-label">好感度</text>
+        <text class="plant-favorability-value">{{extraMetrics.favorability}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="scroll-content">
+    <view class="plant-section dark-panel">
+      <view class="grid-overlay"></view>
+      <view class="glow-bg"></view>
+      <view class="plant-circle">
+        <image src="{{plantImage}}" mode="aspectFill" class="plant-img" binderror="onPlantImageError"></image>
+      </view>
+
+      <view class="status-pill status-pill-left">
+        <text class="status-pill-label">{{extraMetrics.isDead === true ? 'OFFLINE' : 'OPTIMAL'}}</text>
+      </view>
+
+      <view class="status-pill status-pill-right">
+        <text class="status-pill-label">REC</text>
+        <text class="status-pill-value">{{extraMetrics.updatedAt || '--'}}</text>
+      </view>
+
+      <view class="weather-widget">
+        <text class="weather-icon">{{weather.icon}}</text>
+        <text class="weather-temp">{{weather.temp}}</text>
+      </view>
+
+      <block wx:for="{{bubbles}}" wx:key="index">
+        <view
+          class="bubble {{item.type === 'warning' ? 'bubble-warning' : 'bubble-success'}}"
+          style="{{index === 0 ? 'top: 96rpx; left: 24rpx;' : 'bottom: 40rpx; left: 40rpx;'}}"
+        >
+          <text class="bubble-icon">{{item.icon}}</text>
+          <text class="bubble-text">{{item.text}}</text>
+        </view>
+      </block>
+
+      <view class="mood-icon">
+        <text>{{moodEmoji}}</text>
+      </view>
+    </view>
+
+    <view class="dialogue-section dark-card">
+      <view class="chat-bubble">
+        <text class="chat-text">{{dialogue}}</text>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">今日待办</text>
+        <view class="add-todo-btn" bindtap="addTodo"><text>+</text></view>
+      </view>
+      <view class="card-list">
+        <view
+          wx:for="{{todos}}"
+          wx:key="_id"
+          class="card dark-task-card {{item.urgent ? 'border-l-red' : 'border-l-blue'}}"
+          bindtap="onTaskDone"
+          data-id="{{item._id || item.id}}"
+          bindlongpress="toggleUrgency"
+        >
+          <view class="card-left">
+            <view class="icon-circle {{item.iconBg}}">
+              <text>{{item.icon}}</text>
+            </view>
+            <view class="card-info">
+              <text class="card-title">{{item.title}}</text>
+              <text class="card-desc {{item.urgent ? 'text-red' : 'text-gray'}}">{{item.desc}}</text>
+            </view>
+          </view>
+        </view>
+        <view wx:if="{{todos.length === 0}}" class="empty-state">
+          <text>暂无待办，点右上角 + 添加</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">我的设备</text>
+        <view wx:if="{{hasDevices}}" class="refresh-btn" bindtap="refreshDeviceStatus">
+          <text class="refresh-btn-text">刷新状态</text>
+        </view>
+      </view>
+
+      <view wx:if="{{!hasDevices}}" class="no-device-guide dark-card" bindtap="goToDeviceManagement">
+        <text class="no-device-icon">🔌</text>
+        <text class="no-device-title">还没有绑定设备</text>
+        <text class="no-device-desc">前往设备管理，绑定你的智能花盆。</text>
+      </view>
+
+      <view wx:else class="device-scroll">
+        <view class="device-list">
+          <view wx:for="{{devices}}" wx:key="_id" class="device-item {{item.active ? 'active' : ''}}" bindtap="openDeviceDetail" data-index="{{index}}">
+            <text class="device-item-icon">{{item.icon}}</text>
+            <text class="device-item-name">{{item.name}}</text>
+            <text class="device-item-plant">{{item.plantType || '未设植物'}}</text>
+            <text class="device-item-location">{{item.location || '未设地点'}}</text>
+            <text class="device-item-status {{item.status === '在线' ? 'status-text-online' : 'status-text-offline'}}">{{item.status}}</text>
+          </view>
+          <view class="add-device" bindtap="goToDeviceManagement">
+            <text class="add-device-icon">+</text>
+            <text class="add-device-text">管理设备</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{hasDevices}}" class="section">
+      <view class="section-header">
+        <text class="section-title">实时监测</text>
+      </view>
+      <view class="grid">
+        <view class="grid-item grid-temp">
+          <view class="grid-icon-wrap grid-icon-temp">
+            <text class="grid-icon-emoji">🌡</text>
+          </view>
+          <view class="grid-value">{{sensors.temp.value}}<text class="unit">{{sensors.temp.unit}}</text></view>
+          <text class="grid-label">{{sensors.temp.label}}</text>
+        </view>
+        <view class="grid-item grid-light">
+          <view class="grid-icon-wrap grid-icon-light">
+            <text class="grid-icon-emoji">☀</text>
+          </view>
+          <view class="grid-value">{{sensors.light.value}}<text class="unit">{{sensors.light.unit}}</text></view>
+          <text class="grid-label">{{sensors.light.label}}</text>
+        </view>
+        <view class="grid-item grid-humidity">
+          <view class="grid-icon-wrap grid-icon-humidity">
+            <text class="grid-icon-emoji">💧</text>
+          </view>
+          <view class="grid-value">{{sensors.humidity.value}}<text class="unit">{{sensors.humidity.unit}}</text></view>
+          <text class="grid-label">{{sensors.humidity.label}}</text>
+        </view>
+        <view class="grid-item grid-soil">
+          <view class="grid-icon-wrap grid-icon-soil">
+            <text class="grid-icon-emoji">🌱</text>
+          </view>
+          <view class="grid-value">{{sensors.soil.value}}<text class="unit">{{sensors.soil.unit}}</text></view>
+          <text class="grid-label">{{sensors.soil.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{hasDevices}}" class="section">
+      <view class="section-header">
+        <text class="section-title">扩展数据</text>
+      </view>
+      <view class="extra-list">
+        <view class="extra-item">
+          <text class="extra-label">芯片 UID</text>
+          <text class="extra-value uid">{{extraMetrics.uid}}</text>
+        </view>
+        <view class="extra-item">
+          <text class="extra-label">运行状态</text>
+          <text class="extra-value">{{extraMetrics.runState === true ? 'ON' : (extraMetrics.runState === false ? 'OFF' : '--')}}</text>
+        </view>
+        <view class="extra-item">
+          <text class="extra-label">DS18B20 温度</text>
+          <text class="extra-value">{{extraMetrics.dsbTemp}} ℃</text>
+        </view>
+        <view class="extra-item">
+          <text class="extra-label">{{extraMetrics.isDead === true ? '死亡状态' : '好感度'}}</text>
+          <text class="extra-value">{{extraMetrics.isDead === true ? '已死亡' : extraMetrics.favorability}}</text>
+        </view>
+        <view class="extra-item">
+          <text class="extra-label">灵魂状态</text>
+          <text class="extra-value">{{extraMetrics.soulState}}</text>
+        </view>
+        <view class="extra-item">
+          <text class="extra-label">植物类型</text>
+          <text class="extra-value">{{extraMetrics.reportedPlantType}}</text>
+        </view>
+        <view class="extra-item full">
+          <text class="extra-label">上报时间戳</text>
+          <text class="extra-value">{{extraMetrics.updatedAt}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{hasDevices}}" class="section control-section" style="padding-bottom: 120px;">
+      <view class="section-header">
+        <text class="section-title">设备控制</text>
+      </view>
+      <view class="device-grid">
+        <view class="device-card {{fan.isOn ? 'active' : ''}} {{fan.pending ? 'pending' : ''}}" bindtap="toggleFan">
+          <view class="device-state-badge {{fan.isOn ? 'is-on' : 'is-off'}}">
+            <text class="device-state-badge-text">{{fan.isOn ? '开启' : '关闭'}}</text>
+          </view>
+          <view class="device-icon-box">
+            <text class="device-icon">{{fan.icon}}</text>
+          </view>
+          <view class="device-info">
+            <text class="device-name">{{fan.name}}</text>
+            <text class="device-status">{{fan.statusText}}</text>
+            <text class="device-hint">{{fan.hintText}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{!hasDevices}}" style="padding-bottom: 120px;"></view>
+  </view>
+</view>

@@ -1,0 +1,317 @@
+.garden-page {
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, #071310 0%, #081613 42%, #091915 100%);
+  color: #eafef3;
+  background-image:
+    linear-gradient(rgba(30, 255, 154, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30, 255, 154, 0.08) 1px, transparent 1px);
+  background-size: 84rpx 84rpx;
+  background-position: -1px -1px;
+}
+
+.garden-page::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(34, 255, 152, 0.14), transparent 24%),
+    radial-gradient(circle at 80% 15%, rgba(44, 255, 166, 0.12), transparent 18%),
+    radial-gradient(circle at 62% 72%, rgba(42, 255, 158, 0.1), transparent 30%);
+  z-index: 0;
+}
+
+.topbar,
+.hero,
+.list-scroll,
+.fab {
+  position: relative;
+  z-index: 1;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 26rpx 18rpx;
+}
+
+.back-btn,
+.more-btn {
+  width: 78rpx;
+  height: 78rpx;
+  border-radius: 999rpx;
+  border: 2rpx solid rgba(25, 255, 147, 0.25);
+  background: rgba(0, 0, 0, 0.34);
+  color: #3cff9f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 26rpx rgba(17, 255, 140, 0.15);
+  backdrop-filter: blur(12px);
+}
+
+.back-btn::after {
+  border: none;
+}
+
+.back-btn {
+  padding: 0;
+  font-size: 40rpx;
+  line-height: 1;
+}
+
+.more-btn {
+  font-size: 30rpx;
+  letter-spacing: 8rpx;
+}
+
+.brand-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rpx;
+}
+
+.brand {
+  font-size: 38rpx;
+  font-weight: 800;
+  letter-spacing: 4rpx;
+  color: #34ff9f;
+  text-shadow: 0 0 20rpx rgba(52, 255, 159, 0.38);
+}
+
+.brand-sub {
+  font-size: 18rpx;
+  letter-spacing: 6rpx;
+  color: rgba(220, 255, 240, 0.5);
+}
+
+.hero {
+  margin: 8rpx 24rpx 24rpx;
+  padding: 28rpx 28rpx 30rpx;
+  border-radius: 32rpx;
+  border: 1.5rpx solid rgba(33, 255, 151, 0.18);
+  background:
+    linear-gradient(180deg, rgba(8, 18, 13, 0.82), rgba(3, 8, 6, 0.92));
+  box-shadow:
+    0 0 0 1rpx rgba(52, 255, 159, 0.06) inset,
+    0 0 36rpx rgba(0, 255, 140, 0.08);
+}
+
+.hero-kicker {
+  display: block;
+  font-size: 18rpx;
+  letter-spacing: 6rpx;
+  color: #48ffb0;
+  margin-bottom: 8rpx;
+}
+
+.title {
+  display: block;
+  font-size: 58rpx;
+  line-height: 1.1;
+  font-weight: 800;
+  color: #f0fff8;
+  text-shadow: 0 0 18rpx rgba(38, 255, 151, 0.22);
+}
+
+.subtitle {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: rgba(220, 255, 240, 0.62);
+  line-height: 1.6;
+}
+
+.list-scroll {
+  height: calc(100vh - 240rpx);
+}
+
+.device-list {
+  padding: 6rpx 24rpx 200rpx;
+}
+
+.device-card {
+  display: flex;
+  gap: 18rpx;
+  margin-bottom: 18rpx;
+  padding: 18rpx;
+  border-radius: 28rpx;
+  background:
+    linear-gradient(180deg, rgba(9, 18, 14, 0.9), rgba(4, 10, 8, 0.95));
+  border: 1.5rpx solid rgba(32, 255, 152, 0.16);
+  box-shadow:
+    0 0 0 1rpx rgba(42, 255, 159, 0.04) inset,
+    0 12rpx 36rpx rgba(0, 0, 0, 0.28);
+}
+
+.device-image {
+  width: 182rpx;
+  height: 182rpx;
+  border-radius: 22rpx;
+  flex-shrink: 0;
+  border: 1rpx solid rgba(255, 255, 255, 0.04);
+}
+
+.device-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+}
+
+.name {
+  font-size: 38rpx;
+  line-height: 1.1;
+  font-weight: 800;
+  color: #f2fff8;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.online {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  border-radius: 999rpx;
+  padding: 6rpx 14rpx;
+}
+
+.online.ok {
+  background: rgba(34, 255, 151, 0.12);
+  color: #31ff9a;
+  border: 1rpx solid rgba(49, 255, 154, 0.18);
+}
+
+.online.offline {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(220, 255, 240, 0.45);
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+}
+
+.meta {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: rgba(220, 255, 240, 0.62);
+}
+
+.plant-type {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: rgba(220, 255, 240, 0.56);
+}
+
+.status-chip {
+  margin-top: 14rpx;
+  width: fit-content;
+  border-radius: 999rpx;
+  padding: 8rpx 16rpx;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.status-chip.good {
+  background: rgba(34, 255, 151, 0.12);
+  color: #31ff9a;
+  border: 1rpx solid rgba(49, 255, 154, 0.16);
+}
+
+.status-chip.warn {
+  background: rgba(255, 180, 73, 0.11);
+  color: #ffc24f;
+  border: 1rpx solid rgba(255, 194, 79, 0.18);
+}
+
+.status-chip.pending {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(220, 255, 240, 0.48);
+  border: 1rpx solid rgba(255, 255, 255, 0.08);
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 96rpx 36rpx;
+  margin-top: 18rpx;
+  border-radius: 28rpx;
+  border: 1rpx dashed rgba(54, 255, 159, 0.2);
+  background: rgba(4, 10, 8, 0.58);
+  gap: 16rpx;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  color: #3bff9d;
+}
+
+.empty-title {
+  font-size: 34rpx;
+  font-weight: 800;
+  color: #f2fff8;
+}
+
+.empty-desc {
+  font-size: 24rpx;
+  color: rgba(220, 255, 240, 0.52);
+  line-height: 1.7;
+}
+
+.empty-btn {
+  margin-top: 8rpx;
+  background: linear-gradient(90deg, #2cff9c, #12d276);
+  padding: 18rpx 42rpx;
+  border-radius: 999rpx;
+  color: #04110b;
+  font-weight: 800;
+  box-shadow: 0 0 24rpx rgba(26, 255, 149, 0.22);
+}
+
+.empty-btn:active {
+  opacity: 0.85;
+  transform: scale(0.98);
+}
+
+.empty-btn-text {
+  color: #04110b;
+  font-size: 26rpx;
+  font-weight: 800;
+}
+
+.fab {
+  position: fixed;
+  right: 34rpx;
+  bottom: 128rpx;
+  width: 108rpx;
+  height: 108rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, #38ff9f, #19c96d);
+  box-shadow:
+    0 0 0 1rpx rgba(255, 255, 255, 0.08) inset,
+    0 14rpx 32rpx rgba(11, 116, 58, 0.34),
+    0 0 36rpx rgba(52, 255, 159, 0.18);
+}
+
+.fab-plus {
+  color: #04110b;
+  font-size: 66rpx;
+  line-height: 1;
+  font-weight: 700;
+}

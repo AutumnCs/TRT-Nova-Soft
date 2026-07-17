@@ -1,0 +1,50 @@
+<view class="garden-page" style="padding-top: {{statusBarHeight}}px;">
+  <view class="topbar">
+    <button class="back-btn" bindtap="goBackHome">←</button>
+    <view class="brand-block">
+      <text class="brand">NOVA_SYS.v1</text>
+      <text class="brand-sub">PLANT GALLERY</text>
+    </view>
+    <view class="more-btn">···</view>
+  </view>
+
+  <view class="hero">
+    <text class="hero-kicker">GARDEN LOG</text>
+    <text class="title">我的花园</text>
+    <text class="subtitle">{{summaryText}}</text>
+  </view>
+
+  <scroll-view class="list-scroll" scroll-y>
+    <view class="device-list">
+      <block wx:for="{{devices}}" wx:key="logicalKey">
+        <view class="device-card" bindtap="openDeviceDetail" data-logicalkey="{{item.logicalKey}}">
+          <image class="device-image" src="{{item.image}}" mode="aspectFill" />
+          <view class="device-main">
+            <view class="top-row">
+              <text class="name">{{item.alias}}</text>
+              <text class="online {{item.online ? 'ok' : 'offline'}}">{{item.online ? '在线' : '离线'}}</text>
+            </view>
+            <text class="meta">{{item.location}} · 智能花盆</text>
+            <text class="plant-type">植物类型：{{item.plantType}}</text>
+            <view class="status-chip {{item.statusType}}">
+              <text>{{item.statusText}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <view wx:if="{{!hasDevices}}" class="empty-state" bindtap="openDeviceManager">
+        <text class="empty-icon">⌁</text>
+        <text class="empty-title">还没有绑定设备</text>
+        <text class="empty-desc">点右下角 + 绑定一台智能花盆，成长记录和状态卡才会开始出现。</text>
+        <view class="empty-btn">
+          <text class="empty-btn-text">去绑定设备</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="fab" bindtap="openDeviceManager">
+    <text class="fab-plus">+</text>
+  </view>
+</view>

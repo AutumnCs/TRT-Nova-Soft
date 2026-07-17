@@ -1,0 +1,50 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/assistant/assistant",
+    "pages/device/device",
+    "pages/deviceDetail/deviceDetail",
+    "pages/deviceSettings/deviceSettings",
+    "pages/garden/garden",
+    "pages/auth/auth",
+    "pages/profileEdit/profileEdit",
+    "pages/wiki/wiki",
+    "pages/plantJournal/plantJournal",
+    "pages/profile/profile",
+    "pages/about/about"
+  ],
+  "window": {
+    "backgroundColor": "#F6F6F6",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#F6F6F6",
+    "navigationBarTitleText": "智能花盆",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#9CA3AF",
+    "selectedColor": "#10B981",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/assistant/assistant",
+        "text": "助手"
+      },
+      {
+        "pagePath": "pages/wiki/wiki",
+        "text": "植物库"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents"
+}

@@ -1,0 +1,10 @@
+{
+	"adapteByMiniprogram": {
+		"userName": "gh_52ed438e46fe"
+	},
+	"identityServiceConfig": {
+		"authorizeMiniprogramType": 0,
+		"miniprogramLoginPath": "pages/auth/auth",
+		"adaptWxLogin": false
+	}
+}

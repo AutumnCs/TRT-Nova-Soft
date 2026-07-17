@@ -1,0 +1,140 @@
+<view wx:if="{{!showDetail}}" class="page">
+  <view class="grid-bg"></view>
+  <view class="top-shell" style="padding-top: {{statusBarHeight}}px;">
+    <view class="top-bar">
+      <view class="top-icon">⌂</view>
+      <view class="top-title">NOVA_SYS.v1</view>
+      <view class="top-signal">◌</view>
+    </view>
+
+    <view class="search-panel">
+      <view class="search-box">
+        <text class="search-icon">⌕</text>
+        <input
+          class="search-input"
+          placeholder="搜索植物名称、科属或特征"
+          placeholder-class="placeholder"
+          bindinput="onSearch"
+        />
+      </view>
+
+      <view class="category-row">
+        <view class="tag {{activeCategory === 'all' ? 'active' : ''}}" bindtap="switchCategory" data-category="all">全部</view>
+        <view class="tag {{activeCategory === 'favorites' ? 'active' : ''}}" bindtap="switchCategory" data-category="favorites">我的收藏</view>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}">
+    <view wx:if="{{loading && filteredPlants.length === 0}}" class="skeleton-grid">
+      <view wx:for="{{[1,2,3,4]}}" wx:key="*this" class="skeleton-card">
+        <view class="skeleton-image"></view>
+        <view class="skeleton-body">
+          <view class="skeleton-line skeleton-line-lg"></view>
+          <view class="skeleton-line skeleton-line-md"></view>
+          <view class="skeleton-chip"></view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:else class="content-wrap fade-in">
+      <view class="plant-grid">
+        <block wx:for="{{filteredPlants}}" wx:key="id">
+          <view class="plant-card" bindtap="showPlantDetail" data-id="{{item.id}}">
+            <view class="plant-image-container">
+              <image class="plant-image" src="{{item.image}}" mode="aspectFill"></image>
+              <view class="favorite-icon {{item.isFavorite ? 'active' : ''}}" catchtap="toggleFavorite" data-id="{{item.id}}">
+                <text>{{item.isFavorite ? '♥' : '♡'}}</text>
+              </view>
+            </view>
+
+            <view class="plant-info">
+              <text class="plant-name">{{item.name}}</text>
+              <text class="plant-family">{{item.family}}</text>
+              <view class="feature-tag {{item.feature}}">
+                {{item.featureText}}
+              </view>
+            </view>
+
+            <view class="detail-btn">
+              <text>i</text>
+            </view>
+          </view>
+        </block>
+      </view>
+
+      <view class="calendar-section" bindtap="openPlantJournal">
+        <view class="calendar-header">
+          <view>
+            <text class="calendar-title-lg">成长记录</text>
+            <text class="calendar-desc-lg">查看手动记录、待办完成与养护时间线</text>
+          </view>
+          <view class="calendar-pill">
+            <text class="calendar-pill-text">TIME LINE</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>
+
+<view wx:else class="page detail-page" style="padding-top: {{statusBarHeight}}px;">
+  <view class="grid-bg"></view>
+  <view class="detail-nav" style="padding-top: {{detailNavPaddingTop}}px;">
+    <view class="nav-btn close-btn" bindtap="closeDetail">
+      <text>←</text>
+    </view>
+    <text class="nav-title">植物详情</text>
+    <view class="nav-actions">
+      <view class="nav-btn fav-btn {{currentPlant.isFavorite ? 'fav-active' : ''}}" bindtap="toggleDetailFavorite">
+        <text>{{currentPlant.isFavorite ? '♥' : '♡'}}</text>
+      </view>
+      <view class="nav-btn share-btn">
+        <text>↗</text>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view scroll-y="true" class="detail-scroll" show-scrollbar="{{false}}">
+    <view class="detail-shell fade-in">
+      <view class="plant-showcase">
+        <image class="showcase-image" src="{{currentPlant.image}}" mode="aspectFill"></image>
+        <view class="plant-details">
+          <text class="showcase-name">{{currentPlant.name}}</text>
+          <text class="showcase-scientific">{{currentPlant.scientificName}}</text>
+          <view class="showcase-tags">
+            <view class="tag-item" wx:for="{{currentPlant.tags}}" wx:key="*this">
+              {{item}}
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="plant-intro">
+        <text class="section-title">植物百科简介</text>
+        <text class="intro-text">{{currentPlant.description}}</text>
+        <view class="more-link" bindtap="toggleMore">
+          {{showMore ? '收起内容' : '查看更多详细资料'}}
+        </view>
+      </view>
+
+      <view class="care-info">
+        <text class="section-title">养护信息</text>
+        <view class="care-grid">
+          <view class="care-item">
+            <view class="care-icon">◔</view>
+            <text class="care-text">{{currentPlant.care.light}}</text>
+          </view>
+          <view class="care-item">
+            <view class="care-icon">❋</view>
+            <text class="care-text">{{currentPlant.care.water}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="action-section">
+        <button class="add-reminder-btn" bindtap="addReminder">加入养护提醒</button>
+      </view>
+    </view>
+  </scroll-view>
+</view>
