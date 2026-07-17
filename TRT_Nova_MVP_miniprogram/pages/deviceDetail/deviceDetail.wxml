@@ -43,6 +43,15 @@
           </view>
 
           <text class="hero-meta">{{device.location}} ・ {{device.plantType}}</text>
+          <view
+            wx:if="{{device.latestCommand}}"
+            class="hero-tag"
+            bindtap="showLatestCommandDetail"
+            data-commandid="{{device.latestCommand.commandId}}"
+          >
+            <text class="hero-tag-label">CMD</text>
+            <text class="hero-tag-value">{{device.latestCommandText}}</text>
+          </view>
           <view wx:if="{{extraInfo.personality && extraInfo.personality !== '--'}}" class="hero-tag">
             <text class="hero-tag-label">BIO</text>
             <text class="hero-tag-value">{{extraInfo.personality}}</text>

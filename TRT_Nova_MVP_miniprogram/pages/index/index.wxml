@@ -224,6 +224,9 @@
             <text class="device-name">{{fan.name}}</text>
             <text class="device-status">{{fan.statusText}}</text>
             <text class="device-hint">{{fan.hintText}}</text>
+            <view wx:if="{{fan.latestCommandId}}" class="refresh-btn" catchtap="showLatestCommandDetail" data-commandid="{{fan.latestCommandId}}">
+              <text class="refresh-btn-text">CMD 详情</text>
+            </view>
           </view>
         </view>
       </view>

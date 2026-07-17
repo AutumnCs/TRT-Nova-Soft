@@ -126,6 +126,31 @@ class DeviceService {
     });
   }
 
+  async getDeviceCommands(options = {}) {
+    const logicalKey = typeof options.logicalKey === 'string' ? options.logicalKey.trim() : '';
+    const limit = Number(options.limit) || 20;
+    return this.scfApiAdapter.getDeviceCommands({
+      logicalKey,
+      limit
+    });
+  }
+
+  async getDeviceCommandDetail(commandId) {
+    const id = typeof commandId === 'string' ? commandId.trim() : '';
+    if (!id) {
+      return { success: false, msg: '命令标识缺失' };
+    }
+    return this.scfApiAdapter.getDeviceCommandDetail({ commandId: id });
+  }
+
+  async retryDeviceCommand(commandId) {
+    const id = typeof commandId === 'string' ? commandId.trim() : '';
+    if (!id) {
+      return { success: false, msg: '命令标识缺失' };
+    }
+    return this.scfApiAdapter.retryDeviceCommand({ commandId: id });
+  }
+
   async updateBoundDeviceInfo(payload = {}) {
     const key = typeof payload.logicalKey === 'string' ? payload.logicalKey.trim() : '';
     if (!key) {

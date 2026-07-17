@@ -55,7 +55,7 @@ class HomeScreen extends StatelessWidget {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: app.devices.length + 1,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
+                    separatorBuilder: (_, _) => const SizedBox(width: 12),
                     itemBuilder: (context, index) {
                       if (index == app.devices.length) {
                         return _AddDeviceCard(
@@ -205,7 +205,7 @@ class _HeaderSummary extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 24,
             offset: const Offset(0, 14),
           ),
@@ -297,7 +297,7 @@ class _HeroSection extends StatelessWidget {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 30,
             offset: const Offset(0, 16),
           ),
@@ -320,9 +320,9 @@ class _HeroSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(28),
                 gradient: LinearGradient(
                   colors: [
-                    Colors.white.withOpacity(0.20),
-                    Colors.white.withOpacity(0.08),
-                    Colors.white.withOpacity(0.24),
+                    Colors.white.withValues(alpha: 0.20),
+                    Colors.white.withValues(alpha: 0.08),
+                    Colors.white.withValues(alpha: 0.24),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -350,7 +350,7 @@ class _HeroSection extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.96),
+                    color: Colors.white.withValues(alpha: 0.96),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -478,7 +478,7 @@ class _DeviceCard extends StatelessWidget {
           border: Border.all(color: active ? const Color(0xFF11B176) : const Color(0xFFE2E8F0), width: active ? 2 : 1),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.03),
+              color: Colors.black.withValues(alpha: 0.03),
               blurRadius: 12,
               offset: const Offset(0, 8),
             ),

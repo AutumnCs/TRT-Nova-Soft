@@ -76,6 +76,8 @@ function getEventMeta(type) {
 }
 
 Page({
+  _deviceRows: [],
+
   data: {
     statusBarHeight: 20,
     devices: [],
@@ -112,6 +114,7 @@ Page({
     this.setData({ loading: true });
     try {
       const deviceResult = await deviceService.getDeviceData();
+      this._deviceRows = Array.isArray(deviceResult?.deviceData) ? deviceResult.deviceData : [];
       const devices = normalizeDevices(deviceResult?.deviceData);
       const first = this._presetLogicalKey
         ? (devices.find((item) => item.logicalKey === this._presetLogicalKey) || devices[0] || null)
@@ -267,6 +270,17 @@ Page({
 
   goTrend() {
     if (!this.data.selectedLogicalKey) return;
+
+    const bootstrapRow = Array.isArray(this._deviceRows)
+      ? this._deviceRows.find((item) => item && item.logicalKey === this.data.selectedLogicalKey)
+      : null;
+
+    if (bootstrapRow) {
+      deviceService.setDeviceDetailBootstrap(this.data.selectedLogicalKey, {
+        deviceData: [bootstrapRow]
+      });
+    }
+
     wx.navigateTo({
       url: `/pages/deviceDetail/deviceDetail?logicalKey=${encodeURIComponent(this.data.selectedLogicalKey)}`
     });

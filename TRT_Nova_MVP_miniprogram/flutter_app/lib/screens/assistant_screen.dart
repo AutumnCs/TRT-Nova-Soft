@@ -122,7 +122,7 @@ class _AssistantScreenState extends State<AssistantScreen> {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 24,
                         offset: const Offset(0, 10),
                       ),
@@ -199,7 +199,7 @@ class _ChatBubble extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             if (!message.isUser)
-              BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 18, offset: const Offset(0, 10)),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 18, offset: const Offset(0, 10)),
           ],
         ),
         child: Text(message.text, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: textColor)),

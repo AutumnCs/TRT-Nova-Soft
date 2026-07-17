@@ -69,6 +69,51 @@ CREATE TABLE device_latest (
   UNIQUE KEY uk_latest_logical_key (logical_key)
 );
 
+CREATE TABLE device_commands (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  command_id VARCHAR(64) NOT NULL,
+  logical_key VARCHAR(191) NOT NULL,
+  product_id VARCHAR(64) NOT NULL,
+  device_name VARCHAR(128) NOT NULL,
+  provider VARCHAR(32) NOT NULL DEFAULT '',
+  openid VARCHAR(128) DEFAULT NULL,
+  command_name VARCHAR(64) NOT NULL DEFAULT 'set_property',
+  status VARCHAR(32) NOT NULL DEFAULT 'pending',
+  sent_params_json JSON NOT NULL,
+  latest_snapshot_json JSON DEFAULT NULL,
+  error_message VARCHAR(255) DEFAULT NULL,
+  provider_response_json JSON DEFAULT NULL,
+  requested_at_ms BIGINT NOT NULL,
+  sent_at_ms BIGINT DEFAULT NULL,
+  acked_at_ms BIGINT DEFAULT NULL,
+  done_at_ms BIGINT DEFAULT NULL,
+  failed_at_ms BIGINT DEFAULT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_device_commands_command_id (command_id),
+  KEY idx_device_commands_logical_status (logical_key, status, requested_at_ms),
+  KEY idx_device_commands_openid_requested (openid, requested_at_ms)
+);
+
+CREATE TABLE device_message_ingest (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  provider VARCHAR(32) NOT NULL,
+  logical_key VARCHAR(191) NOT NULL,
+  device_id VARCHAR(191) NOT NULL,
+  message_id VARCHAR(128) NOT NULL,
+  message_type VARCHAR(64) NOT NULL,
+  event_type VARCHAR(64) DEFAULT NULL,
+  message_timestamp_ms BIGINT NOT NULL,
+  payload_json JSON NOT NULL,
+  raw_meta_json JSON DEFAULT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_device_message_ingest_device_msg (device_id, message_id),
+  KEY idx_device_message_ingest_lookup (logical_key, message_timestamp_ms),
+  KEY idx_device_message_ingest_type (message_type, event_type, message_timestamp_ms)
+);
+
 CREATE TABLE device_history_raw (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   logical_key VARCHAR(191) NOT NULL,

@@ -1,6 +1,8 @@
 const crypto = require('crypto');
+const { createRuntimeCache } = require('./lib/runtimeCache');
 
 let pool;
+const runtimeCache = createRuntimeCache('ingest-scf');
 
 /**
  * 说明：
@@ -14,6 +16,26 @@ const ONE_NET_TOKEN = process.env.ONE_NET_TOKEN || '';
 const ONE_NET_AES_KEY = process.env.ONE_NET_AES_KEY || '';
 const EMQX_WEBHOOK_TOKEN = process.env.EMQX_WEBHOOK_TOKEN || '';
 const EMQX_PRODUCT_ID = process.env.EMQX_PRODUCT_ID || 'emqx';
+
+function logInfo(event, payload = {}) {
+  console.log(JSON.stringify({
+    level: 'info',
+    service: 'ingest-scf',
+    event,
+    ts: Date.now(),
+    ...payload
+  }));
+}
+
+function logError(event, payload = {}) {
+  console.error(JSON.stringify({
+    level: 'error',
+    service: 'ingest-scf',
+    event,
+    ts: Date.now(),
+    ...payload
+  }));
+}
 
 function buildLogicalKey(productId, deviceName) {
   return `${productId}::${deviceName}`;
@@ -43,7 +65,9 @@ function decryptMsg(cryptedMsg, aesKey) {
     decodedMsg += decipher.final('utf8');
     return decodedMsg;
   } catch (err) {
-    console.error('decryptMsg failed:', err);
+    logError('decrypt_failed', {
+      message: err.message
+    });
     return cryptedMsg;
   }
 }
@@ -130,6 +154,120 @@ function parseMaybeJson(value) {
   } catch (err) {
     return value;
   }
+}
+
+function parseBooleanEnv(input, fallback = false) {
+  if (input === undefined || input === null || input === '') {
+    return fallback;
+  }
+  const normalized = String(input).trim().toLowerCase();
+  if (['1', 'true', 'yes', 'y', 'on'].includes(normalized)) return true;
+  if (['0', 'false', 'no', 'n', 'off'].includes(normalized)) return false;
+  return fallback;
+}
+
+function getRuntimeServiceProxyConfig() {
+  const enabled = parseBooleanEnv(process.env.INGEST_SCF_RUNTIME_PROXY_ENABLED, false);
+  const baseUrl = String(process.env.RUNTIME_SERVICE_BASE_URL || '').trim().replace(/\/+$/g, '');
+  const timeoutMs = Math.max(1000, Number(process.env.INGEST_SCF_RUNTIME_PROXY_TIMEOUT_MS) || 8000);
+  const fallbackToLocal = parseBooleanEnv(process.env.INGEST_SCF_RUNTIME_PROXY_FALLBACK_LOCAL, true);
+  return {
+    enabled,
+    baseUrl,
+    timeoutMs,
+    fallbackToLocal
+  };
+}
+
+function shouldProxyToRuntimeService() {
+  const config = getRuntimeServiceProxyConfig();
+  return !!(config.enabled && config.baseUrl);
+}
+
+function buildRuntimeServiceUrl(runtimePath) {
+  const config = getRuntimeServiceProxyConfig();
+  if (!config.baseUrl) {
+    throw new Error('Missing RUNTIME_SERVICE_BASE_URL');
+  }
+  return `${config.baseUrl}${runtimePath.startsWith('/') ? runtimePath : `/${runtimePath}`}`;
+}
+
+function buildRuntimeServiceHeaders(sourceHeaders = {}) {
+  const headers = {
+    'content-type': 'application/json'
+  };
+  const providerHint =
+    getHeaderValue(sourceHeaders, ['x-provider', 'x-webhook-source', 'x-ingest-source']) || '';
+  const requestId =
+    getHeaderValue(sourceHeaders, ['x-request-id']) || '';
+  if (providerHint) {
+    headers['x-provider'] = String(providerHint).trim();
+  }
+  if (requestId) {
+    headers['x-request-id'] = String(requestId).trim();
+  }
+  return headers;
+}
+
+async function httpJsonRequest(urlString, { method = 'POST', headers = {}, body = null, timeoutMs = 8000 } = {}) {
+  const parsedUrl = new URL(urlString);
+  const transport = parsedUrl.protocol === 'http:' ? require('http') : require('https');
+  const requestBody = body === null || body === undefined
+    ? ''
+    : (typeof body === 'string' ? body : JSON.stringify(body));
+  const requestHeaders = {
+    ...headers
+  };
+  if (requestBody) {
+    requestHeaders['Content-Length'] = Buffer.byteLength(requestBody);
+  }
+
+  return new Promise((resolve, reject) => {
+    const req = transport.request({
+      protocol: parsedUrl.protocol,
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || undefined,
+      path: `${parsedUrl.pathname}${parsedUrl.search || ''}`,
+      method,
+      headers: requestHeaders
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        let parsed = {};
+        try {
+          parsed = data ? JSON.parse(data) : {};
+        } catch {
+          parsed = { raw: data };
+        }
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(parsed);
+          return;
+        }
+        const error = new Error(parsed?.msg || parsed?.message || `Runtime service HTTP ${res.statusCode}`);
+        error.statusCode = res.statusCode;
+        error.payload = parsed;
+        reject(error);
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(timeoutMs, () => req.destroy(new Error('Runtime service request timeout')));
+    if (requestBody) {
+      req.write(requestBody);
+    }
+    req.end();
+  });
+}
+
+async function requestRuntimeService(runtimePath, payload, sourceHeaders = {}) {
+  const config = getRuntimeServiceProxyConfig();
+  const url = buildRuntimeServiceUrl(runtimePath);
+  return httpJsonRequest(url, {
+    method: 'POST',
+    timeoutMs: config.timeoutMs,
+    headers: buildRuntimeServiceHeaders(sourceHeaders),
+    body: payload
+  });
 }
 
 function parseEmqxTopic(topic) {
@@ -265,6 +403,12 @@ function normalizeIncomingMessage(innerMsg, pushTime) {
     notifyType,
     messageType,
     dataId,
+    logicalKey: productId && deviceName ? buildLogicalKey(productId, deviceName) : '',
+    deviceId: productId && deviceName ? buildLogicalKey(productId, deviceName) : '',
+    messageId: String(dataId || `${productId}:${deviceName}:${sampleTime}`),
+    timestamp: sampleTime,
+    type: notifyType || messageType || 'telemetry',
+    payload: innerMsg?.data || innerMsg,
     params: extractParamsFromSource(innerMsg, sampleTime)
   };
 }
@@ -297,12 +441,14 @@ function normalizeEmqxMessage(body, pushTime) {
   const deviceName =
     explicitDeviceName ||
     pickFirstValue(clientAttrs, ['deviceName', 'device_name', 'device']) ||
+    topicParts.deviceName ||
     pickFirstValue(body, ['client_name']) ||
     pickFirstValue(payloadObject, ['deviceName', 'device_name']) ||
     '';
   const productId =
     explicitProductId ||
     pickFirstValue(clientAttrs, ['productId', 'product_id', 'pid']) ||
+    topicParts.productId ||
     process.env.EMQX_PRODUCT_ID ||
     EMQX_PRODUCT_ID ||
     '';
@@ -336,6 +482,11 @@ function normalizeEmqxMessage(body, pushTime) {
     notifyType: eventType,
     messageType,
     dataId,
+    deviceId: logicalKey,
+    messageId: String(dataId || `${logicalKey || `${productId}:${deviceName}`}:${sampleTime}:${eventType}`),
+    timestamp: sampleTime,
+    type: eventType || messageType || 'message',
+    payload: payloadValue && payloadValue !== '' ? payloadValue : mergedSource,
     params,
     sourceMeta: {
       provider: 'emqx',
@@ -538,6 +689,175 @@ async function upsertAggHistory(db, row, granularity) {
   );
 }
 
+function buildMessageIngestRecord(normalized, latestRecord, sourceMeta = {}) {
+  const fallbackMessageId = crypto
+    .createHash('md5')
+    .update(
+      JSON.stringify({
+        provider: sourceMeta.provider || 'onenet',
+        logicalKey: latestRecord.logicalKey,
+        timestamp: normalized.timestamp || latestRecord.updatedAt,
+        type: normalized.type || normalized.notifyType || normalized.messageType || 'telemetry',
+        payload: normalized.payload || normalized.params || {}
+      })
+    )
+    .digest('hex');
+
+  return {
+    provider: sourceMeta.provider || 'onenet',
+    logicalKey: latestRecord.logicalKey,
+    deviceId: normalized.deviceId || latestRecord.logicalKey,
+    messageId: String(normalized.messageId || normalized.dataId || fallbackMessageId),
+    messageType: String(normalized.messageType || normalized.type || 'telemetry'),
+    eventType: String(normalized.notifyType || normalized.type || ''),
+    messageTimestampMs: Number(normalized.timestamp || latestRecord.updatedAt || Date.now()),
+    payload: normalized.payload || normalized.params || {},
+    rawMeta: {
+      ...sourceMeta,
+      logicalKey: latestRecord.logicalKey,
+      dataId: normalized.dataId || '',
+      notifyType: normalized.notifyType || '',
+      messageType: normalized.messageType || '',
+      normalizedType: normalized.type || ''
+    }
+  };
+}
+
+async function insertMessageIngest(db, record) {
+  const [result] = await db.execute(
+    `INSERT IGNORE INTO device_message_ingest
+      (provider, logical_key, device_id, message_id, message_type, event_type, message_timestamp_ms, payload_json, raw_meta_json, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      record.provider,
+      record.logicalKey,
+      record.deviceId,
+      record.messageId,
+      record.messageType,
+      record.eventType || null,
+      record.messageTimestampMs,
+      JSON.stringify(record.payload || {}),
+      JSON.stringify(record.rawMeta || {}),
+      toSqlDateTime(record.messageTimestampMs)
+    ]
+  );
+
+  return Number(result?.affectedRows || 0) > 0;
+}
+
+function extractComparableParamValue(input) {
+  if (input && typeof input === 'object' && !Array.isArray(input) && Object.prototype.hasOwnProperty.call(input, 'value')) {
+    return input.value;
+  }
+  return input;
+}
+
+function valuesRoughlyEqual(left, right) {
+  const leftNum = Number(left);
+  const rightNum = Number(right);
+  if (Number.isFinite(leftNum) && Number.isFinite(rightNum)) {
+    return Math.abs(leftNum - rightNum) < 0.0001;
+  }
+  return String(left) === String(right);
+}
+
+function detectCommandAck(notifyType, messageType, sourceMeta = {}) {
+  const text = [
+    notifyType,
+    messageType,
+    sourceMeta?.rawEvent,
+    sourceMeta?.event,
+    sourceMeta?.topicType
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  return text.includes('ack') || text.includes('reply');
+}
+
+async function reconcilePendingCommands(db, latestRecord) {
+  const [rows] = await db.execute(
+    `SELECT id, command_id, status, sent_params_json
+     FROM device_commands
+     WHERE logical_key = ?
+       AND status IN ('pending', 'sent', 'acked')
+     ORDER BY requested_at_ms DESC, id DESC
+     LIMIT 10`,
+    [latestRecord.logicalKey]
+  );
+
+  if (!rows.length) {
+    return [];
+  }
+
+  const latestParams = latestRecord.params || {};
+  const isAck = detectCommandAck(latestRecord.notifyType, latestRecord.messageType, latestRecord.pushMeta);
+  const nowMs = latestRecord.updatedAt || Date.now();
+  const transitions = [];
+
+  for (const row of rows) {
+    const sentParams = parseMaybeJson(row.sent_params_json) || {};
+    const sentKeys = Object.keys(sentParams);
+    if (!sentKeys.length) {
+      continue;
+    }
+
+    const allMatched = sentKeys.every((key) => {
+      const latestValue = extractComparableParamValue(latestParams[key]);
+      const expectedValue = sentParams[key];
+      if (latestValue === undefined) {
+        return false;
+      }
+      return valuesRoughlyEqual(latestValue, expectedValue);
+    });
+
+    const nextStatus = allMatched ? 'done' : (isAck && row.status === 'sent' ? 'acked' : '');
+    if (!nextStatus) {
+      continue;
+    }
+
+    await db.execute(
+      `UPDATE device_commands
+       SET status = ?,
+           latest_snapshot_json = ?,
+           acked_at_ms = CASE
+             WHEN ? IS NOT NULL AND acked_at_ms IS NULL THEN ?
+             ELSE acked_at_ms
+           END,
+           done_at_ms = CASE
+             WHEN ? = 'done' THEN ?
+             ELSE done_at_ms
+           END,
+           updated_at = ?
+       WHERE id = ?`,
+      [
+        nextStatus,
+        JSON.stringify(latestParams),
+        isAck ? nowMs : null,
+        nowMs,
+        nextStatus,
+        nowMs,
+        toSqlDateTime(nowMs),
+        row.id
+      ]
+    );
+
+    transitions.push({
+      commandId: row.command_id,
+      fromStatus: row.status,
+      toStatus: nextStatus,
+      isAck
+    });
+
+    if (nextStatus === 'done') {
+      break;
+    }
+  }
+
+  return transitions;
+}
+
 async function persistNormalizedDeviceData(normalized, db, sourceMeta = {}) {
   const pushId = sourceMeta.pushId || sourceMeta.dataId || '';
   const pushTime = sourceMeta.pushTime || Date.now();
@@ -556,7 +876,7 @@ async function persistNormalizedDeviceData(normalized, db, sourceMeta = {}) {
     throw new Error('productId/deviceName missing');
   }
 
-  const logicalKey = buildLogicalKey(productId, deviceName);
+  const logicalKey = normalized.logicalKey || buildLogicalKey(productId, deviceName);
   await ensureDeviceRegistered(db, logicalKey, productId, deviceName);
 
   const latestRecord = {
@@ -609,7 +929,37 @@ async function persistNormalizedDeviceData(normalized, db, sourceMeta = {}) {
   const beganTransaction = await maybeBeginTransaction(conn);
 
   try {
+    const ingestRecord = buildMessageIngestRecord(normalized, latestRecord, sourceMeta);
+    const accepted = await insertMessageIngest(conn, ingestRecord);
+
+    if (!accepted) {
+      await maybeCommit(conn, beganTransaction);
+      await runtimeCache.markMessageDedup({
+        deviceId: ingestRecord.deviceId,
+        logicalKey,
+        messageId: ingestRecord.messageId,
+        provider
+      });
+      logInfo('message_deduplicated', {
+        provider,
+        logicalKey,
+        productId,
+        deviceName,
+        messageId: ingestRecord.messageId,
+        messageType: ingestRecord.messageType
+      });
+      return {
+        success: true,
+        deduplicated: true,
+        logicalKey,
+        productId,
+        deviceName,
+        recordCount: 0
+      };
+    }
+
     await upsertLatest(conn, latestRecord);
+    const reconciledCommands = await reconcilePendingCommands(conn, latestRecord);
 
     for (const row of historyRows) {
       await insertRawHistory(conn, row);
@@ -619,6 +969,57 @@ async function persistNormalizedDeviceData(normalized, db, sourceMeta = {}) {
     }
 
     await maybeCommit(conn, beganTransaction);
+    await runtimeCache.markMessageDedup({
+      deviceId: ingestRecord.deviceId,
+      logicalKey,
+      messageId: ingestRecord.messageId,
+      provider
+    });
+    await runtimeCache.setLatestDeviceState({
+      logicalKey,
+      provider,
+      productId,
+      deviceName,
+      updatedAt: latestRecord.updatedAt,
+      params: latestRecord.params,
+      notifyType,
+      messageType
+    });
+    await runtimeCache.setDeviceOnlineState({
+      logicalKey,
+      provider,
+      productId,
+      deviceName,
+      online: true,
+      offline: false,
+      onlineStatus: 'online',
+      lastSeenAt: latestRecord.updatedAt
+    });
+    for (const transition of reconciledCommands) {
+      await runtimeCache.setCommandState({
+        commandId: transition.commandId,
+        logicalKey,
+        provider,
+        status: transition.toStatus,
+        ackedAt: transition.toStatus === 'acked' || transition.toStatus === 'done' ? latestRecord.updatedAt : undefined,
+        doneAt: transition.toStatus === 'done' ? latestRecord.updatedAt : undefined
+      });
+      if (transition.toStatus === 'acked' || transition.toStatus === 'done') {
+        await runtimeCache.clearCommandProcessing(transition.commandId);
+      }
+    }
+    logInfo('message_persisted', {
+      provider,
+      logicalKey,
+      productId,
+      deviceName,
+      messageId: ingestRecord.messageId,
+      messageType: ingestRecord.messageType,
+      eventType: ingestRecord.eventType,
+      recordCount: historyRows.length,
+      paramKeys: Object.keys(latestRecord.params || {}),
+      reconciledCommands
+    });
   } catch (err) {
     await maybeRollback(conn, beganTransaction);
     throw err;
@@ -637,7 +1038,69 @@ async function persistNormalizedDeviceData(normalized, db, sourceMeta = {}) {
   };
 }
 
-async function processDeviceData(pushData, db) {
+function buildUnifiedRuntimeMessage(normalized, sourceMeta = {}) {
+  return {
+    provider: sourceMeta.provider || 'onenet',
+    deviceId: normalized.deviceId || normalized.logicalKey || '',
+    logicalKey: normalized.logicalKey || normalized.deviceId || '',
+    productId: normalized.productId || '',
+    deviceName: normalized.deviceName || '',
+    messageId: String(normalized.messageId || normalized.dataId || ''),
+    timestamp: Number(normalized.timestamp || sourceMeta.pushTime || Date.now()),
+    type: String(normalized.type || normalized.notifyType || normalized.messageType || 'telemetry'),
+    messageType: String(normalized.messageType || 'report'),
+    payload: {
+      params: normalized.params || {},
+      raw: normalized.payload || {}
+    },
+    sourceMeta: {
+      pushId: sourceMeta.pushId || '',
+      rawEvent: sourceMeta.rawEvent || '',
+      topic: sourceMeta.topic || '',
+      clientId: sourceMeta.clientId || ''
+    }
+  };
+}
+
+async function persistNormalizedDeviceDataViaRuntimeService(normalized, sourceMeta = {}, sourceHeaders = {}) {
+  const runtimeMessage = buildUnifiedRuntimeMessage(normalized, sourceMeta);
+  const result = await requestRuntimeService('/runtime/ingest/message', runtimeMessage, sourceHeaders);
+  return {
+    success: result?.success !== false,
+    deduplicated: result?.deduplicated === true,
+    logicalKey: result?.logicalKey || runtimeMessage.logicalKey,
+    productId: runtimeMessage.productId,
+    deviceName: runtimeMessage.deviceName,
+    messageId: result?.messageId || runtimeMessage.messageId,
+    recordCount: Number(result?.recordCount || 0),
+    reconciledCommands: Array.isArray(result?.reconciledCommands) ? result.reconciledCommands : [],
+    proxiedToRuntimeService: true
+  };
+}
+
+async function persistNormalizedDeviceDataWithProxy(normalized, db, sourceMeta = {}, sourceHeaders = {}) {
+  if (!shouldProxyToRuntimeService()) {
+    return persistNormalizedDeviceData(normalized, db, sourceMeta);
+  }
+
+  try {
+    return await persistNormalizedDeviceDataViaRuntimeService(normalized, sourceMeta, sourceHeaders);
+  } catch (err) {
+    logError('runtime_proxy_failed', {
+      route: '/runtime/ingest/message',
+      message: err.message,
+      statusCode: err.statusCode || null,
+      logicalKey: normalized.logicalKey || ''
+    });
+    if (!getRuntimeServiceProxyConfig().fallbackToLocal) {
+      throw err;
+    }
+  }
+
+  return persistNormalizedDeviceData(normalized, db, sourceMeta);
+}
+
+async function processDeviceData(pushData, db, sourceHeaders = {}) {
   const pushId = pushData.id || '';
   const pushTime = pushData.time || Date.now();
   const nonce = pushData.nonce || '';
@@ -651,17 +1114,17 @@ async function processDeviceData(pushData, db) {
   const innerMsg = JSON.parse(decryptedMsg);
 
   const normalized = normalizeIncomingMessage(innerMsg, pushTime);
-  return persistNormalizedDeviceData(normalized, db, {
+  return persistNormalizedDeviceDataWithProxy(normalized, db, {
     provider: 'onenet',
     pushId,
     pushTime,
     nonce,
     signature,
     rawEvent: 'webhook'
-  });
+  }, sourceHeaders);
 }
 
-async function processEmqxData(body, db) {
+async function processEmqxData(body, db, sourceHeaders = {}) {
   const pushTime = Number(
     pickFirstValue(body, ['timestamp', 'publish_received_at', 'received_at', 'ts'])
   ) || Date.now();
@@ -674,7 +1137,7 @@ async function processEmqxData(body, db) {
     }
   }
 
-  return persistNormalizedDeviceData(normalized, db, {
+  return persistNormalizedDeviceDataWithProxy(normalized, db, {
     provider: 'emqx',
     pushTime,
     pushId: pickFirstValue(body, ['id', 'message_id']) || '',
@@ -682,7 +1145,7 @@ async function processEmqxData(body, db) {
     clientId: pickFirstValue(body, ['clientid', 'client_id', 'clientId']) || '',
     username: pickFirstValue(body, ['username', 'user']) || '',
     rawEvent: pickFirstValue(body, ['event', 'action']) || 'message.publish'
-  });
+  }, sourceHeaders);
 }
 
 exports.main = async (event) => {
@@ -691,7 +1154,11 @@ exports.main = async (event) => {
   const body = getBody(event);
   const headers = getHeaders(event);
 
-  console.log('method=', method, 'query=', query);
+  logInfo('webhook_received', {
+    method,
+    queryKeys: Object.keys(query || {}),
+    hasBody: !!body
+  });
 
   if (!ONE_NET_TOKEN && !EMQX_WEBHOOK_TOKEN) {
     return {
@@ -737,8 +1204,8 @@ exports.main = async (event) => {
       Boolean(body?.clientid || body?.client_id || body?.clientId) ||
       Boolean(body?.payload && !body?.msg);
     const result = looksLikeEmqx
-      ? await processEmqxData(body, db)
-      : await processDeviceData(body, db);
+      ? await processEmqxData(body, db, headers)
+      : await processDeviceData(body, db, headers);
     return {
       statusCode: 200,
       body: JSON.stringify({
@@ -748,11 +1215,11 @@ exports.main = async (event) => {
       })
     };
   } catch (err) {
-    console.error('Error processing push:', {
-      error: err.message,
+    logError('push_processing_failed', {
+      message: err.message,
       stack: err.stack,
-      pushData: body,
-      headers
+      providerHint: body?.provider || body?.source || '',
+      headerKeys: Object.keys(headers || {})
     });
     return {
       statusCode: 200,
@@ -763,6 +1230,20 @@ exports.main = async (event) => {
       })
     };
   }
+};
+
+exports.__test__ = {
+  normalizeIncomingMessage,
+  normalizeEmqxMessage,
+  buildMessageIngestRecord,
+  detectCommandAck,
+  reconcilePendingCommands,
+  parseBooleanEnv,
+  getRuntimeServiceProxyConfig,
+  shouldProxyToRuntimeService,
+  buildRuntimeServiceHeaders,
+  buildRuntimeServiceUrl,
+  buildUnifiedRuntimeMessage
 };
 
 exports.main_handler = exports.main;

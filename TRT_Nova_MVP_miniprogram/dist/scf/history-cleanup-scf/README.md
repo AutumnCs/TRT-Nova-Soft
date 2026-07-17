@@ -1,19 +1,47 @@
 # history-cleanup-scf
 
-用于定时清理 MySQL 中超过保留期限的历史数据。
+Scheduled MySQL cleanup and lightweight inspection job.
 
-## 推荐触发方式
+## Recommended trigger
 
-- 腾讯云 SCF 定时触发器
-- 每天执行 1 次
+- Tencent Cloud SCF scheduled trigger
+- Run once per day at minimum
 
-## 入口
+## Handler
 
+- `index.main`
 - `index.main_handler`
 
-## 默认保留策略
+## Responsibilities
 
-- `device_history_raw`: 7 天
-- `device_history_agg` `5m`: 7 天
-- `device_history_agg` `1h`: 30 天
-- `device_history_agg` `1d`: 365 天
+- clean old `device_message_ingest` rows
+- clean old `device_history_raw` rows
+- clean old `device_history_agg` rows
+- fail timed-out `device_commands`
+- emit lightweight inspection summaries for offline devices and lagging commands
+
+## Environment variables
+
+- `DB_HOST`
+- `DB_PORT`
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASSWORD`
+- `DB_CONN_LIMIT`
+- `INGEST_RETENTION_DAYS`
+- `RAW_RETENTION_DAYS`
+- `AGG_5M_RETENTION_DAYS`
+- `AGG_1H_RETENTION_DAYS`
+- `AGG_1D_RETENTION_DAYS`
+- `COMMAND_TIMEOUT_MINUTES`
+- `ALERT_OFFLINE_MINUTES`
+- `ALERT_COMMAND_LAG_MINUTES`
+
+## Inspection output
+
+Besides cleanup, this job emits summaries for:
+
+- devices that have not reported for longer than the configured offline threshold
+- commands that are still pending/sent/acked before the final timeout threshold
+
+These summaries are suitable as a minimal input for later monitoring and alert integrations.

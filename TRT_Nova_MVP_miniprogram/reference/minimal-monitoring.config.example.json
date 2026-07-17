@@ -1,0 +1,16 @@
+{
+  "thresholds": {
+    "requestFailedWarn": 1,
+    "requestFailedCritical": 5,
+    "ingestFailedWarn": 1,
+    "ingestFailedCritical": 3,
+    "commandFailedWarn": 1,
+    "commandFailedCritical": 5,
+    "cleanupFailedWarn": 1,
+    "cleanupFailedCritical": 1,
+    "offlineDevicesWarn": 1,
+    "offlineDevicesCritical": 5,
+    "laggingCommandsWarn": 1,
+    "laggingCommandsCritical": 5
+  }
+}

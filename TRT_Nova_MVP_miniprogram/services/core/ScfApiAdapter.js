@@ -203,6 +203,18 @@ class ScfApiAdapter {
     return this.request('/device/cmd', 'POST', payload);
   }
 
+  async getDeviceCommands(payload = {}) {
+    return this.request('/device/commands', 'POST', payload);
+  }
+
+  async getDeviceCommandDetail(payload = {}) {
+    return this.request('/device/command/detail', 'POST', payload);
+  }
+
+  async retryDeviceCommand(payload = {}) {
+    return this.request('/device/command/retry', 'POST', payload);
+  }
+
   async getUserProfile() {
     return this.request('/user/profile', 'GET');
   }

@@ -1,12 +1,30 @@
-const { envList = [] } = require('./envList');
-const { DEFAULT_RUNTIME_CONFIG } = require('./services/config/runtime');
+const {
+  envList = [],
+  runtimeProfile = 'prod',
+  runtimeConfigOverrides = {}
+} = require('./envList');
+const {
+  buildAppRuntimeConfig,
+  validateRuntimeConfig
+} = require('./services/config/runtime');
 const authService = require('./services/modules/AuthService');
 
 const EXPLICIT_ENV = envList[0] || '';
+const APP_RUNTIME_CONFIG = buildAppRuntimeConfig({
+  profileName: runtimeProfile,
+  overrides: runtimeConfigOverrides
+});
+const APP_RUNTIME_WARNINGS = validateRuntimeConfig(APP_RUNTIME_CONFIG);
 
 function isAuthErrorMessage(message) {
   const text = typeof message === 'string' ? message : '';
-  return text.includes('登录') && text.includes('重新登录');
+  const lowered = text.toLowerCase();
+  return (
+    lowered.includes('login') ||
+    lowered.includes('auth expired') ||
+    lowered.includes('token expired') ||
+    lowered.includes('re-login')
+  );
 }
 
 App({
@@ -14,24 +32,27 @@ App({
     env: EXPLICIT_ENV,
     userInfo: null,
     hasLogin: false,
-    runtimeConfig: {
-      ...DEFAULT_RUNTIME_CONFIG,
-      useCloudBase: false,
-      scfApiBaseUrl: 'https://1395114552-hkiu70pwre.ap-shanghai.tencentscf.com',
-      agentScfBaseUrl: 'https://1395114552-5acci5kbwy.ap-shanghai.tencentscf.com',
-      authScfBaseUrl: 'https://1395114552-0etc4ugmnu.ap-shanghai.tencentscf.com'
-    }
+    runtimeProfile,
+    runtimeConfig: APP_RUNTIME_CONFIG
   },
 
   onLaunch() {
     this.checkLoginStatus();
 
+    if (APP_RUNTIME_WARNINGS.length) {
+      console.warn('[app] runtime config warnings:', APP_RUNTIME_WARNINGS.join('; '));
+    }
+
     if (typeof wx.weixinMiniProgramLogin === 'function') {
       return;
     }
 
+    if (!this.globalData.runtimeConfig.useCloudBase) {
+      return;
+    }
+
     if (!wx.cloud) {
-      console.error('请使用基础库 2.2.3 及以上版本以启用云能力');
+      console.error('[app] wx.cloud is unavailable in current runtime');
       return;
     }
 

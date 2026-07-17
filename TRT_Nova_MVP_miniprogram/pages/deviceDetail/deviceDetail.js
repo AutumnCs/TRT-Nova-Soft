@@ -67,6 +67,35 @@ function formatSoulStateByIr(raw) {
   return value ? '没出窍' : '出窍';
 }
 
+function formatCommandStateText(command) {
+  const status = String((command && command.status) || '').toLowerCase();
+  if (status === 'pending') return 'PENDING';
+  if (status === 'sent') return 'SENT';
+  if (status === 'acked') return 'ACKED';
+  if (status === 'done') return 'DONE';
+  if (status === 'failed') return 'FAILED';
+  return 'IDLE';
+}
+
+function formatCommandStatus(status) {
+  const normalized = String(status || '').toLowerCase();
+  if (normalized === 'pending') return '排队中';
+  if (normalized === 'sent') return '已下发';
+  if (normalized === 'acked') return '已确认';
+  if (normalized === 'done') return '已完成';
+  if (normalized === 'failed') return '失败';
+  return '暂无命令';
+}
+
+function formatTime(ts) {
+  const value = Number(ts || 0);
+  if (!value) return '--';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '--';
+  const pad = (part) => String(part).padStart(2, '0');
+  return `${d.getMonth() + 1}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
 function getStatusBarHeight() {
   if (typeof wx.getWindowInfo === 'function') {
     return wx.getWindowInfo().statusBarHeight || 20;
@@ -149,7 +178,7 @@ Page({
   startAutoRefresh() {
     this.stopAutoRefresh();
     this._refreshTimer = setInterval(() => {
-      this.loadDeviceBase({ silent: true });
+      this.loadDeviceBase({ silent: true, refreshTrend: false });
     }, 3000);
   },
 
@@ -163,6 +192,8 @@ Page({
     const row = (result?.deviceData || [])[0] || null;
     if (!row) return false;
     const params = row.params || {};
+    const plantSnapshot = row.plantSnapshot || {};
+    const displaySnapshot = row.displaySnapshot || {};
 
     const metricTabs = METRIC_DEFS.map((def) => {
       const node = params[def.key];
@@ -175,12 +206,20 @@ Page({
     });
 
     const extraInfo = {
-      isDead: formatDeadMetric(params.is_dead && typeof params.is_dead === 'object' ? params.is_dead.value : params.is_dead),
-      soulState: formatSoulStateByIr(params.ir_status && typeof params.ir_status === 'object' ? params.ir_status.value : params.ir_status),
-      favorability: formatMetricValue((params.favorability || params.favor || params.affinity || params.likability || params.haogandu || {}).value, 'text'),
-      personality: formatMetricValue((params.plant_personality || params.personality || params.character || {}).value, 'text'),
-      reportedPlantType: formatMetricValue((params.plant_type || params.ptype || {}).value || row.plantType, 'text'),
-      irStatus: normalizeBooleanMetric(params.ir_status && typeof params.ir_status === 'object' ? params.ir_status.value : params.ir_status)
+      isDead: plantSnapshot.isDead !== undefined && plantSnapshot.isDead !== null
+        ? formatDeadMetric(plantSnapshot.isDead)
+        : formatDeadMetric(params.is_dead && typeof params.is_dead === 'object' ? params.is_dead.value : params.is_dead),
+      soulState: plantSnapshot.soulState || formatSoulStateByIr(params.ir_status && typeof params.ir_status === 'object' ? params.ir_status.value : params.ir_status),
+      favorability: plantSnapshot.favorability !== undefined && plantSnapshot.favorability !== null && plantSnapshot.favorability !== ''
+        ? formatMetricValue(plantSnapshot.favorability, 'text')
+        : formatMetricValue((params.favorability || params.favor || params.affinity || params.likability || params.haogandu || {}).value, 'text'),
+      personality: plantSnapshot.personality !== undefined && plantSnapshot.personality !== null && plantSnapshot.personality !== ''
+        ? formatMetricValue(plantSnapshot.personality, 'text')
+        : formatMetricValue((params.plant_personality || params.personality || params.character || {}).value, 'text'),
+      reportedPlantType: formatMetricValue(plantSnapshot.reportedPlantType || (params.plant_type || params.ptype || {}).value || row.plantType, 'text'),
+      irStatus: plantSnapshot.irStatus !== undefined && plantSnapshot.irStatus !== null
+        ? normalizeBooleanMetric(plantSnapshot.irStatus)
+        : normalizeBooleanMetric(params.ir_status && typeof params.ir_status === 'object' ? params.ir_status.value : params.ir_status)
     };
 
     this.setData({
@@ -190,6 +229,9 @@ Page({
         location: row.location || '未设置地点',
         plantType: row.plantType || '其他',
         online: !alertService.isDeviceOffline(row),
+        onlineStatusText: displaySnapshot.onlineStatusText || (!alertService.isDeviceOffline(row) ? '在线' : '离线'),
+        latestCommand: row.latestCommand || null,
+        latestCommandText: formatCommandStateText(row.latestCommand),
         image: PLANT_IMAGE_MAP[row.plantType || '其他'] || PLANT_IMAGE_MAP.其他
       },
       extraInfo,
@@ -200,7 +242,7 @@ Page({
   },
 
   async loadDeviceBase(options = {}) {
-    const { silent = false } = options;
+    const { silent = false, refreshTrend = !silent } = options;
     const logicalKey = this.data.logicalKey;
     if (!logicalKey) return;
 
@@ -220,7 +262,9 @@ Page({
       }
 
       wx.hideLoading();
-      this.loadTrendData({ silent: true });
+      if (refreshTrend) {
+        this.loadTrendData({ silent: true });
+      }
     } catch (err) {
       console.error('[deviceDetail] loadDeviceBase error:', err);
       if (!silent && !this.data.device) {
@@ -486,5 +530,46 @@ Page({
     wx.navigateTo({
       url: `/pages/plantJournal/plantJournal?logicalKey=${encodeURIComponent(logicalKey)}`
     });
+  },
+
+  async showLatestCommandDetail(e) {
+    const commandId = e?.currentTarget?.dataset?.commandid || this.data?.device?.latestCommand?.commandId || '';
+    if (!commandId) {
+      wx.showToast({ title: '暂无命令详情', icon: 'none' });
+      return;
+    }
+
+    wx.showLoading({ title: '加载中..' });
+    try {
+      const result = await deviceService.getDeviceCommandDetail(commandId);
+      wx.hideLoading();
+      if (!result || result.success === false || !result.command) {
+        wx.showToast({ title: (result && result.msg) || '获取失败', icon: 'none' });
+        return;
+      }
+
+      const command = result.command;
+      const content = [
+        `状态：${formatCommandStatus(command.status)}`,
+        `Provider：${command.provider || '--'}`,
+        `请求时间：${formatTime(command.requestedAt)}`,
+        `发送时间：${formatTime(command.sentAt)}`,
+        `ACK 时间：${formatTime(command.ackedAt)}`,
+        `完成时间：${formatTime(command.doneAt)}`,
+        `失败原因：${command.errorMessage || '--'}`,
+        `命令参数：${JSON.stringify(command.sentParams || {})}`
+      ].join('\n');
+
+      wx.showModal({
+        title: '命令详情',
+        content,
+        showCancel: false,
+        confirmText: '知道了'
+      });
+    } catch (err) {
+      wx.hideLoading();
+      console.error('[deviceDetail] showLatestCommandDetail error:', err);
+      wx.showToast({ title: '获取失败', icon: 'none' });
+    }
   }
 });

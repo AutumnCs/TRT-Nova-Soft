@@ -125,5 +125,7 @@
 
 后期：
 
-- 如需审计、失败重试、ACK 跟踪，再新增 `device_commands` 表
+- 当前主链路已增加 `device_commands` 表，用于记录 `pending/sent/acked/done/failed`。
+- 现阶段闭环方式是：`api-scf` 下发命令后写入命令记录，`ingest-scf` 在设备后续上报中尝试把匹配命令推进到 `acked` 或 `done`。
+- 仍待补齐：命令超时、失败重试、独立命令查询接口、Redis 实时态与更强的 ACK 语义。
 - 不要在 MVP 阶段为了下发而提前做复杂命令系统

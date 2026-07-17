@@ -126,7 +126,7 @@ class _PlantJournalScreenState extends State<PlantJournalScreen> {
                   Text('新增记录', style: Theme.of(context).textTheme.titleLarge),
                   const SizedBox(height: 14),
                   DropdownButtonFormField<String>(
-                    value: type,
+                    initialValue: type,
                     items: const [
                       DropdownMenuItem(value: 'watering', child: Text('浇水')),
                       DropdownMenuItem(value: 'fertilizing', child: Text('施肥')),

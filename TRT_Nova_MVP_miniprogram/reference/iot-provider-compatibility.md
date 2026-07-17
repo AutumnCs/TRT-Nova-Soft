@@ -126,19 +126,20 @@ The current backend is already good at:
 - exposing a consistent frontend API
 - storing plant library and journal records
 
-## What is still needed for full EMQX control parity
+## EMQX control parity
 
-The backend already has a unified command entry point in `api-scf`.
-What matters now is that the command path can branch by provider:
+The backend has a unified command entry point in `api-scf`, and the command path now branches by provider:
 
 - **OneNET**: call the existing OneNET property/service interface
 - **EMQX**: publish a command message to an MQTT topic that the device subscribes to
 
-So:
+Current repository state:
 
 - **data ingest**: already compatible
 - **frontend read APIs**: already compatible
-- **device command downlink**: now needs provider-specific adapters, but the API surface can stay the same
+- **device command downlink**: provider-specific OneNET and EMQX adapters are implemented behind the same API surface
+
+EMQX downlink still requires deployment-time publish credentials, endpoint and topic-template configuration. Repository implementation alone does not prove that the live EMQX path has been deployed or verified with a real device.
 
 ## Recommended backend contract for EMQX
 
@@ -182,12 +183,11 @@ When EMQX pushes data to the backend, the backend should be able to build this n
 - todos linked to devices
 - device binding and ACL checks
 
-### The backend still needs one follow-up to be complete:
+### Deployment work still required for EMQX downlink:
 
 - configure EMQX publish credentials / endpoint and choose the command topic template
 
-Without that configuration, the system is still fully usable for monitoring and frontend display,
-but EMQX downlink control cannot be executed yet.
+Without that configuration, monitoring and frontend display can still use normalized telemetry, but the deployed environment cannot execute EMQX downlink control.
 
 ## Practical recommendation
 

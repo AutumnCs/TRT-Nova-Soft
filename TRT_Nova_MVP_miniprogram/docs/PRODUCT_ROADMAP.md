@@ -1,156 +1,95 @@
 # TRT Nova 产品化路线图
 
-> 更新日期：2026-04-07
+> 更新日期：2026-07-14。状态以仓库代码为依据；“已实现”不等于“已部署并在线验证”。
 
----
+## 当前已实现
 
-## 已完成（本次实现）
+- 原生微信小程序页面和自定义 TabBar
+- 微信登录、token 和用户资料 API
+- 设备绑定、解绑、用户侧设备资料和 ACL
+- 设备 latest、历史趋势和多设备展示
+- OneNET 设备接入与下行控制
+- EMQX webhook 和下行 Publish 兼容代码
+- Todo 列表、添加、完成和紧急状态
+- 植物库、收藏和本地回退数据
+- 植物成长日记 API 与页面
+- 天气服务、传感器阈值和离线判断框架
+- 只读植物养护 Agent、轻量知识增强和可选 LLM
+- 历史数据清理 SCF 部署包
 
-| # | 功能 | 文件 |
-|---|------|------|
-| 1 | 真实天气 API 服务（和风天气）| `services/modules/WeatherService.js` |
-| 2 | 传感器告警气泡框架（可配阈值）| `services/config/thresholds.js` |
-| 3 | 设备离线检测 + 通知框架 | `services/modules/AlertService.js` |
-| 4 | 全局 CSS 变量颜色系统 | `app.wxss` |
-| 5 | 设备图标按植物类型显示 | `pages/index/index.js` |
-| 6 | 气泡/心情/对话框由传感器驱动 | `pages/index/index.js` |
-| 7 | 无设备时隐藏传感器区块，显示引导卡片 | `pages/index/index.wxml` |
-| 8 | 错误提示增加"请重试"文案 | `pages/index/index.js` |
-| 9 | Wiki 日历日期动态化 | `pages/wiki/wiki.js` |
-| 10 | Wiki "加入养护提醒" 写入 Todo | `pages/wiki/wiki.js` |
-| 11 | 设备详情图表：平滑曲线+渐变+坐标轴 | `pages/deviceDetail/deviceDetail.js` |
+## 发布前核验
 
----
+以下事项不能只看仓库代码，需要在真实环境确认：
 
-## 待实现 — 高优先级
+- `auth-scf`、`api-scf`、`ingest-scf`、`agent-scf` 是否均为最新部署版本
+- `history-cleanup-scf` 是否已部署并配置每日触发器
+- MySQL 表结构和增量 SQL 是否全部执行
+- OneNET、EMQX、微信、天气和 LLM 环境变量是否完整
+- 微信小程序 request/downloadFile 合法域名是否配置
+- EMQX 上下行链路是否已经完成真实设备验证
+- 数据库备份、白名单和网络边界是否满足试用要求
 
-### 1. 天气 API 激活
-**文件**：`services/modules/WeatherService.js`，`app.js`
+## P0：真实用户试用前
 
-步骤：
-1. 注册 [和风天气开发者账号](https://dev.qweather.com/)，创建 Web API 应用
-2. 在 `app.js` `globalData.runtimeConfig` 中添加：
-   ```js
-   weatherApiKey: 'YOUR_KEY_HERE'
-   ```
-3. 在微信小程序后台「开发」→「服务器域名」→ `request` 合法域名中添加：
-   ```
-   https://devapi.qweather.com
-   ```
-4. 在 `app.json` 中声明定位权限：
-   ```json
-   "permission": {
-     "scope.userLocation": {
-       "desc": "获取位置以显示当地天气"
-     }
-   }
-   ```
+1. 统一开发、测试和生产配置，移除前端硬编码环境地址
+2. 为登录、设备绑定、越权访问和设备控制补自动化测试
+3. 完善数据库唯一约束、索引、事务和备份恢复流程
+4. 为遥测上报补幂等键、重复消息和乱序数据处理规则
+5. 上线并监控历史清理任务，避免历史表无限增长
+6. 为请求增加 request ID、结构化日志、错误聚合和基础告警
+7. 将数据库密码、IoT 密钥、JWT 和 LLM Key 纳入 Secret 管理
+8. 明确隐私政策、账号注销和用户数据删除流程
 
----
+## P1：产品稳定性
 
-### 2. 风扇等设备控制下行指令
-**文件**：`pages/index/index.js` → `toggleFan()`
+1. 建立设备命令状态：`pending/sent/acknowledged/failed/timeout`
+2. 将“接口下发成功”和“设备真实执行成功”分开显示
+3. 核验并推进数据库私网/CCN 连接
+4. 建立原始历史、聚合历史的保留和归档策略
+5. 引入 Redis，用于限流、幂等、热点缓存、会话和设备在线状态
+6. 流量上升后在 webhook 与历史写入之间引入消息队列
+7. 建立 CI/CD、灰度发布和快速回滚流程
 
-已有 `deviceService.sendDeviceCmd(logicalKey, cmd)` 接口，补全：
-```js
-toggleFan() {
-  const newState = !this.data.fan.isOn;
-  const cmd = newState ? 'fan:on' : 'fan:off';  // 根据硬件实际命令调整
-  try {
-    await deviceService.sendDeviceCmd(this.data.selectedLogicalKey, cmd);
-    this.setData({ 'fan.isOn': newState });
-  } catch (err) {
-    wx.showToast({ title: '指令发送失败', icon: 'none' });
-  }
-}
-```
+## P2：产品体验
 
----
+- 用户级或植物级告警阈值
+- 微信订阅消息和离线推送
+- 新用户引导与设备配网指引
+- 更丰富的趋势交互和聚合查询
+- 植物健康周报和分享卡片
+- Agent 工具调用；设备控制必须经过白名单、确认和审计
+- Agent 会话持久化与受控长期记忆
 
-### 3. 传感器告警阈值个性化
-**文件**：`services/config/thresholds.js`
+## P3：增长能力
 
-- 当前为全局默认阈值
-- 后续可在 `deviceSettings` 页面为每个设备单独配置阈值，保存到服务端
-- SCF 端点建议：`/device/thresholds` GET/POST
+- 分享与邀请
+- 植物健康报告
+- 社区内容和排行榜
+- 多语言和跨端能力
 
----
+## 暂不优先
 
-### 4. 微信订阅消息（设备离线推送）
-**文件**：`services/modules/AlertService.js`
+- 为了“看起来像产品级”而提前拆分大量微服务
+- 在没有缓存命中率和数据库瓶颈证据前大规模引入 Redis
+- 未建立安全策略前允许 Agent 自主控制设备
+- 未完成数据量评估前引入重型向量数据库或完整 RAG 平台
+## Capacity staging notes
 
-步骤：
-1. 在微信公众平台申请订阅消息模板（类目：智能设备）
-   - 推荐模板：「设备状态变更提醒」
-2. 在 `app.js` `runtimeConfig` 中添加：
-   ```js
-   offlineTemplateId: 'YOUR_TEMPLATE_ID'
-   ```
-3. 在用户点击事件中调用：
-   ```js
-   await alertService.requestSubscribePermission([config.offlineTemplateId]);
-   ```
-4. 离线检测逻辑已在 `AlertService.checkDeviceOffline()` 中实现，接上推送即可
+The next delivery target is not “large-scale high concurrency”.
 
----
+The next delivery target is:
 
-## 待实现 — 中优先级
+- move from demo posture into small stable trial
+- make the hot path measurable
+- keep expansion decisions tied to evidence
 
-### 5. 植物成长日记
-- 用户可对每个设备拍照并备注
-- 照片上传到云存储，时间线展示
-- `plantImageSource` 字段已预留，需要 UI + 上传逻辑
+Use these repo documents together:
 
-### 6. 历史数据时间范围增强
-**文件**：`pages/deviceDetail/deviceDetail.js`
+- [Trial Capacity Baseline](./trial-capacity-baseline.md)
+- [Trial Scale Stage Plan](./trial-scale-stage-plan.md)
 
-- 当前支持日/周/月切换
-- 图表已优化为平滑贝塞尔曲线 + 渐变填充 + 坐标轴标签
-- 待优化：超过 100 个点时做降采样（每 N 条取均值），避免曲线过密
+Recommended interpretation:
 
-### 7. 知识库数据告警模板集成
-- Wiki 养护提醒已接 Todo，但 `care.water`/`care.light` 字段来自服务端
-- 确认服务端 `/plant/library` 返回的植物数据包含这两个字段
-
-### 8. 新用户引导流程
-- 首次进入无设备时（`hasDevices === false`），可展示引导弹窗：
-  1. 欢迎页 → 2. 绑定设备 → 3. 使用说明
-- 引导状态用 `wx.getStorageSync('onboarded')` 判断
-
----
-
-## 待实现 — 低优先级（增长阶段）
-
-### 9. 分享功能
-- Wiki 详情页「📤」按钮已占位
-- 实现：`wx.shareAppMessage` 生成带植物图和名称的分享卡片
-
-### 10. 植物健康报告分享
-- 定期生成一张「本周植物状态图」（Canvas 绘制）
-- 用户可分享到朋友圈，裂变引流
-
-### 11. 社区 / 排行榜
-- "谁的植物最健康"功能
-- 需要服务端聚合多用户数据，有一定隐私授权成本
-
-### 12. ECharts 升级（可选）
-当前图表使用原生 Canvas + 贝塞尔曲线，已有渐变和坐标轴。
-若需要交互式图表（点击查看具体数值、缩放等），可升级为 ECharts：
-
-1. 下载 [echarts-for-weixin](https://github.com/ecomfe/echarts-for-weixin) 中的 `ec-canvas` 文件夹放入项目
-2. 在 `deviceDetail.json` 中注册组件：
-   ```json
-   { "usingComponents": { "ec-canvas": "../../ec-canvas/ec-canvas" } }
-   ```
-3. 替换 `trendCanvas` 为 `<ec-canvas>` 组件，初始化 ECharts 实例
-
----
-
-## 技术债务
-
-| 问题 | 位置 | 建议 |
-|------|------|------|
-| 首页 3s 轮询仅在前台生效 | `index.js startAutoRefresh` | 配合订阅消息实现后台告警 |
-| 历史数据量大时无降采样 | `deviceDetail.js refreshTrend` | 添加 `downsample(points, 80)` 函数 |
-| 设备列表图标硬编码 emoji | `index.js PLANT_ICON_MAP` | 后续改为图片资源，支持自定义 |
-| wiki 月度推荐植物硬编码 | `wiki.js _initCalendar` | 从服务端按月下发 |
+- `~100 devices`: target range for current stage
+- `~1000 devices`: runtime-service should be the default hot-path core
+- `~10000 devices`: formal scale architecture work becomes mandatory

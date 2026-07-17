@@ -65,6 +65,7 @@ Page({
   _loading: false,
   _bootstrapRetryTimer: null,
   _bootstrapRetryCount: 0,
+  _deviceRows: [],
 
   data: {
     statusBarHeight: 20,
@@ -141,6 +142,7 @@ Page({
     try {
       const result = await deviceService.getDeviceData();
       const rows = Array.isArray(result?.deviceData) ? result.deviceData : [];
+      this._deviceRows = rows;
       const devices = mapRowsToDevices(rows);
 
       const greeting = getGreeting();
@@ -197,6 +199,20 @@ Page({
   openDeviceDetail(e) {
     const logicalKey = e.currentTarget.dataset.logicalkey;
     if (!logicalKey) return;
+
+    const bootstrapRow = Array.isArray(this._deviceRows)
+      ? this._deviceRows.find((item) => item && item.logicalKey === logicalKey)
+      : null;
+
+    if (bootstrapRow) {
+      deviceService.setDeviceDetailBootstrap(logicalKey, {
+        deviceData: [bootstrapRow]
+      });
+      wx.navigateTo({
+        url: `/pages/deviceDetail/deviceDetail?logicalKey=${encodeURIComponent(logicalKey)}`
+      });
+      return;
+    }
 
     wx.showLoading({ title: '加载中...', mask: true });
     deviceService.getDeviceData({

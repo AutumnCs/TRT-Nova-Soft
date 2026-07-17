@@ -90,6 +90,36 @@ function formatSoulStateByIr(raw) {
   return '--';
 }
 
+function formatCommandStatusText(command) {
+  const status = String((command && command.status) || '').toLowerCase();
+  if (status === 'pending') return '命令排队中';
+  if (status === 'sent') return '命令已发送';
+  if (status === 'acked') return '设备已确认';
+  if (status === 'done') return '设备已执行';
+  if (status === 'failed') return '命令失败';
+  return '';
+}
+
+function formatCommandHintText(command) {
+  if (!command) return '';
+  const status = String(command.status || '').toLowerCase();
+  if (status === 'failed') return command.errorMessage || '下发失败，请稍后重试';
+  if (status === 'done') return '设备状态已回写';
+  if (status === 'acked') return '等待设备状态回报';
+  if (status === 'sent' || status === 'pending') return '命令已发出，等待设备回报';
+  return '';
+}
+
+function formatCommandStatusLabel(status) {
+  const normalized = String(status || '').toLowerCase();
+  if (normalized === 'pending') return '排队中';
+  if (normalized === 'sent') return '已下发';
+  if (normalized === 'acked') return '已确认';
+  if (normalized === 'done') return '已完成';
+  if (normalized === 'failed') return '失败';
+  return '暂无命令';
+}
+
 Page({
   _refreshTimer: null,
   _loadingDevices: false,
@@ -368,6 +398,10 @@ Page({
       deviceRows[0];
 
     const params = selected && selected.params ? selected.params : {};
+    const sensorSnapshot = selected && selected.sensorSnapshot ? selected.sensorSnapshot : {};
+    const controlSnapshot = selected && selected.controlSnapshot ? selected.controlSnapshot : {};
+    const plantSnapshot = selected && selected.plantSnapshot ? selected.plantSnapshot : {};
+    const displaySnapshot = selected && selected.displaySnapshot ? selected.displaySnapshot : {};
 
     const getNode = (keys) => {
       for (const key of keys) {
@@ -422,6 +456,10 @@ Page({
     if (humidityNode) sensors.humidity.value = String(humidityNode.value);
     if (lightNode) sensors.light.value = String(lightNode.value);
     if (soilNode) sensors.soil.value = String(soilNode.value);
+    if (sensorSnapshot.temp && sensorSnapshot.temp.value !== undefined && sensorSnapshot.temp.value !== null && sensorSnapshot.temp.value !== '') sensors.temp.value = String(sensorSnapshot.temp.value);
+    if (sensorSnapshot.humidity && sensorSnapshot.humidity.value !== undefined && sensorSnapshot.humidity.value !== null && sensorSnapshot.humidity.value !== '') sensors.humidity.value = String(sensorSnapshot.humidity.value);
+    if (sensorSnapshot.light && sensorSnapshot.light.value !== undefined && sensorSnapshot.light.value !== null && sensorSnapshot.light.value !== '') sensors.light.value = String(sensorSnapshot.light.value);
+    if (sensorSnapshot.soil && sensorSnapshot.soil.value !== undefined && sensorSnapshot.soil.value !== null && sensorSnapshot.soil.value !== '') sensors.soil.value = String(sensorSnapshot.soil.value);
     if (uidNode) extraMetrics.uid = String(uidNode.value);
     if (dsbTempNode) extraMetrics.dsbTemp = String(dsbTempNode.value);
     const runStateValue = getBooleanValue(runStateNode);
@@ -436,18 +474,41 @@ Page({
     if (favorabilityNode) extraMetrics.favorability = normalizeDisplayMetric(favorabilityNode.value);
     if (personalityNode) extraMetrics.personality = normalizeDisplayMetric(personalityNode.value);
     if (plantTypeNode) extraMetrics.reportedPlantType = normalizeDisplayMetric(plantTypeNode.value);
-    extraMetrics.updatedAt = selected && selected.updatedAt ? this.formatTs(selected.updatedAt) : '--';
+    if (plantSnapshot.favorability !== undefined && plantSnapshot.favorability !== null && plantSnapshot.favorability !== '') extraMetrics.favorability = normalizeDisplayMetric(plantSnapshot.favorability);
+    if (plantSnapshot.personality !== undefined && plantSnapshot.personality !== null && plantSnapshot.personality !== '') extraMetrics.personality = normalizeDisplayMetric(plantSnapshot.personality);
+    if (plantSnapshot.reportedPlantType) extraMetrics.reportedPlantType = normalizeDisplayMetric(plantSnapshot.reportedPlantType);
+    if (plantSnapshot.runState !== null && plantSnapshot.runState !== undefined) extraMetrics.runState = plantSnapshot.runState;
+    if (plantSnapshot.irStatus !== null && plantSnapshot.irStatus !== undefined) extraMetrics.irStatus = plantSnapshot.irStatus;
+    if (plantSnapshot.soulState) extraMetrics.soulState = plantSnapshot.soulState;
+    if (plantSnapshot.isDead !== null && plantSnapshot.isDead !== undefined) extraMetrics.isDead = plantSnapshot.isDead;
+    extraMetrics.updatedAt = displaySnapshot.updatedAtText || (selected && selected.updatedAt ? this.formatTs(selected.updatedAt) : '--');
 
-    const fanReportedState = getBooleanValue(fanNode);
-    const fanTime = getNodeTime(fanNode) || extraMetrics.updatedAt;
+    const fanSnapshot = controlSnapshot.fan || null;
+    const fanReportedState = fanSnapshot && fanSnapshot.reportedState !== undefined
+      ? fanSnapshot.reportedState
+      : getBooleanValue(fanNode);
+    const fanTime = (fanSnapshot && fanSnapshot.reportedAt ? this.formatTs(fanSnapshot.reportedAt) : null) || getNodeTime(fanNode) || extraMetrics.updatedAt;
+    const latestCommand = selected && selected.latestCommand ? selected.latestCommand : null;
+    const commandStatusText = formatCommandStatusText(latestCommand);
+    const commandHintText = formatCommandHintText(latestCommand);
+    const hasPendingCommand = fanSnapshot && fanSnapshot.pending !== undefined
+      ? !!fanSnapshot.pending
+      : (latestCommand && ['pending', 'sent', 'acked'].includes(String(latestCommand.status || '').toLowerCase()));
     const fan = {
       ...DEFAULT_FAN,
       isOn: fanReportedState === true,
-      pending: false,
+      pending: !!hasPendingCommand,
       hasReportedState: fanReportedState !== null,
+      latestCommandId: latestCommand && latestCommand.commandId ? latestCommand.commandId : '',
       statusText: fanReportedState === null ? '暂无上报' : (fanReportedState ? '已开启' : '已关闭'),
       hintText: fanReportedState === null ? '等待设备上报风扇状态' : `最近同步 ${fanTime}`
     };
+    if (commandStatusText) {
+      fan.statusText = commandStatusText;
+    }
+    if (commandHintText) {
+      fan.hintText = commandHintText;
+    }
 
     const latestSensors = {
       temp: { value: sensors.temp.value },
@@ -462,7 +523,7 @@ Page({
       ? `主人，${warningBubble.text}，请及时处理哦`
       : '主人，我现在状态很好，继续保持哦。';
 
-    const resolvedFan = fanReportedState === null && this.data && this.data.fan && this.data.fan.hasReportedState
+    const resolvedFan = !latestCommand && fanReportedState === null && this.data && this.data.fan && this.data.fan.hasReportedState
       ? {
           ...this.data.fan,
           pending: false,
@@ -625,8 +686,8 @@ Page({
       });
       this.setData({
         'fan.pending': false,
-        'fan.statusText': 'Command sent, waiting for device ack',
-        'fan.hintText': 'State will update after the device reports back'
+        'fan.statusText': formatCommandStatusText({ status: result.commandStatus || 'sent' }) || '命令已发送',
+        'fan.hintText': formatCommandHintText({ status: result.commandStatus || 'sent' }) || '命令已发出，等待设备回报'
       });
 
       setTimeout(() => {
@@ -649,6 +710,47 @@ Page({
   async onPullDownRefresh() {
     await this.loadDevices();
     wx.stopPullDownRefresh();
+  },
+
+  async showLatestCommandDetail(e) {
+    const commandId = e?.currentTarget?.dataset?.commandid || this.data?.fan?.latestCommandId || '';
+    if (!commandId) {
+      wx.showToast({ title: '暂无命令详情', icon: 'none' });
+      return;
+    }
+
+    wx.showLoading({ title: '加载中..' });
+    try {
+      const result = await deviceService.getDeviceCommandDetail(commandId);
+      wx.hideLoading();
+      if (!result || result.success === false || !result.command) {
+        wx.showToast({ title: (result && result.msg) || '获取失败', icon: 'none' });
+        return;
+      }
+
+      const command = result.command;
+      const content = [
+        `状态：${formatCommandStatusLabel(command.status)}`,
+        `Provider：${command.provider || '--'}`,
+        `请求时间：${this.formatTs(command.requestedAt)}`,
+        `发送时间：${this.formatTs(command.sentAt)}`,
+        `ACK 时间：${this.formatTs(command.ackedAt)}`,
+        `完成时间：${this.formatTs(command.doneAt)}`,
+        `失败原因：${command.errorMessage || '--'}`,
+        `命令参数：${JSON.stringify(command.sentParams || {})}`
+      ].join('\n');
+
+      wx.showModal({
+        title: '命令详情',
+        content,
+        showCancel: false,
+        confirmText: '知道了'
+      });
+    } catch (error) {
+      wx.hideLoading();
+      console.error('[index] showLatestCommandDetail error:', error);
+      wx.showToast({ title: '获取失败', icon: 'none' });
+    }
   },
 
   goToDeviceManagement() {

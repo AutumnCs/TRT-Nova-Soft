@@ -71,6 +71,12 @@ class AlertService {
 
   isDeviceOffline(device, nowTs = Date.now()) {
     if (!device || typeof device !== 'object') return true;
+    if (typeof device.offline === 'boolean') {
+      return device.offline;
+    }
+    if (typeof device.online === 'boolean') {
+      return !device.online;
+    }
     const updatedAt = Number(device.updatedAt || 0);
     return !device.hasLatest || (updatedAt > 0 && nowTs - updatedAt > OFFLINE_THRESHOLD_MS);
   }

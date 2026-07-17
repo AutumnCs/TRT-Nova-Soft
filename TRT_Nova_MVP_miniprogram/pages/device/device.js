@@ -4,6 +4,30 @@ const alertService = require('../../services/modules/AlertService');
 
 const FALLBACK_PLANT_OPTIONS = plantService.buildPlantOptions(plantService.getFallbackPlants());
 
+function formatCommandStatus(status) {
+  const normalized = String(status || '').toLowerCase();
+  if (normalized === 'pending') return '排队中';
+  if (normalized === 'sent') return '已下发';
+  if (normalized === 'acked') return '已确认';
+  if (normalized === 'done') return '已完成';
+  if (normalized === 'failed') return '失败';
+  return '暂无命令';
+}
+
+function formatTime(ts) {
+  const value = Number(ts || 0);
+  if (!value) return '--';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '--';
+  const pad = (part) => String(part).padStart(2, '0');
+  return `${d.getMonth() + 1}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+function canRetryCommand(command) {
+  const normalized = String(command?.status || '').toLowerCase();
+  return normalized === 'failed' || normalized === 'done';
+}
+
 Page({
   _refreshTimer: null,
   _refreshing: false,
@@ -15,7 +39,7 @@ Page({
     plantTypeIndex: 0,
     plantOptions: FALLBACK_PLANT_OPTIONS,
     deviceList: [],
-    cmdInput: ''
+    cmdDrafts: {}
   },
 
   onLoad() {
@@ -94,12 +118,16 @@ Page({
   },
 
   onCmdInput(e) {
-    this.setData({ cmdInput: e.detail.value });
+    const logicalKey = e.currentTarget.dataset.logicalkey;
+    if (!logicalKey) return;
+    this.setData({
+      [`cmdDrafts.${logicalKey}`]: e.detail.value
+    });
   },
 
   async bindDevice() {
     if (!this.data.deviceCode) {
-      return wx.showToast({ title: '请输入设备唯一编码', icon: 'none' });
+      return wx.showToast({ title: '请输入设备唯一码', icon: 'none' });
     }
 
     wx.showLoading({ title: '绑定中...' });
@@ -139,7 +167,7 @@ Page({
 
     wx.showModal({
       title: '解绑设备',
-      content: '确认解绑该设备吗？',
+      content: '确认解绑这台设备吗？',
       success: async (res) => {
         if (!res.confirm) return;
 
@@ -151,7 +179,8 @@ Page({
           if (result.success) {
             wx.showToast({ title: '解绑成功' });
             this.setData({
-              deviceList: this.data.deviceList.filter((item) => item.logicalKey !== logicalKey)
+              deviceList: this.data.deviceList.filter((item) => item.logicalKey !== logicalKey),
+              [`cmdDrafts.${logicalKey}`]: ''
             });
             this.refreshData({ silent: true });
           } else {
@@ -177,7 +206,12 @@ Page({
       const list = (result.deviceData || []).map((item) => ({
         ...item,
         hasData: !!item.hasLatest,
-        online: !alertService.isDeviceOffline(item)
+        online: !alertService.isDeviceOffline(item),
+        updatedAtText: item?.displaySnapshot?.updatedAtText || formatTime(item.lastSeenAt || item.updatedAt),
+        hasLatestCommand: !!item.latestCommand,
+        canRetryLatestCommand: canRetryCommand(item.latestCommand),
+        latestCommandStatusText: item.latestCommand ? formatCommandStatus(item.latestCommand.status) : '暂无命令',
+        latestCommandTimeText: item.latestCommand ? formatTime(item.latestCommand.requestedAt || item.latestCommand.sentAt) : '--'
       }));
       this.setData({ deviceList: list });
     } catch (err) {
@@ -203,7 +237,7 @@ Page({
 
   async sendCmd(e) {
     const logicalKey = e.currentTarget.dataset.logicalkey;
-    const rawInput = this.data.cmdInput || '';
+    const rawInput = (this.data.cmdDrafts && this.data.cmdDrafts[logicalKey]) || '';
     if (!logicalKey) return wx.showToast({ title: '设备标识缺失', icon: 'none' });
     if (!rawInput) return wx.showToast({ title: '请输入命令', icon: 'none' });
 
@@ -225,14 +259,88 @@ Page({
       const result = await deviceService.sendDeviceCmd(logicalKey, params);
       wx.hideLoading();
       if (result.success) {
+        this.setData({
+          [`cmdDrafts.${logicalKey}`]: ''
+        });
+        this.refreshData({ silent: true });
         wx.showToast({ title: '已发送' });
       } else {
-        wx.showToast({ title: '发送失败', icon: 'none' });
+        wx.showToast({ title: result.msg || '发送失败', icon: 'none' });
       }
     } catch (err) {
       wx.hideLoading();
       console.error(err);
       wx.showToast({ title: '请求错误', icon: 'none' });
     }
+  },
+
+  async showCommandDetail(e) {
+    const commandId = e.currentTarget.dataset.commandid;
+    if (!commandId) {
+      return wx.showToast({ title: '暂无命令详情', icon: 'none' });
+    }
+
+    wx.showLoading({ title: '加载中...' });
+    try {
+      const result = await deviceService.getDeviceCommandDetail(commandId);
+      wx.hideLoading();
+      if (!result || result.success === false || !result.command) {
+        return wx.showToast({ title: (result && result.msg) || '获取失败', icon: 'none' });
+      }
+
+      const command = result.command;
+      const content = [
+        `状态：${formatCommandStatus(command.status)}`,
+        `Provider：${command.provider || '--'}`,
+        `请求时间：${formatTime(command.requestedAt)}`,
+        `发送时间：${formatTime(command.sentAt)}`,
+        `ACK 时间：${formatTime(command.ackedAt)}`,
+        `完成时间：${formatTime(command.doneAt)}`,
+        `失败原因：${command.errorMessage || '--'}`,
+        `命令参数：${JSON.stringify(command.sentParams || {})}`
+      ].join('\n');
+
+      wx.showModal({
+        title: '命令详情',
+        content,
+        showCancel: false,
+        confirmText: '知道了'
+      });
+    } catch (err) {
+      wx.hideLoading();
+      console.error(err);
+      wx.showToast({ title: '获取失败', icon: 'none' });
+    }
+  },
+
+  retryLatestCommand(e) {
+    const commandId = e.currentTarget.dataset.commandid;
+    if (!commandId) {
+      return wx.showToast({ title: '暂无可重试命令', icon: 'none' });
+    }
+
+    wx.showModal({
+      title: '重试命令',
+      content: '将按上一条命令的原始参数重新下发，是否继续？',
+      success: async (res) => {
+        if (!res.confirm) return;
+
+        wx.showLoading({ title: '重试中...' });
+        try {
+          const result = await deviceService.retryDeviceCommand(commandId);
+          wx.hideLoading();
+          if (result && result.success) {
+            wx.showToast({ title: '已重新下发', icon: 'success' });
+            this.refreshData({ silent: true });
+            return;
+          }
+          wx.showToast({ title: (result && result.msg) || '重试失败', icon: 'none' });
+        } catch (err) {
+          wx.hideLoading();
+          console.error(err);
+          wx.showToast({ title: '重试失败', icon: 'none' });
+        }
+      }
+    });
   }
 });

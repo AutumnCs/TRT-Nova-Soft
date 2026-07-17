@@ -8,6 +8,9 @@
  * - POST /device/unbind
  * - POST /device/profile
  * - POST /device/cmd
+ * - POST /device/commands
+ * - POST /device/command/detail
+ * - POST /device/command/retry
  * - GET /user/profile
  * - POST /user/profile
  * - POST /journal/month
@@ -21,8 +24,30 @@
  */
 
 const crypto = require('crypto');
+const { createRuntimeCache } = require('./lib/runtimeCache');
 
 let pool;
+const runtimeCache = createRuntimeCache('api-scf');
+
+function logInfo(event, payload = {}) {
+  console.log(JSON.stringify({
+    level: 'info',
+    service: 'api-scf',
+    event,
+    ts: Date.now(),
+    ...payload
+  }));
+}
+
+function logError(event, payload = {}) {
+  console.error(JSON.stringify({
+    level: 'error',
+    service: 'api-scf',
+    event,
+    ts: Date.now(),
+    ...payload
+  }));
+}
 
 function json(statusCode, body) {
   return {
@@ -119,6 +144,128 @@ function parseJsonField(input, fallback) {
   return fallback;
 }
 
+function parseCommaList(input) {
+  return String(input || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function getRuntimeServiceProxyConfig() {
+  const enabled = parseBooleanEnv(process.env.API_SCF_RUNTIME_PROXY_ENABLED, false);
+  const baseUrl = String(process.env.RUNTIME_SERVICE_BASE_URL || '').trim().replace(/\/+$/g, '');
+  const timeoutMs = Math.max(1000, Number(process.env.API_SCF_RUNTIME_PROXY_TIMEOUT_MS) || 8000);
+  const routeList = parseCommaList(
+    process.env.API_SCF_RUNTIME_PROXY_ROUTES ||
+    '/device/latest,/device/cmd,/device/commands'
+  );
+
+  return {
+    enabled,
+    baseUrl,
+    timeoutMs,
+    routes: routeList,
+    routeSet: new Set(routeList)
+  };
+}
+
+function shouldProxyRuntimeRoute(path) {
+  const config = getRuntimeServiceProxyConfig();
+  if (!config.enabled || !config.baseUrl) {
+    return false;
+  }
+
+  return config.routes.some((route) => path.endsWith(route));
+}
+
+function buildRuntimeServiceUrl(runtimePath) {
+  const config = getRuntimeServiceProxyConfig();
+  if (!config.baseUrl) {
+    throw new Error('Missing RUNTIME_SERVICE_BASE_URL');
+  }
+  return `${config.baseUrl}${runtimePath.startsWith('/') ? runtimePath : `/${runtimePath}`}`;
+}
+
+function buildRuntimeServiceHeaders(sourceHeaders = {}, openid = '') {
+  const headers = {
+    'content-type': 'application/json'
+  };
+  if (openid) {
+    headers['x-wx-openid'] = openid;
+  }
+  const requestId =
+    sourceHeaders['x-request-id'] ||
+    sourceHeaders['X-REQUEST-ID'] ||
+    sourceHeaders['xRequestId'] ||
+    '';
+  if (requestId) {
+    headers['x-request-id'] = String(requestId).trim();
+  }
+  return headers;
+}
+
+async function httpJsonRequest(urlString, { method = 'POST', headers = {}, body = null, timeoutMs = 8000 } = {}) {
+  const parsedUrl = new URL(urlString);
+  const transport = parsedUrl.protocol === 'http:' ? require('http') : require('https');
+  const requestBody = body === null || body === undefined
+    ? ''
+    : (typeof body === 'string' ? body : JSON.stringify(body));
+  const requestHeaders = {
+    ...headers
+  };
+
+  if (requestBody) {
+    requestHeaders['Content-Length'] = Buffer.byteLength(requestBody);
+  }
+
+  return new Promise((resolve, reject) => {
+    const req = transport.request({
+      protocol: parsedUrl.protocol,
+      hostname: parsedUrl.hostname,
+      port: parsedUrl.port || undefined,
+      path: `${parsedUrl.pathname}${parsedUrl.search || ''}`,
+      method,
+      headers: requestHeaders
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        let parsed = {};
+        try {
+          parsed = data ? JSON.parse(data) : {};
+        } catch {
+          parsed = { raw: data };
+        }
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          resolve(parsed);
+          return;
+        }
+        const error = new Error(parsed?.msg || parsed?.message || `Runtime service HTTP ${res.statusCode}`);
+        error.statusCode = res.statusCode;
+        error.payload = parsed;
+        reject(error);
+      });
+    });
+    req.on('error', reject);
+    req.setTimeout(timeoutMs, () => req.destroy(new Error('Runtime service request timeout')));
+    if (requestBody) {
+      req.write(requestBody);
+    }
+    req.end();
+  });
+}
+
+async function requestRuntimeService(runtimePath, payload, sourceHeaders = {}, openid = '') {
+  const config = getRuntimeServiceProxyConfig();
+  const url = buildRuntimeServiceUrl(runtimePath);
+  return httpJsonRequest(url, {
+    method: 'POST',
+    timeoutMs: config.timeoutMs,
+    headers: buildRuntimeServiceHeaders(sourceHeaders, openid),
+    body: payload
+  });
+}
+
 function normalizePlantRow(row = {}) {
   const rowTags = parseJsonField(row.tags_json, []);
   return {
@@ -159,6 +306,273 @@ function toSqlDateTime(ms) {
     `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
     `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
   ].join(' ');
+}
+
+function buildCommandId(logicalKey) {
+  const seed = `${logicalKey || 'device'}|${Date.now()}|${Math.random()}`;
+  return crypto.createHash('md5').update(seed).digest('hex');
+}
+
+function getDeviceOfflineThresholdMs() {
+  const raw = Number(process.env.DEVICE_OFFLINE_THRESHOLD_MS);
+  return Number.isFinite(raw) && raw > 0 ? raw : 10 * 60 * 1000;
+}
+
+function deriveDeviceOnlineState(updatedAtMs, hasLatest) {
+  const lastSeenAt = Number(updatedAtMs || 0);
+  if (!hasLatest || !lastSeenAt) {
+    return {
+      online: false,
+      offline: true,
+      lastSeenAt: lastSeenAt || null,
+      offlineSinceMs: null,
+      status: 'never_reported'
+    };
+  }
+
+  const thresholdMs = getDeviceOfflineThresholdMs();
+  const now = Date.now();
+  const delta = Math.max(0, now - lastSeenAt);
+  const online = delta <= thresholdMs;
+
+  return {
+    online,
+    offline: !online,
+    lastSeenAt,
+    offlineSinceMs: online ? null : lastSeenAt + thresholdMs,
+    status: online ? 'online' : 'offline'
+  };
+}
+
+function getParamNode(params = {}, keys = []) {
+  for (const key of keys) {
+    const node = params[key];
+    if (node === undefined || node === null || node === '') {
+      continue;
+    }
+    return node;
+  }
+  return null;
+}
+
+function getParamValue(node) {
+  if (node && typeof node === 'object' && !Array.isArray(node) && Object.prototype.hasOwnProperty.call(node, 'value')) {
+    return node.value;
+  }
+  return node;
+}
+
+function getParamTime(node) {
+  if (node && typeof node === 'object' && !Array.isArray(node) && node.time) {
+    return Number(node.time) || null;
+  }
+  return null;
+}
+
+function normalizeBooleanMetric(raw) {
+  if (raw === true || raw === false) return raw;
+  if (raw === 1 || raw === '1') return true;
+  if (raw === 0 || raw === '0') return false;
+  if (typeof raw === 'string') {
+    const value = raw.trim().toLowerCase();
+    if (['true', 'yes', 'dead', 'on', 'open'].includes(value)) return true;
+    if (['false', 'no', 'alive', 'off', 'close', 'closed'].includes(value)) return false;
+  }
+  return null;
+}
+
+function formatSoulStateByIr(raw) {
+  const normalized = normalizeBooleanMetric(raw);
+  if (normalized === true) return '没出窝';
+  if (normalized === false) return '出窝';
+  return '--';
+}
+
+function formatTimestampText(ts) {
+  const value = Number(ts || 0);
+  if (!value) return '--';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '--';
+  const pad = (part) => String(part).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+
+function buildLatestAggregates(row = {}) {
+  const params = row.params || {};
+  const latestCommand = row.latestCommand || null;
+
+  const tempNode = getParamNode(params, ['dht_temp', 'temp', 'temperature', 'air_temp']);
+  const humidityNode = getParamNode(params, ['dht_humi', 'humidity', 'air_humidity']);
+  const lightNode = getParamNode(params, ['light_val', 'light', 'illuminance', 'lux']);
+  const soilNode = getParamNode(params, ['soil_percent', 'soil', 'soil_moisture']);
+  const fanNode = getParamNode(params, ['fan_switch', 'test']);
+  const runStateNode = getParamNode(params, ['run_state']);
+  const irStatusNode = getParamNode(params, ['ir_status']);
+  const isDeadNode = getParamNode(params, ['is_dead']);
+  const favorabilityNode = getParamNode(params, ['favorability', 'favor', 'affinity', 'likability', 'haogandu']);
+  const personalityNode = getParamNode(params, ['plant_personality', 'personality', 'character']);
+  const plantTypeNode = getParamNode(params, ['plant_type', 'ptype']);
+
+  const fanReportedState = normalizeBooleanMetric(getParamValue(fanNode));
+  const latestCommandStatus = String((latestCommand && latestCommand.status) || '').toLowerCase();
+  const fanPending = ['pending', 'sent', 'acked'].includes(latestCommandStatus);
+
+  return {
+    sensorSnapshot: {
+      temp: {
+        value: getParamValue(tempNode),
+        time: getParamTime(tempNode),
+        unit: '℃'
+      },
+      humidity: {
+        value: getParamValue(humidityNode),
+        time: getParamTime(humidityNode),
+        unit: '%'
+      },
+      light: {
+        value: getParamValue(lightNode),
+        time: getParamTime(lightNode),
+        unit: 'lx'
+      },
+      soil: {
+        value: getParamValue(soilNode),
+        time: getParamTime(soilNode),
+        unit: '%'
+      }
+    },
+    controlSnapshot: {
+      fan: {
+        hasReportedState: fanReportedState !== null,
+        reportedState: fanReportedState,
+        reportedAt: getParamTime(fanNode),
+        pending: fanPending,
+        latestCommandStatus: latestCommandStatus || '',
+        latestCommandId: latestCommand ? latestCommand.commandId : ''
+      }
+    },
+    plantSnapshot: {
+      runState: normalizeBooleanMetric(getParamValue(runStateNode)),
+      irStatus: normalizeBooleanMetric(getParamValue(irStatusNode)),
+      isDead: normalizeBooleanMetric(getParamValue(isDeadNode)),
+      soulState: formatSoulStateByIr(getParamValue(irStatusNode)),
+      favorability: getParamValue(favorabilityNode),
+      personality: getParamValue(personalityNode),
+      reportedPlantType: getParamValue(plantTypeNode) || row.plantType || ''
+    },
+    displaySnapshot: {
+      updatedAtText: formatTimestampText(row.updatedAt || row.lastSeenAt),
+      lastSeenAtText: formatTimestampText(row.lastSeenAt),
+      onlineStatusText: row.onlineStatus === 'online'
+        ? '在线'
+        : (row.onlineStatus === 'offline' ? '离线' : '待上报')
+    }
+  };
+}
+
+function mergeLatestRowWithCache(deviceRow = {}, cacheSnapshot = {}) {
+  const merged = {
+    ...deviceRow
+  };
+
+  if (cacheSnapshot.latest && typeof cacheSnapshot.latest === 'object') {
+    if (cacheSnapshot.latest.provider) merged.provider = cacheSnapshot.latest.provider;
+    if (cacheSnapshot.latest.productId) merged.productId = cacheSnapshot.latest.productId;
+    if (cacheSnapshot.latest.deviceName) merged.deviceName = cacheSnapshot.latest.deviceName;
+    if (cacheSnapshot.latest.updatedAt) merged.updatedAt = cacheSnapshot.latest.updatedAt;
+    if (cacheSnapshot.latest.params && typeof cacheSnapshot.latest.params === 'object') {
+      merged.params = cacheSnapshot.latest.params;
+      merged.hasLatest = true;
+    }
+  }
+
+  if (cacheSnapshot.online && typeof cacheSnapshot.online === 'object') {
+    if (typeof cacheSnapshot.online.online === 'boolean') merged.online = cacheSnapshot.online.online;
+    if (typeof cacheSnapshot.online.offline === 'boolean') merged.offline = cacheSnapshot.online.offline;
+    if (cacheSnapshot.online.onlineStatus) merged.onlineStatus = cacheSnapshot.online.onlineStatus;
+    if (cacheSnapshot.online.lastSeenAt) merged.lastSeenAt = cacheSnapshot.online.lastSeenAt;
+  }
+
+  if ((!merged.lastSeenAt || merged.lastSeenAt < (merged.updatedAt || 0)) && merged.updatedAt) {
+    merged.lastSeenAt = merged.updatedAt;
+  }
+
+  if (cacheSnapshot.command && typeof cacheSnapshot.command === 'object') {
+    merged.latestCommand = {
+      ...(merged.latestCommand || {}),
+      ...cacheSnapshot.command,
+      commandId: cacheSnapshot.command.commandId || cacheSnapshot.command.command_id || (merged.latestCommand && merged.latestCommand.commandId) || ''
+    };
+  }
+
+  const onlineState = deriveDeviceOnlineState(merged.lastSeenAt || merged.updatedAt || null, !!merged.hasLatest);
+  merged.online = onlineState.online;
+  merged.offline = onlineState.offline;
+  merged.onlineStatus = onlineState.status;
+  merged.lastSeenAt = onlineState.lastSeenAt;
+  merged.offlineSinceMs = onlineState.offlineSinceMs;
+
+  return merged;
+}
+
+function mergeCommandRowWithCache(commandRow = {}, cacheState = {}) {
+  if (!cacheState || typeof cacheState !== 'object') {
+    return {
+      ...commandRow
+    };
+  }
+
+  const merged = {
+    ...commandRow
+  };
+
+  if (cacheState.logicalKey) merged.logicalKey = cacheState.logicalKey;
+  if (cacheState.provider) merged.provider = cacheState.provider;
+  if (cacheState.productId) merged.productId = cacheState.productId;
+  if (cacheState.deviceName) merged.deviceName = cacheState.deviceName;
+  if (cacheState.commandName) merged.commandName = cacheState.commandName;
+  if (cacheState.status) merged.status = cacheState.status;
+  if (cacheState.errorMessage !== undefined) merged.errorMessage = cacheState.errorMessage || '';
+  if (cacheState.sentParams && typeof cacheState.sentParams === 'object') merged.sentParams = cacheState.sentParams;
+  if (cacheState.latestSnapshot && typeof cacheState.latestSnapshot === 'object') merged.latestSnapshot = cacheState.latestSnapshot;
+  if (cacheState.providerResponse && typeof cacheState.providerResponse === 'object') merged.providerResponse = cacheState.providerResponse;
+  if (cacheState.requestedAt) merged.requestedAt = cacheState.requestedAt;
+  if (cacheState.sentAt) merged.sentAt = cacheState.sentAt;
+  if (cacheState.ackedAt) merged.ackedAt = cacheState.ackedAt;
+  if (cacheState.doneAt) merged.doneAt = cacheState.doneAt;
+  if (cacheState.failedAt) merged.failedAt = cacheState.failedAt;
+
+  return merged;
+}
+
+function summarizeLatestCacheUsage(logicalKeys = [], cacheMap = {}) {
+  const summary = {
+    requested: logicalKeys.length,
+    latestHits: 0,
+    onlineHits: 0,
+    commandHits: 0
+  };
+
+  for (const key of logicalKeys) {
+    const cacheEntry = cacheMap[key] || {};
+    if (cacheEntry.latest) summary.latestHits += 1;
+    if (cacheEntry.online) summary.onlineHits += 1;
+    if (cacheEntry.command) summary.commandHits += 1;
+  }
+
+  summary.latestMisses = Math.max(0, summary.requested - summary.latestHits);
+  summary.onlineMisses = Math.max(0, summary.requested - summary.onlineHits);
+  summary.commandMisses = Math.max(0, summary.requested - summary.commandHits);
+  return summary;
+}
+
+function summarizeCommandCacheUsage(commandIds = [], cacheMap = {}) {
+  const requested = commandIds.length;
+  const hits = commandIds.reduce((count, id) => count + (cacheMap[id] ? 1 : 0), 0);
+  return {
+    requested,
+    hits,
+    misses: Math.max(0, requested - hits)
+  };
 }
 
 function getRangeStartMs(range) {
@@ -803,7 +1217,43 @@ async function toggleTodoUrgencyForUser(db, openid, input) {
   };
 }
 
-async function queryLatestByUser(db, openid, input) {
+async function loadPlantMapForAclRows(db, openid, aclRows = []) {
+  const plantLibraryIds = aclRows
+    .map((item) => item.plant_library_id)
+    .filter(Boolean);
+
+  if (!plantLibraryIds.length) {
+    return {};
+  }
+
+  const placeholders = plantLibraryIds.map(() => '?').join(', ');
+  const [plantRows] = await db.execute(
+    `SELECT id, name, family, scientific_name, feature, feature_text, category,
+            image_url, tags_json, description, aliases_json, difficulty,
+            care_light, care_water, care_temperature, care_humidity, care_soil,
+            care_fertilizer, care_ventilation, seasonal_tips_json,
+            common_issues_json, faq_json, recommend_questions_json,
+            device_interpretation_json, agent_notes
+     FROM plant_library WHERE id IN (${placeholders}) AND is_active = 1`,
+    plantLibraryIds
+  );
+  const [favRows] = await db.execute(
+    `SELECT plant_id FROM user_plant_favorites WHERE openid = ? AND plant_id IN (${placeholders})`,
+    [openid, ...plantLibraryIds]
+  );
+  const favSet = new Set(favRows.map((row) => row.plant_id));
+
+  return plantRows.reduce((acc, row) => {
+    acc[row.id] = mapPlantRow(row, favSet);
+    return acc;
+  }, {});
+}
+
+function buildAclAlias(acl = {}, deviceName = '', logicalKey = '') {
+  return acl.alias || (deviceName.startsWith('Nova_') ? deviceName.slice(5) : deviceName) || logicalKey;
+}
+
+async function queryLatestByUserLocal(db, openid, input) {
   const logicalKey = normalizeLogicalKey(input?.logicalKey);
   const aclRows = await getActiveAclRows(db, openid, logicalKey);
 
@@ -840,6 +1290,20 @@ async function queryLatestByUser(db, openid, input) {
     acc[row.logical_key] = row;
     return acc;
   }, {});
+  const commandMap = await getLatestCommandStateMap(db, logicalKeys);
+  const cachedSnapshots = await Promise.all(
+    logicalKeys.map(async (key) => ({
+      logicalKey: key,
+      latest: await runtimeCache.getLatestDeviceState(key),
+      online: await runtimeCache.getDeviceOnlineState(key),
+      command: await runtimeCache.getLatestDeviceCommandState(key)
+    }))
+  );
+  const cacheMap = cachedSnapshots.reduce((acc, item) => {
+    acc[item.logicalKey] = item;
+    return acc;
+  }, {});
+  const cacheSummary = summarizeLatestCacheUsage(logicalKeys, cacheMap);
 
   // 批量拉取已关联植物的信息
   const plantLibraryIds = aclRows
@@ -875,12 +1339,15 @@ async function queryLatestByUser(db, openid, input) {
     const acl = aclRows.find((item) => item.logical_key === key) || {};
     const latest = latestMap[key] || {};
     const device = deviceMap[key] || {};
+    const command = commandMap[key] || null;
     const mergedDeviceName = latest.device_name || device.device_name || '';
     const plantLibraryId = acl.plant_library_id || null;
     const latestMeta = parseJsonField(latest.push_meta_json, {});
     const provider = normalizeProvider(latestMeta?.provider) || normalizeProvider(latestMeta?.sourceMeta?.provider) || '';
+    const hasLatest = !!latestMap[key];
+    const onlineState = deriveDeviceOnlineState(latest.updated_at_ms || null, hasLatest);
 
-    return {
+    const baseDeviceRow = {
       logicalKey: key,
       provider,
       productId: latest.product_id || device.product_id || '',
@@ -894,14 +1361,127 @@ async function queryLatestByUser(db, openid, input) {
       aclStatus: acl.status || '',
       params: parseJsonField(latest.params_json, {}),
       updatedAt: latest.updated_at_ms || null,
-      hasLatest: !!latestMap[key]
+      hasLatest,
+      online: onlineState.online,
+      offline: onlineState.offline,
+      onlineStatus: onlineState.status,
+      lastSeenAt: onlineState.lastSeenAt,
+      offlineSinceMs: onlineState.offlineSinceMs,
+      latestCommand: command
     };
+    const deviceRow = mergeLatestRowWithCache(baseDeviceRow, cacheMap[key] || {});
+
+    return {
+      ...deviceRow,
+      ...buildLatestAggregates(deviceRow)
+    };
+  });
+
+  logInfo('device_latest_cache_summary', {
+    logicalKey: logicalKey || '',
+    cacheSummary
   });
 
   return {
     success: true,
-    deviceData
+    deviceData,
+    cacheMeta: cacheSummary
   };
+}
+
+async function queryLatestByUserViaRuntimeService(db, openid, input, sourceHeaders = {}) {
+  const logicalKey = normalizeLogicalKey(input?.logicalKey);
+  const aclRows = await getActiveAclRows(db, openid, logicalKey);
+
+  if (!aclRows.length) {
+    return {
+      success: true,
+      deviceData: []
+    };
+  }
+
+  const logicalKeys = aclRows.map((item) => item.logical_key);
+  const placeholders = logicalKeys.map(() => '?').join(', ');
+  const [deviceRows] = await db.execute(
+    `SELECT logical_key, product_id, device_name, status, external_device_id
+     FROM devices
+     WHERE logical_key IN (${placeholders})`,
+    logicalKeys
+  );
+  const deviceMap = deviceRows.reduce((acc, row) => {
+    acc[row.logical_key] = row;
+    return acc;
+  }, {});
+  const plantMap = await loadPlantMapForAclRows(db, openid, aclRows);
+
+  const runtimeResponses = await Promise.all(
+    logicalKeys.map(async (key) => ({
+      logicalKey: key,
+      response: await requestRuntimeService('/runtime/device/latest', { logicalKey: key }, sourceHeaders, openid)
+    }))
+  );
+  const runtimeMap = runtimeResponses.reduce((acc, item) => {
+    acc[item.logicalKey] = item.response || {};
+    return acc;
+  }, {});
+
+  return {
+    success: true,
+    deviceData: logicalKeys.map((key) => {
+      const acl = aclRows.find((item) => item.logical_key === key) || {};
+      const device = deviceMap[key] || {};
+      const runtimeRow = runtimeMap[key] || {};
+      const mergedDeviceName = runtimeRow.deviceName || device.device_name || '';
+      const plantLibraryId = acl.plant_library_id || null;
+      return {
+        logicalKey: key,
+        provider: runtimeRow.provider || '',
+        productId: runtimeRow.productId || device.product_id || '',
+        deviceName: mergedDeviceName,
+        alias: buildAclAlias(acl, mergedDeviceName, key),
+        location: acl.location || '',
+        plantType: acl.plant_type || '',
+        plantLibraryId,
+        plant: plantLibraryId ? (plantMap[plantLibraryId] || null) : null,
+        role: acl.role || '',
+        aclStatus: acl.status || '',
+        params: runtimeRow.params || {},
+        updatedAt: runtimeRow.updatedAt || null,
+        hasLatest: !!(runtimeRow.updatedAt || Object.keys(runtimeRow.params || {}).length),
+        online: runtimeRow.online === true,
+        offline: runtimeRow.offline === true,
+        onlineStatus: runtimeRow.onlineStatus || 'never_reported',
+        lastSeenAt: runtimeRow.lastSeenAt || null,
+        offlineSinceMs: runtimeRow.offlineSinceMs || null,
+        latestCommand: runtimeRow.latestCommand || null,
+        sensorSnapshot: runtimeRow.sensorSnapshot || {},
+        controlSnapshot: runtimeRow.controlSnapshot || {},
+        plantSnapshot: runtimeRow.plantSnapshot || {},
+        displaySnapshot: runtimeRow.displaySnapshot || {}
+      };
+    }),
+    cacheMeta: {
+      proxy: true,
+      requested: logicalKeys.length,
+      route: '/runtime/device/latest'
+    }
+  };
+}
+
+async function queryLatestByUser(db, openid, input, sourceHeaders = {}) {
+  if (shouldProxyRuntimeRoute('/device/latest')) {
+    try {
+      return await queryLatestByUserViaRuntimeService(db, openid, input, sourceHeaders);
+    } catch (err) {
+      logError('runtime_proxy_failed', {
+        route: '/device/latest',
+        message: err.message,
+        statusCode: err.statusCode || null
+      });
+    }
+  }
+
+  return queryLatestByUserLocal(db, openid, input);
 }
 
 async function queryHistoryByUser(db, openid, input) {
@@ -1567,7 +2147,403 @@ async function resolveCommandProvider(db, logicalKey, preferredProvider = '') {
   return normalizeProvider(process.env.DEVICE_CMD_PROVIDER_DEFAULT || 'onenet') || 'onenet';
 }
 
-async function sendDeviceCmdForUser(db, openid, input) {
+async function insertDeviceCommand(db, payload) {
+  await db.execute(
+    `INSERT INTO device_commands
+      (command_id, logical_key, product_id, device_name, provider, openid, command_name, status, sent_params_json, latest_snapshot_json, requested_at_ms, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      payload.commandId,
+      payload.logicalKey,
+      payload.productId,
+      payload.deviceName,
+      payload.provider || '',
+      payload.openid || null,
+      payload.commandName || 'set_property',
+      payload.status || 'pending',
+      JSON.stringify(payload.sentParams || {}),
+      JSON.stringify(payload.latestSnapshot || {}),
+      payload.requestedAtMs,
+      toSqlDateTime(payload.requestedAtMs),
+      toSqlDateTime(payload.requestedAtMs)
+    ]
+  );
+}
+
+async function updateDeviceCommand(db, commandId, patch = {}) {
+  const fields = [];
+  const values = [];
+
+  if (patch.provider !== undefined) {
+    fields.push('provider = ?');
+    values.push(patch.provider || '');
+  }
+  if (patch.status !== undefined) {
+    fields.push('status = ?');
+    values.push(patch.status);
+  }
+  if (patch.errorMessage !== undefined) {
+    fields.push('error_message = ?');
+    values.push(patch.errorMessage || null);
+  }
+  if (patch.providerResponse !== undefined) {
+    fields.push('provider_response_json = ?');
+    values.push(JSON.stringify(patch.providerResponse || {}));
+  }
+  if (patch.sentAtMs !== undefined) {
+    fields.push('sent_at_ms = ?');
+    values.push(patch.sentAtMs || null);
+  }
+  if (patch.ackedAtMs !== undefined) {
+    fields.push('acked_at_ms = ?');
+    values.push(patch.ackedAtMs || null);
+  }
+  if (patch.doneAtMs !== undefined) {
+    fields.push('done_at_ms = ?');
+    values.push(patch.doneAtMs || null);
+  }
+  if (patch.failedAtMs !== undefined) {
+    fields.push('failed_at_ms = ?');
+    values.push(patch.failedAtMs || null);
+  }
+  if (patch.latestSnapshot !== undefined) {
+    fields.push('latest_snapshot_json = ?');
+    values.push(JSON.stringify(patch.latestSnapshot || {}));
+  }
+
+  fields.push('updated_at = ?');
+  values.push(toSqlDateTime(Date.now()));
+  values.push(commandId);
+
+  await db.execute(
+    `UPDATE device_commands
+     SET ${fields.join(', ')}
+     WHERE command_id = ?`,
+    values
+  );
+}
+
+async function getLatestCommandStateMap(db, logicalKeys = []) {
+  if (!Array.isArray(logicalKeys) || !logicalKeys.length) {
+    return {};
+  }
+
+  const placeholders = logicalKeys.map(() => '?').join(', ');
+  const [rows] = await db.execute(
+    `SELECT command_id, logical_key, provider, command_name, status, sent_params_json, error_message,
+            requested_at_ms, sent_at_ms, acked_at_ms, done_at_ms, failed_at_ms
+     FROM device_commands
+     WHERE logical_key IN (${placeholders})
+     ORDER BY requested_at_ms DESC, id DESC`,
+    logicalKeys
+  );
+
+  return rows.reduce((acc, row) => {
+    if (acc[row.logical_key]) {
+      return acc;
+    }
+    acc[row.logical_key] = {
+      commandId: row.command_id,
+      provider: row.provider || '',
+      commandName: row.command_name || 'set_property',
+      status: row.status || 'pending',
+      sentParams: parseJsonField(row.sent_params_json, {}),
+      errorMessage: row.error_message || '',
+      requestedAt: row.requested_at_ms || null,
+      sentAt: row.sent_at_ms || null,
+      ackedAt: row.acked_at_ms || null,
+      doneAt: row.done_at_ms || null,
+      failedAt: row.failed_at_ms || null
+    };
+    return acc;
+  }, {});
+}
+
+async function queryCommandsByUserLocal(db, openid, input) {
+  const logicalKey = normalizeLogicalKey(input?.logicalKey);
+  const limit = Math.min(Math.max(Number(input?.limit) || 20, 1), 100);
+  const aclRows = await getActiveAclRows(db, openid, logicalKey);
+
+  if (!aclRows.length) {
+    return {
+      success: true,
+      commands: []
+    };
+  }
+
+  const logicalKeys = [...new Set(aclRows.map((item) => item.logical_key).filter(Boolean))];
+  const placeholders = logicalKeys.map(() => '?').join(', ');
+  const [rows] = await db.execute(
+    `SELECT command_id, logical_key, product_id, device_name, provider, command_name, status,
+            sent_params_json, latest_snapshot_json, error_message, provider_response_json,
+            requested_at_ms, sent_at_ms, acked_at_ms, done_at_ms, failed_at_ms
+     FROM device_commands
+     WHERE logical_key IN (${placeholders})
+     ORDER BY requested_at_ms DESC, id DESC
+     LIMIT ?`,
+    [...logicalKeys, limit]
+  );
+
+  const aclMap = aclRows.reduce((acc, row) => {
+    acc[row.logical_key] = row;
+    return acc;
+  }, {});
+  const commandCacheEntries = await Promise.all(
+    rows.map(async (row) => ({
+      commandId: row.command_id,
+      cacheState: await runtimeCache.getCommandState(row.command_id)
+    }))
+  );
+  const commandCacheMap = commandCacheEntries.reduce((acc, item) => {
+    acc[item.commandId] = item.cacheState;
+    return acc;
+  }, {});
+  const cacheSummary = summarizeCommandCacheUsage(rows.map((row) => row.command_id), commandCacheMap);
+
+  logInfo('device_commands_cache_summary', {
+    logicalKey: logicalKey || '',
+    cacheSummary
+  });
+
+  return {
+    success: true,
+    commands: rows.map((row) => {
+      const mapped = {
+        commandId: row.command_id,
+      logicalKey: row.logical_key,
+      alias: aclMap[row.logical_key]?.alias || row.device_name || row.logical_key,
+      productId: row.product_id || '',
+      deviceName: row.device_name || '',
+      provider: row.provider || '',
+      commandName: row.command_name || 'set_property',
+      status: row.status || 'pending',
+      sentParams: parseJsonField(row.sent_params_json, {}),
+      latestSnapshot: parseJsonField(row.latest_snapshot_json, {}),
+      errorMessage: row.error_message || '',
+      providerResponse: parseJsonField(row.provider_response_json, {}),
+      requestedAt: row.requested_at_ms || null,
+      sentAt: row.sent_at_ms || null,
+      ackedAt: row.acked_at_ms || null,
+      doneAt: row.done_at_ms || null,
+      failedAt: row.failed_at_ms || null
+      };
+      return mergeCommandRowWithCache(mapped, commandCacheMap[row.command_id] || null);
+    }),
+    cacheMeta: cacheSummary
+  };
+}
+
+async function queryCommandsByUserViaRuntimeService(db, openid, input, sourceHeaders = {}) {
+  const logicalKey = normalizeLogicalKey(input?.logicalKey);
+  const limit = Math.min(Math.max(Number(input?.limit) || 20, 1), 100);
+  const aclRows = await getActiveAclRows(db, openid, logicalKey);
+
+  if (!aclRows.length) {
+    return {
+      success: true,
+      commands: []
+    };
+  }
+
+  const aclMap = aclRows.reduce((acc, row) => {
+    acc[row.logical_key] = row;
+    return acc;
+  }, {});
+  const runtimeResponse = await requestRuntimeService(
+    '/runtime/device/commands',
+    {
+      logicalKey: logicalKey || aclRows[0].logical_key,
+      limit
+    },
+    sourceHeaders,
+    openid
+  );
+
+  return {
+    success: runtimeResponse?.success !== false,
+    commands: Array.isArray(runtimeResponse?.commands)
+      ? runtimeResponse.commands.map((command) => ({
+        ...command,
+        alias: aclMap[command.logicalKey]?.alias || command.deviceName || command.logicalKey
+      }))
+      : [],
+    cacheMeta: {
+      proxy: true,
+      route: '/runtime/device/commands',
+      source: runtimeResponse?.cacheMeta?.source || 'runtime-service'
+    }
+  };
+}
+
+async function queryCommandsByUser(db, openid, input, sourceHeaders = {}) {
+  if (shouldProxyRuntimeRoute('/device/commands')) {
+    try {
+      return await queryCommandsByUserViaRuntimeService(db, openid, input, sourceHeaders);
+    } catch (err) {
+      logError('runtime_proxy_failed', {
+        route: '/device/commands',
+        message: err.message,
+        statusCode: err.statusCode || null
+      });
+    }
+  }
+
+  return queryCommandsByUserLocal(db, openid, input);
+}
+
+async function getCommandRowForUser(db, openid, commandId) {
+  const normalizedCommandId = typeof commandId === 'string' ? commandId.trim() : '';
+  if (!normalizedCommandId) {
+    return null;
+  }
+
+  const [rows] = await db.execute(
+    `SELECT dc.command_id, dc.logical_key, dc.product_id, dc.device_name, dc.provider, dc.command_name, dc.status,
+            dc.sent_params_json, dc.latest_snapshot_json, dc.error_message, dc.provider_response_json,
+            dc.requested_at_ms, dc.sent_at_ms, dc.acked_at_ms, dc.done_at_ms, dc.failed_at_ms,
+            acl.alias
+     FROM device_commands dc
+     INNER JOIN device_acl acl
+       ON acl.logical_key = dc.logical_key
+      AND acl.openid = ?
+      AND acl.status = 'active'
+     WHERE dc.command_id = ?
+     ORDER BY dc.id DESC
+     LIMIT 1`,
+    [openid, normalizedCommandId]
+  );
+
+  return rows[0] || null;
+}
+
+function mapCommandRow(row = {}) {
+  return {
+    commandId: row.command_id,
+    logicalKey: row.logical_key,
+    alias: row.alias || row.device_name || row.logical_key,
+    productId: row.product_id || '',
+    deviceName: row.device_name || '',
+    provider: row.provider || '',
+    commandName: row.command_name || 'set_property',
+    status: row.status || 'pending',
+    sentParams: parseJsonField(row.sent_params_json, {}),
+    latestSnapshot: parseJsonField(row.latest_snapshot_json, {}),
+    errorMessage: row.error_message || '',
+    providerResponse: parseJsonField(row.provider_response_json, {}),
+    requestedAt: row.requested_at_ms || null,
+    sentAt: row.sent_at_ms || null,
+    ackedAt: row.acked_at_ms || null,
+    doneAt: row.done_at_ms || null,
+    failedAt: row.failed_at_ms || null
+  };
+}
+
+async function queryCommandDetailForUserLocal(db, openid, input) {
+  const row = await getCommandRowForUser(db, openid, input?.commandId);
+  if (!row) {
+    return {
+      success: false,
+      msg: 'Command not found'
+    };
+  }
+
+  const cacheState = await runtimeCache.getCommandState(row.command_id);
+  logInfo('device_command_detail_cache_summary', {
+    commandId: row.command_id,
+    cacheSummary: {
+      requested: 1,
+      hits: cacheState ? 1 : 0,
+      misses: cacheState ? 0 : 1
+    }
+  });
+
+  return {
+    success: true,
+    command: mergeCommandRowWithCache(
+      mapCommandRow(row),
+      cacheState
+    ),
+    cacheMeta: {
+      requested: 1,
+      hits: cacheState ? 1 : 0,
+      misses: cacheState ? 0 : 1
+    }
+  };
+}
+
+async function queryCommandDetailForUserViaRuntimeService(db, openid, input, sourceHeaders = {}) {
+  const row = await getCommandRowForUser(db, openid, input?.commandId);
+  if (!row) {
+    return {
+      success: false,
+      msg: 'Command not found'
+    };
+  }
+
+  const runtimeResponse = await requestRuntimeService(
+    '/runtime/device/command/detail',
+    {
+      commandId: row.command_id
+    },
+    sourceHeaders,
+    openid
+  );
+
+  return {
+    success: runtimeResponse?.success !== false,
+    command: runtimeResponse?.command
+      ? {
+        ...runtimeResponse.command,
+        alias: row.alias || runtimeResponse.command.deviceName || runtimeResponse.command.logicalKey
+      }
+      : null,
+    cacheMeta: {
+      proxy: true,
+      route: '/runtime/device/command/detail',
+      ...(runtimeResponse?.cacheMeta || {})
+    }
+  };
+}
+
+async function queryCommandDetailForUser(db, openid, input, sourceHeaders = {}) {
+  if (shouldProxyRuntimeRoute('/device/command/detail')) {
+    try {
+      return await queryCommandDetailForUserViaRuntimeService(db, openid, input, sourceHeaders);
+    } catch (err) {
+      logError('runtime_proxy_failed', {
+        route: '/device/command/detail',
+        message: err.message,
+        statusCode: err.statusCode || null
+      });
+    }
+  }
+
+  return queryCommandDetailForUserLocal(db, openid, input);
+}
+
+async function retryCommandForUser(db, openid, input) {
+  const row = await getCommandRowForUser(db, openid, input?.commandId);
+  if (!row) {
+    return {
+      success: false,
+      msg: 'Command not found'
+    };
+  }
+
+  const retryPayload = {
+    logicalKey: row.logical_key,
+    params: parseJsonField(row.sent_params_json, {}),
+    provider: row.provider || ''
+  };
+
+  const retryResult = await sendDeviceCmdForUser(db, openid, retryPayload);
+  return {
+    ...retryResult,
+    retriedFromCommandId: row.command_id
+  };
+}
+
+async function sendDeviceCmdForUserLocal(db, openid, input) {
   const logicalKey = normalizeLogicalKey(input?.logicalKey);
   const resolved = resolveCommandParams(input);
 
@@ -1602,7 +2578,58 @@ async function sendDeviceCmdForUser(db, openid, input) {
     return { success: false, msg: 'Device missing productId or deviceName' };
   }
 
+  const [latestRows] = await db.execute(
+    `SELECT params_json
+     FROM device_latest
+     WHERE logical_key = ?
+     LIMIT 1`,
+    [logicalKey]
+  );
+  const latestSnapshot = latestRows.length ? parseJsonField(latestRows[0].params_json, {}) : {};
   const provider = await resolveCommandProvider(db, logicalKey, input?.provider || input?.transport || '');
+  const requestedAtMs = Date.now();
+  const commandId = buildCommandId(logicalKey);
+
+  await insertDeviceCommand(db, {
+    commandId,
+    logicalKey,
+    productId,
+    deviceName,
+    provider,
+    openid,
+    sentParams: params,
+    latestSnapshot,
+    requestedAtMs,
+    status: 'pending'
+  });
+
+  logInfo('device_command_queued', {
+    commandId,
+    logicalKey,
+    productId,
+    deviceName,
+    provider,
+    paramKeys: Object.keys(params || {})
+  });
+  await runtimeCache.setCommandProcessing({
+    commandId,
+    logicalKey,
+    provider,
+    status: 'pending',
+    productId,
+    deviceName
+  });
+  await runtimeCache.setCommandState({
+    commandId,
+    logicalKey,
+    provider,
+    status: 'pending',
+    productId,
+    deviceName,
+    requestedAt: requestedAtMs,
+    sentParams: params,
+    latestSnapshot
+  });
 
   if (provider === 'emqx') {
     const topic = buildEmqxCommandTopic(logicalKey, productId, deviceName);
@@ -1615,8 +2642,36 @@ async function sendDeviceCmdForUser(db, openid, input) {
     });
 
     if (Number(emqxResp.httpStatus) < 200 || Number(emqxResp.httpStatus) >= 300) {
+      await updateDeviceCommand(db, commandId, {
+        provider,
+        status: 'failed',
+        errorMessage: emqxResp.message || emqxResp.msg || 'EMQX publish error',
+        providerResponse: emqxResp,
+        failedAtMs: Date.now()
+      });
+      logInfo('device_command_failed', {
+        commandId,
+        logicalKey,
+        provider,
+        reason: emqxResp.message || emqxResp.msg || 'EMQX publish error',
+        httpStatus: emqxResp.httpStatus || null
+      });
+      await runtimeCache.setCommandState({
+        commandId,
+        logicalKey,
+        provider,
+        status: 'failed',
+        productId,
+        deviceName,
+        errorMessage: emqxResp.message || emqxResp.msg || 'EMQX publish error',
+        failedAt: Date.now(),
+        sentParams: params
+      });
+      await runtimeCache.clearCommandProcessing(commandId);
       return {
         success: false,
+        commandId,
+        commandStatus: 'failed',
         provider,
         msg: emqxResp.message || emqxResp.msg || 'EMQX publish error',
         logicalKey,
@@ -1628,8 +2683,45 @@ async function sendDeviceCmdForUser(db, openid, input) {
       };
     }
 
+    await updateDeviceCommand(db, commandId, {
+      provider,
+      status: 'sent',
+      providerResponse: emqxResp,
+      sentAtMs: Date.now()
+    });
+
+    logInfo('device_command_sent', {
+      commandId,
+      logicalKey,
+      provider,
+      commandTopic: topic,
+      httpStatus: emqxResp.httpStatus || null
+    });
+    await runtimeCache.setCommandProcessing({
+      commandId,
+      logicalKey,
+      provider,
+      status: 'sent',
+      productId,
+      deviceName,
+      commandTopic: topic
+    });
+    await runtimeCache.setCommandState({
+      commandId,
+      logicalKey,
+      provider,
+      status: 'sent',
+      productId,
+      deviceName,
+      commandTopic: topic,
+      sentAt: Date.now(),
+      sentParams: params
+    });
+
     return {
       success: true,
+      commandId,
+      commandStatus: 'sent',
       provider,
       logicalKey,
       productId,
@@ -1643,8 +2735,36 @@ async function sendDeviceCmdForUser(db, openid, input) {
   const oneNetResp = await callOneNetSetProperty(productId, deviceName, params);
 
   if (oneNetResp.code !== 0) {
+    await updateDeviceCommand(db, commandId, {
+      provider: 'onenet',
+      status: 'failed',
+      errorMessage: oneNetResp.msg || 'OneNET error',
+      providerResponse: oneNetResp,
+      failedAtMs: Date.now()
+    });
+    logInfo('device_command_failed', {
+      commandId,
+      logicalKey,
+      provider: 'onenet',
+      reason: oneNetResp.msg || 'OneNET error',
+      providerCode: oneNetResp.code
+    });
+    await runtimeCache.setCommandState({
+      commandId,
+      logicalKey,
+      provider: 'onenet',
+      status: 'failed',
+      productId,
+      deviceName,
+      errorMessage: oneNetResp.msg || 'OneNET error',
+      failedAt: Date.now(),
+      sentParams: params
+    });
+    await runtimeCache.clearCommandProcessing(commandId);
     return {
       success: false,
+      commandId,
+      commandStatus: 'failed',
       provider: 'onenet',
       msg: oneNetResp.msg || 'OneNET error',
       logicalKey,
@@ -1656,8 +2776,42 @@ async function sendDeviceCmdForUser(db, openid, input) {
     };
   }
 
+  await updateDeviceCommand(db, commandId, {
+    provider: 'onenet',
+    status: 'sent',
+    providerResponse: oneNetResp,
+    sentAtMs: Date.now()
+  });
+
+  logInfo('device_command_sent', {
+    commandId,
+    logicalKey,
+    provider: 'onenet',
+    providerCode: oneNetResp.code
+  });
+  await runtimeCache.setCommandProcessing({
+    commandId,
+    logicalKey,
+    provider: 'onenet',
+    status: 'sent',
+    productId,
+    deviceName
+  });
+  await runtimeCache.setCommandState({
+    commandId,
+    logicalKey,
+    provider: 'onenet',
+    status: 'sent',
+    productId,
+    deviceName,
+    sentAt: Date.now(),
+    sentParams: params
+  });
+
   return {
     success: true,
+    commandId,
+    commandStatus: 'sent',
     provider: 'onenet',
     logicalKey,
     productId,
@@ -1668,9 +2822,71 @@ async function sendDeviceCmdForUser(db, openid, input) {
   };
 }
 
+async function sendDeviceCmdForUserViaRuntimeService(db, openid, input, sourceHeaders = {}) {
+  const logicalKey = normalizeLogicalKey(input?.logicalKey);
+  const resolved = resolveCommandParams(input);
+
+  if (!logicalKey) {
+    return { success: false, msg: '璁惧鏍囪瘑缂哄け' };
+  }
+  if (!resolved.ok) {
+    return { success: false, msg: resolved.msg };
+  }
+
+  const params = normalizeThingModelParams(resolved.params);
+  const [aclRows] = await db.execute(
+    `SELECT id FROM device_acl WHERE openid = ? AND logical_key = ? AND status = 'active' LIMIT 1`,
+    [openid, logicalKey]
+  );
+  if (!aclRows.length) {
+    return { success: false, msg: 'Permission denied for this device' };
+  }
+
+  const [deviceRows] = await db.execute(
+    `SELECT product_id, device_name FROM devices WHERE logical_key = ? LIMIT 1`,
+    [logicalKey]
+  );
+  if (!deviceRows.length) {
+    return { success: false, msg: 'Device not found' };
+  }
+
+  const provider = await resolveCommandProvider(db, logicalKey, input?.provider || input?.transport || '');
+  const { product_id: productId, device_name: deviceName } = deviceRows[0];
+  return requestRuntimeService(
+    '/runtime/device/command/send',
+    {
+      logicalKey,
+      provider,
+      productId,
+      deviceName,
+      params,
+      requestId: input?.requestId || null
+    },
+    sourceHeaders,
+    openid
+  );
+}
+
+async function sendDeviceCmdForUser(db, openid, input, sourceHeaders = {}) {
+  if (shouldProxyRuntimeRoute('/device/cmd')) {
+    try {
+      return await sendDeviceCmdForUserViaRuntimeService(db, openid, input, sourceHeaders);
+    } catch (err) {
+      logError('runtime_proxy_failed', {
+        route: '/device/cmd',
+        message: err.message,
+        statusCode: err.statusCode || null
+      });
+    }
+  }
+
+  return sendDeviceCmdForUserLocal(db, openid, input);
+}
+
 exports.main = async (event) => {
   const method = getMethod(event);
   const path = getPath(event);
+  const headers = getHeaders(event);
   const body = getBody(event);
 
   try {
@@ -1683,7 +2899,7 @@ exports.main = async (event) => {
     const openid = resolveOpenid(event, body);
 
     if (method === 'POST' && path.endsWith('/device/latest')) {
-      return json(200, await queryLatestByUser(db, openid, body));
+      return json(200, await queryLatestByUser(db, openid, body, headers));
     }
 
     if (method === 'POST' && path.endsWith('/device/history')) {
@@ -1703,7 +2919,19 @@ exports.main = async (event) => {
     }
 
     if (method === 'POST' && path.endsWith('/device/cmd')) {
-      return json(200, await sendDeviceCmdForUser(db, openid, body));
+      return json(200, await sendDeviceCmdForUser(db, openid, body, headers));
+    }
+
+    if (method === 'POST' && path.endsWith('/device/commands')) {
+      return json(200, await queryCommandsByUser(db, openid, body, headers));
+    }
+
+    if (method === 'POST' && path.endsWith('/device/command/detail')) {
+      return json(200, await queryCommandDetailForUser(db, openid, body, headers));
+    }
+
+    if (method === 'POST' && path.endsWith('/device/command/retry')) {
+      return json(200, await retryCommandForUser(db, openid, body));
     }
 
     if (method === 'POST' && path.endsWith('/todo/list')) {
@@ -1759,16 +2987,32 @@ exports.main = async (event) => {
         msg: '接口不存在'
       });
   } catch (err) {
-    console.error('api-scf error:', {
+    logError('request_failed', {
       message: err.message,
       stack: err.stack,
-      path
+      path,
+      method
     });
     return json(500, {
       success: false,
       msg: err.message || 'Internal Server Error'
     });
   }
+};
+
+exports.__test__ = {
+  deriveDeviceOnlineState,
+  getDeviceOfflineThresholdMs,
+  buildLatestAggregates,
+  mergeLatestRowWithCache,
+  mergeCommandRowWithCache,
+  summarizeLatestCacheUsage,
+  summarizeCommandCacheUsage,
+  parseCommaList,
+  getRuntimeServiceProxyConfig,
+  shouldProxyRuntimeRoute,
+  buildRuntimeServiceHeaders,
+  buildRuntimeServiceUrl
 };
 
 exports.main_handler = exports.main;

@@ -222,7 +222,7 @@ class _TrendChartPainter extends CustomPainter {
       ..strokeJoin = StrokeJoin.round;
     final fillPaint = Paint()
       ..shader = LinearGradient(
-        colors: [color.withOpacity(0.28), color.withOpacity(0.02)],
+        colors: [color.withValues(alpha: 0.28), color.withValues(alpha: 0.02)],
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height));
@@ -271,7 +271,7 @@ class _TrendChartPainter extends CustomPainter {
       final normalized = (values[i] - minValue) / span;
       final y = size.height - (normalized * (size.height - 28)) - 14;
       canvas.drawCircle(Offset(x, y), 4.5, pointPaint);
-      canvas.drawCircle(Offset(x, y), 8.5, pointPaint..color = color.withOpacity(0.12));
+      canvas.drawCircle(Offset(x, y), 8.5, pointPaint..color = color.withValues(alpha: 0.12));
       pointPaint.color = color;
     }
   }

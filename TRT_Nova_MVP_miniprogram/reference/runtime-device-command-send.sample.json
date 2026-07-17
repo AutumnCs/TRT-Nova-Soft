@@ -1,0 +1,8 @@
+{
+  "logicalKey": "demo-device-001",
+  "commandType": "watering",
+  "payload": {
+    "durationSec": 3
+  },
+  "requestedBy": "trial-operator"
+}

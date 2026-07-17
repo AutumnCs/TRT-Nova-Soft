@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../app_state.dart';
-import '../models.dart';
 import '../widgets.dart';
 import 'device_settings_screen.dart';
 import 'plant_journal_screen.dart';
@@ -122,7 +121,7 @@ class _DeviceDetailScreenState extends State<DeviceDetailScreen> {
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: device.metrics.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 12),
+                      separatorBuilder: (_, _) => const SizedBox(width: 12),
                       itemBuilder: (context, index) {
                         final item = device.metrics.values.elementAt(index);
                         final active = item.key == _metricKey;
