@@ -1,5 +1,9 @@
 # OneNET 下行接口与鉴权说明
 
+> 文档状态：Current Implementation Reference  
+> 核对日期：2026-07-19  
+> 安全边界：只记录接口结构和变量名，禁止在文档、示例或日志中记录真实 access key/token
+
 ## 1. 当前使用的 OneNET 接口
 
 当前 `api-scf` 对下行控制采用：

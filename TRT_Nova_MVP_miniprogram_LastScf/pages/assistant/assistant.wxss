@@ -691,3 +691,27 @@
     opacity: 1;
   }
 }
+
+.knowledge-context-chip {
+  margin-top: 12rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 18rpx;
+  border: 1px solid rgba(45, 255, 161, 0.18);
+  background: rgba(8, 18, 14, 0.72);
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+
+.knowledge-context-label {
+  font-size: 20rpx;
+  letter-spacing: 2rpx;
+  color: rgba(110, 255, 169, 0.62);
+  text-transform: uppercase;
+}
+
+.knowledge-context-title {
+  font-size: 26rpx;
+  font-weight: 800;
+  color: #f1fff4;
+}

@@ -1,90 +1,71 @@
 /**
- * 传感器告警阈值配置
- *
- * 每个指标配置：
- *   low    - 低于此值触发低警告
- *   high   - 高于此值触发高警告
- *   unit   - 单位（用于展示）
- *   lowMsg / highMsg - 气泡提示文字
- *   lowIcon / highIcon - 气泡 emoji
- *   lowType / highType - 'warning'（橙/红） | 'success'（绿）
- *
- * 所有值均为可根据实际植物品种调整的默认值。
- * TODO: 未来可从服务端按 plantType 下发个性化阈值。
+ * Sensor threshold configuration and derived UI helpers.
+ * Use Unicode escapes so text stays stable across editors/encodings.
  */
 const SENSOR_THRESHOLDS = {
-  // 环境温度 ℃
   temp: {
     low: 15,
     high: 35,
-    unit: '℃',
-    lowIcon: '🥶',
-    lowMsg: '温度偏低',
+    unit: '\u2103',
+    lowIcon: '\u{1F321}\uFE0F',
+    lowMsg: '\u6e29\u5ea6\u504f\u4f4e',
     lowType: 'warning',
-    highIcon: '🔥',
-    highMsg: '温度偏高',
+    highIcon: '\u{1F525}',
+    highMsg: '\u6e29\u5ea6\u504f\u9ad8',
     highType: 'warning',
-    okIcon: '🌡️',
-    okMsg: '温度适宜',
+    okIcon: '\u{1F4A1}',
+    okMsg: '\u6e29\u5ea6\u9002\u5b9c',
     okType: 'success'
   },
-  // 环境湿度 %
   humidity: {
     low: 30,
     high: 85,
     unit: '%',
-    lowIcon: '🏜️',
-    lowMsg: '湿度偏低',
+    lowIcon: '\u{1F4A7}',
+    lowMsg: '\u6e7f\u5ea6\u504f\u4f4e',
     lowType: 'warning',
-    highIcon: '💦',
-    highMsg: '湿度偏高',
+    highIcon: '\u{1F4A6}',
+    highMsg: '\u6e7f\u5ea6\u504f\u9ad8',
     highType: 'warning',
-    okIcon: '💧',
-    okMsg: '湿度适宜',
+    okIcon: '\u{1F4A7}',
+    okMsg: '\u6e7f\u5ea6\u9002\u5b9c',
     okType: 'success'
   },
-  // 土壤湿度 %
   soil: {
     low: 20,
     high: 80,
     unit: '%',
-    lowIcon: '🌵',
-    lowMsg: '土壤缺水',
+    lowIcon: '\u{1F4A9}',
+    lowMsg: '\u571f\u58e4\u7f3a\u6c34',
     lowType: 'warning',
-    highIcon: '🌊',
-    highMsg: '土壤过湿',
+    highIcon: '\u{1F4A9}',
+    highMsg: '\u571f\u58e4\u8fc7\u6e7f',
     highType: 'warning',
-    okIcon: '🌱',
-    okMsg: '土壤湿润',
+    okIcon: '\u{1F33F}',
+    okMsg: '\u571f\u58e4\u6e7f\u6da6',
     okType: 'success'
   },
-  // 光照强度 lx
   light: {
     low: 500,
     high: 80000,
     unit: 'lx',
-    lowIcon: '🌑',
-    lowMsg: '光照不足',
+    lowIcon: '\u{1F506}',
+    lowMsg: '\u5149\u7167\u4e0d\u8db3',
     lowType: 'warning',
-    highIcon: '☀️',
-    highMsg: '光照过强',
+    highIcon: '\u2600\uFE0F',
+    highMsg: '\u5149\u7167\u8fc7\u5f3a',
     highType: 'warning',
-    okIcon: '🌤️',
-    okMsg: '光照适宜',
+    okIcon: '\u{1F31E}',
+    okMsg: '\u5149\u7167\u9002\u5b9c',
     okType: 'success'
   }
 };
 
-/**
- * 根据传感器当前值计算气泡提示列表（最多 2 条，优先展示异常）
- * @param {Object} sensors - { temp, humidity, soil, light }，每个包含 value 字段
- * @returns {Array<{ icon, text, type }>} 气泡数组（最多 2 条）
- */
 function computeBubbles(sensors) {
   const results = [];
 
   for (const [key, cfg] of Object.entries(SENSOR_THRESHOLDS)) {
-    const rawValue = sensors[key] && sensors[key].value;
+    const rawValue = sensors?.[key]?.value;
     if (rawValue === '--' || rawValue === null || rawValue === undefined) continue;
 
     const num = parseFloat(rawValue);
@@ -99,11 +80,9 @@ function computeBubbles(sensors) {
     }
   }
 
-  // 优先展示异常（warning），最多返回 2 条
-  const warnings = results.filter(r => r.type === 'warning');
-  const oks = results.filter(r => r.type === 'success');
-  const ordered = [...warnings, ...oks];
-  return ordered.slice(0, 2);
+  const warnings = results.filter((item) => item.type === 'warning');
+  const oks = results.filter((item) => item.type === 'success');
+  return [...warnings, ...oks].slice(0, 2);
 }
 
 function normalizeNumericValue(raw) {
@@ -128,55 +107,52 @@ function resolveMoodByPersonality(personality) {
   if (!value) {
     const code = normalizeNumericValue(personality);
     if (code === null) return '';
-    if (code === 1) return '😄';
-    if (code === 2) return '🥰';
-    if (code === 3) return '😤';
-    if (code === 4) return '🥺';
-    if (code === 5) return '😪';
-    return '😌';
+    if (code === 1) return '\u{1F603}';
+    if (code === 2) return '\u{1F60A}';
+    if (code === 3) return '\u{1F60C}';
+    if (code === 4) return '\u{1F607}';
+    if (code === 5) return '\u{1F617}';
+    return '\u{1F60D}';
   }
 
-  if (value.includes('开心') || value.includes('happy') || value.includes('cheerful') || value.includes('活泼')) return '😄';
-  if (value.includes('平静') || value.includes('calm') || value.includes('gentle') || value.includes('温柔')) return '😌';
-  if (value.includes('害羞') || value.includes('shy') || value.includes('可爱') || value.includes('cute')) return '🥰';
-  if (value.includes('生气') || value.includes('angry') || value.includes('傲娇') || value.includes('倔强')) return '😤';
-  if (value.includes('难过') || value.includes('sad') || value.includes('低落') || value.includes('孤单')) return '🥺';
-  if (value.includes('困') || value.includes('sleepy') || value.includes('lazy') || value.includes('慵懒')) return '😪';
+  if (value.includes('\u5f00\u5fc3') || value.includes('happy') || value.includes('cheerful') || value.includes('\u6d3b\u6cfc')) return '\u{1F603}';
+  if (value.includes('\u5e73\u9759') || value.includes('calm') || value.includes('gentle') || value.includes('\u6e29\u67d4')) return '\u{1F60D}';
+  if (value.includes('\u5bb3\u7f9e') || value.includes('shy') || value.includes('\u53ef\u7231') || value.includes('cute')) return '\u{1F60A}';
+  if (value.includes('\u751f\u6c14') || value.includes('angry') || value.includes('\u50a2\u50f5') || value.includes('\u501a\u5f3a')) return '\u{1F60C}';
+  if (value.includes('\u96be\u8fc7') || value.includes('sad') || value.includes('\u4f4e\u843d') || value.includes('\u5b64\u5355')) return '\u{1F617}';
+  if (value.includes('\u56f0') || value.includes('sleepy') || value.includes('lazy') || value.includes('\u61d2\u60f0')) return '\u{1F617}';
   return '';
 }
 
-/**
- * 计算植物心情 emoji（根据异常条数）
- */
 function computeMoodEmoji(sensors, extra = {}) {
   const deadFlag = normalizeBooleanValue(extra.isDead);
-  if (deadFlag === true) return '😵';
+  if (deadFlag === true) return '\u{1F480}';
 
   const personalityMood = resolveMoodByPersonality(extra.personality);
   if (personalityMood) return personalityMood;
 
   const favorability = normalizeNumericValue(extra.favorability);
   if (favorability !== null) {
-    if (favorability >= 85) return '🥰';
-    if (favorability >= 65) return '😊';
-    if (favorability >= 40) return '🙂';
-    if (favorability >= 20) return '😟';
-    return '🥺';
+    if (favorability >= 85) return '\u{1F60A}';
+    if (favorability >= 65) return '\u{1F642}';
+    if (favorability >= 40) return '\u{1F60C}';
+    if (favorability >= 20) return '\u{1F615}';
+    return '\u{1F617}';
   }
 
   const soulState = normalizeNumericValue(extra.soulState);
   if (soulState !== null) {
-    if (soulState >= 80) return '🤩';
-    if (soulState >= 60) return '😊';
-    if (soulState >= 30) return '😐';
-    return '😵';
+    if (soulState >= 80) return '\u{1F60A}';
+    if (soulState >= 60) return '\u{1F642}';
+    if (soulState >= 30) return '\u{1F610}';
+    return '\u{1F480}';
   }
 
   const bubbles = computeBubbles(sensors);
-  const warningCount = bubbles.filter(b => b.type === 'warning').length;
-  if (warningCount === 0) return '😊';
-  if (warningCount === 1) return '😐';
-  return '😟';
+  const warningCount = bubbles.filter((item) => item.type === 'warning').length;
+  if (warningCount === 0) return '\u{1F642}';
+  if (warningCount === 1) return '\u{1F610}';
+  return '\u{1F615}';
 }
 
 module.exports = { SENSOR_THRESHOLDS, computeBubbles, computeMoodEmoji };

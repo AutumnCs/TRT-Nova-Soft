@@ -219,6 +219,30 @@ class ScfApiAdapter {
     return this.request('/plant/favorite/toggle', 'POST', { plantId });
   }
 
+  async getKnowledgeCategories() {
+    return this.request('/knowledge/categories', 'GET');
+  }
+
+  async getKnowledgeArticles(payload = {}) {
+    return this.request('/knowledge/articles', 'POST', payload);
+  }
+
+  async getKnowledgeArticle(articleIdOrSlug) {
+    return this.request('/knowledge/article', 'POST', { articleIdOrSlug });
+  }
+
+  async searchKnowledge(payload = {}) {
+    return this.request('/knowledge/search', 'POST', payload);
+  }
+
+  async recommendKnowledge(payload = {}) {
+    return this.request('/knowledge/recommend', 'POST', payload);
+  }
+
+  async getKnowledgeContext(payload = {}) {
+    return this.request('/knowledge/context', 'POST', payload);
+  }
+
   async getJournalMonth(payload = {}) {
     return this.request('/journal/month', 'POST', payload);
   }

@@ -71,7 +71,7 @@ class DeviceService {
   async bindDevice(deviceCode) {
     const code = typeof deviceCode === 'string' ? deviceCode.trim() : '';
     if (!code) {
-      return { success: false, msg: '请输入设备码' };
+      return { success: false, msg: '璇疯緭鍏ヨ澶囩爜' };
     }
 
     return this.scfApiAdapter.bindDevice({ deviceCode: code });
@@ -80,7 +80,7 @@ class DeviceService {
   async bindDeviceWithProfile(payload = {}) {
     const code = typeof payload.deviceCode === 'string' ? payload.deviceCode.trim() : '';
     if (!code) {
-      return { success: false, msg: '请输入设备码' };
+      return { success: false, msg: '璇疯緭鍏ヨ澶囩爜' };
     }
 
     const requestPayload = {
@@ -96,7 +96,7 @@ class DeviceService {
   async unbindDevice(logicalKey) {
     const key = typeof logicalKey === 'string' ? logicalKey.trim() : '';
     if (!key) {
-      return { success: false, msg: '设备标识缺失' };
+      return { success: false, msg: '璁惧鏍囪瘑缂哄け' };
     }
 
     return this.scfApiAdapter.unbindDevice({ logicalKey: key });
@@ -105,10 +105,20 @@ class DeviceService {
   async sendDeviceCmd(logicalKey, cmdOrParams) {
     const key = typeof logicalKey === 'string' ? logicalKey.trim() : '';
     if (!key) {
-      return { success: false, msg: '设备标识缺失' };
+      return { success: false, msg: '璁惧鏍囪瘑缂哄け' };
     }
 
     if (cmdOrParams && typeof cmdOrParams === 'object' && !Array.isArray(cmdOrParams)) {
+      if (typeof cmdOrParams.action === 'string' && cmdOrParams.action.trim()) {
+        return this.scfApiAdapter.sendDeviceCmd({
+          logicalKey: key,
+          action: cmdOrParams.action.trim(),
+          args: cmdOrParams.args && typeof cmdOrParams.args === 'object' && !Array.isArray(cmdOrParams.args)
+            ? cmdOrParams.args
+            : {}
+        });
+      }
+
       return this.scfApiAdapter.sendDeviceCmd({
         logicalKey: key,
         params: cmdOrParams
@@ -117,19 +127,19 @@ class DeviceService {
 
     const command = typeof cmdOrParams === 'string' ? cmdOrParams.trim() : '';
     if (!command) {
-      return { success: false, msg: '请输入控制参数' };
+      return { success: false, msg: '璇疯緭鍏ユ帶鍒跺弬鏁?' };
     }
 
     return this.scfApiAdapter.sendDeviceCmd({
       logicalKey: key,
-      cmd: command
+      action: command
     });
   }
 
   async updateBoundDeviceInfo(payload = {}) {
     const key = typeof payload.logicalKey === 'string' ? payload.logicalKey.trim() : '';
     if (!key) {
-      return { success: false, msg: '设备标识缺失' };
+      return { success: false, msg: '璁惧鏍囪瘑缂哄け' };
     }
 
     const requestPayload = {

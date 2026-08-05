@@ -41,9 +41,7 @@ Page({
       wx.navigateBack({ delta: 1 });
       return;
     }
-    wx.switchTab({
-      url: '/pages/index/index'
-    });
+    wx.switchTab({ url: '/pages/index/index' });
   },
 
   async loadPlantOptions() {
@@ -52,23 +50,14 @@ Page({
     try {
       const cachedPlants = plantService.getCachedPlants();
       if (cachedPlants.length > 0) {
-        this.setData({
-          plantOptions: buildOptions(cachedPlants),
-          plantTypeIndex: 0
-        });
+        this.setData({ plantOptions: buildOptions(cachedPlants), plantTypeIndex: 0 });
       }
 
       const result = await plantService.getPlants({ useCache: true });
-      this.setData({
-        plantOptions: buildOptions(result?.plants),
-        plantTypeIndex: 0
-      });
+      this.setData({ plantOptions: buildOptions(result?.plants), plantTypeIndex: 0 });
     } catch (err) {
       console.warn('[device] loadPlantOptions failed, use fallback:', err);
-      this.setData({
-        plantOptions: FALLBACK_PLANT_OPTIONS,
-        plantTypeIndex: 0
-      });
+      this.setData({ plantOptions: FALLBACK_PLANT_OPTIONS, plantTypeIndex: 0 });
     }
   },
 
@@ -99,21 +88,21 @@ Page({
 
   async bindDevice() {
     if (!this.data.deviceCode) {
-      return wx.showToast({ title: '请输入设备唯一编码', icon: 'none' });
+      return wx.showToast({ title: 'Enter device code', icon: 'none' });
     }
 
-    wx.showLoading({ title: '绑定中...' });
+    wx.showLoading({ title: 'Binding...' });
     try {
       const result = await deviceService.bindDeviceWithProfile({
         deviceCode: this.data.deviceCode,
         alias: this.data.alias,
         location: this.data.location,
-        plantType: this.data.plantOptions[this.data.plantTypeIndex] || '其他'
+        plantType: this.data.plantOptions[this.data.plantTypeIndex] || 'Other'
       });
       wx.hideLoading();
 
       if (result.success) {
-        wx.showToast({ title: '绑定成功' });
+        wx.showToast({ title: 'Bound' });
         this.setData({
           deviceCode: '',
           alias: '',
@@ -122,45 +111,45 @@ Page({
         });
         this.refreshData({ silent: true });
       } else {
-        wx.showToast({ title: result.msg || '绑定失败', icon: 'none' });
+        wx.showToast({ title: result.msg || 'Bind failed', icon: 'none' });
       }
     } catch (err) {
       wx.hideLoading();
       console.error(err);
-      wx.showToast({ title: '请求错误', icon: 'none' });
+      wx.showToast({ title: 'Request failed', icon: 'none' });
     }
   },
 
   unbindDevice(e) {
     const logicalKey = e.currentTarget.dataset.logicalkey;
     if (!logicalKey) {
-      return wx.showToast({ title: '设备标识缺失', icon: 'none' });
+      return wx.showToast({ title: 'Missing device key', icon: 'none' });
     }
 
     wx.showModal({
-      title: '解绑设备',
-      content: '确认解绑该设备吗？',
+      title: 'Unbind Device',
+      content: 'Confirm unbinding this device?',
       success: async (res) => {
         if (!res.confirm) return;
 
-        wx.showLoading({ title: '解绑中...' });
+        wx.showLoading({ title: 'Unbinding...' });
         try {
           const result = await deviceService.unbindDevice(logicalKey);
           wx.hideLoading();
 
           if (result.success) {
-            wx.showToast({ title: '解绑成功' });
+            wx.showToast({ title: 'Unbound' });
             this.setData({
               deviceList: this.data.deviceList.filter((item) => item.logicalKey !== logicalKey)
             });
             this.refreshData({ silent: true });
           } else {
-            wx.showToast({ title: result.msg || '解绑失败', icon: 'none' });
+            wx.showToast({ title: result.msg || 'Unbind failed', icon: 'none' });
           }
         } catch (err) {
           wx.hideLoading();
           console.error(err);
-          wx.showToast({ title: '请求错误', icon: 'none' });
+          wx.showToast({ title: 'Request failed', icon: 'none' });
         }
       }
     });
@@ -171,7 +160,7 @@ Page({
     if (this._refreshing) return;
     this._refreshing = true;
 
-    if (!silent) wx.showLoading({ title: '加载中...' });
+    if (!silent) wx.showLoading({ title: 'Loading...' });
     try {
       const result = await deviceService.getDeviceData();
       const list = (result.deviceData || []).map((item) => ({
@@ -204,35 +193,44 @@ Page({
   async sendCmd(e) {
     const logicalKey = e.currentTarget.dataset.logicalkey;
     const rawInput = this.data.cmdInput || '';
-    if (!logicalKey) return wx.showToast({ title: '设备标识缺失', icon: 'none' });
-    if (!rawInput) return wx.showToast({ title: '请输入命令', icon: 'none' });
+    if (!logicalKey) return wx.showToast({ title: 'Missing device key', icon: 'none' });
+    if (!rawInput) return wx.showToast({ title: 'Enter action', icon: 'none' });
 
-    wx.showLoading({ title: '发送中...' });
+    wx.showLoading({ title: 'Sending...' });
     try {
-      let params;
+      let commandInput;
       try {
-        params = JSON.parse(rawInput);
+        commandInput = JSON.parse(rawInput);
       } catch (err) {
-        wx.hideLoading();
-        return wx.showToast({ title: '请输入正确 JSON 对象', icon: 'none' });
+        commandInput = rawInput;
       }
 
-      if (!params || typeof params !== 'object' || Array.isArray(params)) {
+      const action = typeof commandInput === 'string'
+        ? commandInput.trim()
+        : commandInput && typeof commandInput === 'object' && !Array.isArray(commandInput)
+          ? String(commandInput.action || '').trim()
+          : '';
+
+      if (!action) {
         wx.hideLoading();
-        return wx.showToast({ title: '请输入正确 JSON 对象', icon: 'none' });
+        return wx.showToast({ title: 'Enter a valid action', icon: 'none' });
       }
 
-      const result = await deviceService.sendDeviceCmd(logicalKey, params);
+      const args = commandInput && typeof commandInput === 'object' && !Array.isArray(commandInput) && commandInput.args && typeof commandInput.args === 'object' && !Array.isArray(commandInput.args)
+        ? commandInput.args
+        : {};
+
+      const result = await deviceService.sendDeviceCmd(logicalKey, { action, args });
       wx.hideLoading();
       if (result.success) {
-        wx.showToast({ title: '已发送' });
+        wx.showToast({ title: 'Sent' });
       } else {
-        wx.showToast({ title: '发送失败', icon: 'none' });
+        wx.showToast({ title: 'Send failed', icon: 'none' });
       }
     } catch (err) {
       wx.hideLoading();
       console.error(err);
-      wx.showToast({ title: '请求错误', icon: 'none' });
+      wx.showToast({ title: 'Request failed', icon: 'none' });
     }
   }
 });

@@ -5,39 +5,67 @@
     "es6": true,
     "enhance": true,
     "minified": true,
-    "uglifyFileName": false
+    "uglifyFileName": false,
+    "postcss": false,
+    "compileWorklet": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "packNpmRelationList": [],
+    "minifyWXSS": true,
+    "minifyWXML": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "useCompilerPlugins": false,
+    "swc": false,
+    "disableSWC": true,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
   },
   "packOptions": {
     "ignore": [
       {
-        "type": "folder",
-        "value": "legacy"
+        "value": "emotional_chat_fullsrc",
+        "type": "folder"
       },
       {
-        "type": "folder",
-        "value": "dist"
+        "value": "flutter_app",
+        "type": "folder"
       },
       {
-        "type": "folder",
-        "value": "docs"
+        "value": "legacy",
+        "type": "folder"
       },
       {
-        "type": "folder",
-        "value": "reference"
+        "value": "dist",
+        "type": "folder"
       },
       {
-        "type": "folder",
-        "value": "scripts"
+        "value": "docs",
+        "type": "folder"
       },
       {
-        "type": "folder",
-        "value": ".vscode"
+        "value": "reference",
+        "type": "folder"
+      },
+      {
+        "value": "scripts",
+        "type": "folder"
+      },
+      {
+        "value": ".vscode",
+        "type": "folder"
       }
-    ]
+    ],
+    "include": []
   },
   "simulatorPluginLibVersion": {
     "wxext14566970e7e9f62": "3.6.5-41"
   },
   "compileType": "miniprogram",
-  "projectArchitecture": "multiPlatform"
+  "projectArchitecture": "multiPlatform",
+  "libVersion": "3.14.2",
+  "editorSetting": {}
 }

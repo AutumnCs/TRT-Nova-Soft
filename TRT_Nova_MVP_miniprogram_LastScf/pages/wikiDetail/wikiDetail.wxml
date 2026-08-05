@@ -1,0 +1,78 @@
+<view class="page">
+  <view class="bg-grid"></view>
+  <view class="bg-glow bg-glow-1"></view>
+  <view class="bg-glow bg-glow-2"></view>
+
+  <view class="topbar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="topbar-inner">
+      <view class="icon-btn" bindtap="goBack">
+        <text class="icon-btn-text">←</text>
+      </view>
+
+      <view class="brand-block">
+        <text class="brand-kicker">ARTICLE DETAIL</text>
+        <text class="brand-title">知识文章</text>
+      </view>
+
+      <view class="signal-pill">
+        <text class="signal-wave">●</text>
+        <text class="signal-text">{{article ? article.category : 'loading'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view wx:if="{{!loading && article}}" class="content" scroll-y show-scrollbar="{{false}}">
+    <view class="hero-card">
+      <view class="hero-topline">
+        <view class="category-pill">{{article.displayCategory}}</view>
+        <view class="source-pill">{{article.displaySourceType}}</view>
+      </view>
+
+      <text class="hero-title">{{article.title}}</text>
+      <text class="hero-desc">{{article.summary}}</text>
+
+      <view class="meta-row">
+        <view wx:for="{{article.tags}}" wx:key="*this" class="meta-chip">{{item}}</view>
+      </view>
+    </view>
+
+    <view class="section-card">
+      <text class="section-title">正文</text>
+      <text class="article-content">{{article.content}}</text>
+    </view>
+
+    <view class="section-card">
+      <text class="section-title">适用范围</text>
+      <view class="tag-row">
+        <view wx:if="{{article.plantTypes.length === 0}}" class="tag-item">通用</view>
+        <view wx:for="{{article.plantTypes}}" wx:key="*this" class="tag-item">{{item}}</view>
+      </view>
+    </view>
+
+    <view class="section-card">
+      <text class="section-title">相关问题</text>
+      <view class="tag-row">
+        <view wx:if="{{article.problemTypes.length === 0}}" class="tag-item">暂无</view>
+        <view wx:for="{{article.problemTypes}}" wx:key="*this" class="tag-item">{{item}}</view>
+      </view>
+    </view>
+
+    <view class="action-row">
+      <view class="action-btn secondary" bindtap="addReminder">加入提醒</view>
+      <view class="action-btn primary" bindtap="openAssistant">去问 AI</view>
+    </view>
+  </scroll-view>
+
+  <view wx:elif="{{loading}}" class="loading-state">
+    <view class="loading-card">
+      <view class="loading-line loading-line-lg"></view>
+      <view class="loading-line loading-line-md"></view>
+      <view class="loading-line loading-line-sm"></view>
+    </view>
+  </view>
+
+  <view wx:else class="empty-state">
+    <text class="empty-title">没有找到这篇文章</text>
+    <text class="empty-desc">你可以返回知识库列表重新搜索，或者检查文章 ID 是否正确。</text>
+  </view>
+</view>

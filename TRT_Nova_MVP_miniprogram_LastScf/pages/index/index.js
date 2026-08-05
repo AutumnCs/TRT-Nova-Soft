@@ -1,93 +1,27 @@
-const app = getApp();
+﻿const app = getApp();
 const todoService = require('../../services/modules/TodoService');
 const deviceService = require('../../services/modules/DeviceService');
 const weatherService = require('../../services/modules/WeatherService');
 const alertService = require('../../services/modules/AlertService');
 const { computeBubbles, computeMoodEmoji } = require('../../services/config/thresholds');
-
-const DEFAULT_PLANT_IMAGE = '/images/plant-default.jpg';
-
-const DEFAULT_SENSORS = {
-  temp: { value: '--', unit: '℃', label: '环境温度' },
-  light: { value: '--', unit: 'lx', label: '环境光照' },
-  humidity: { value: '--', unit: '%', label: '环境湿度' },
-  soil: { value: '--', unit: '%', label: '土壤湿度' }
-};
-
-const DEFAULT_EXTRA = {
-  uid: '--',
-  runState: null,
-  irStatus: null,
-  dsbTemp: '--',
-  isDead: null,
-  soulState: '--',
-  favorability: '--',
-  personality: '--',
-  reportedPlantType: '--',
-  updatedAt: '--'
-};
-
-const DEFAULT_FAN = {
-  name: '通风风扇',
-  icon: '🌬️',
-  isOn: false,
-  pending: false,
-  hasReportedState: false,
-  statusText: '暂无上报',
-  hintText: '以设备最新上报为准'
-};
-
-function cloneSensors() {
-  return JSON.parse(JSON.stringify(DEFAULT_SENSORS));
-}
-
-function cloneExtra() {
-  return { ...DEFAULT_EXTRA };
-}
-
-function buildDefaultWeather() {
-  return { icon: '🌤️', temp: '--', desc: '' };
-}
+const indexState = require('./index-state');
+const {
+  DEFAULT_PLANT_IMAGE,
+  DEFAULT_SENSORS,
+  DEFAULT_EXTRA,
+  DEFAULT_FAN,
+  cloneSensors,
+  cloneExtra,
+  buildDefaultWeather,
+  buildDeviceRows,
+  buildTelemetryState
+} = indexState;
 
 function getStatusBarHeight() {
   if (typeof wx.getWindowInfo === 'function') {
     return wx.getWindowInfo().statusBarHeight || 20;
   }
   return wx.getSystemInfoSync().statusBarHeight || 20;
-}
-
-function buildDeviceMeta(item = {}) {
-  const plantType = String(item.plantType || item?.plant?.name || '').trim();
-  const location = String(item.location || '').trim();
-  return {
-    plantType,
-    location,
-    summary: [plantType, location].filter(Boolean).join(' · ') || '未设置植物种类与地点'
-  };
-}
-
-function normalizeBooleanMetric(raw) {
-  if (raw === true || raw === false) return raw;
-  if (raw === 1 || raw === '1') return true;
-  if (raw === 0 || raw === '0') return false;
-  if (typeof raw === 'string') {
-    const value = raw.trim().toLowerCase();
-    if (['true', 'yes', 'dead', '死亡'].includes(value)) return true;
-    if (['false', 'no', 'alive', '存活'].includes(value)) return false;
-  }
-  return null;
-}
-
-function normalizeDisplayMetric(raw, fallback = '--') {
-  if (raw === undefined || raw === null || raw === '') return fallback;
-  return String(raw);
-}
-
-function formatSoulStateByIr(raw) {
-  const normalized = normalizeBooleanMetric(raw);
-  if (normalized === true) return '没出窍';
-  if (normalized === false) return '出窍';
-  return '--';
 }
 
 Page({
@@ -98,11 +32,11 @@ Page({
 
   data: {
     statusBarHeight: 20,
-    plantName: '未选择设备',
-    plantMeta: '未设置植物种类与地点',
+    plantName: '请选择设备',
+    plantMeta: '未设置植物类型和位置',
     plantImageSource: '',
     plantImage: DEFAULT_PLANT_IMAGE,
-    dialogue: '主人，我现在状态很好，继续保持哦。',
+    dialogue: '植株状态良好。',
     todos: [],
     devices: [],
     selectedLogicalKey: '',
@@ -111,7 +45,7 @@ Page({
     fan: { ...DEFAULT_FAN },
     weather: buildDefaultWeather(),
     bubbles: [],
-    moodEmoji: '😊',
+    moodEmoji: '🙂',
     hasDevices: false
   },
 
@@ -191,12 +125,12 @@ Page({
       return;
     }
     const fallbackUrl = await this.resolveAnySource(DEFAULT_PLANT_IMAGE);
-    // 两级都失败时设空字符串，避免再次触发 binderror 死循环
+    // If both lookups fail, clear the value to avoid repeated binderror loops.
     this.setData({ plantImage: fallbackUrl || '' });
   },
 
   async onPlantImageError() {
-    // 防止 fallback 本身也失败导致无限递归（App 模式本地路径可能不可用）
+    // 闃叉 fallback 鏈韩涔熷け璐ュ鑷存棤闄愰€掑綊锛圓pp 妯″紡鏈湴璺緞鍙兘涓嶅彲鐢級
     if (this._imageFallbackUsed) return;
     this._imageFallbackUsed = true;
     const fallbackUrl = await this.resolveAnySource(DEFAULT_PLANT_IMAGE);
@@ -238,34 +172,16 @@ Page({
       this._deviceRows = raw;
 
       const previousKey = this.data.selectedLogicalKey;
-      const devices = raw.map((item) => ({
-        ...buildDeviceMeta(item),
-        _id: item.logicalKey || '',
-        logicalKey: item.logicalKey || '',
-        name: item.alias || item.deviceName || '未命名设备',
-        status: alertService.isDeviceOffline(item) ? '离线' : '在线',
-        icon: alertService.isDeviceOffline(item) ? '📟' : '🪴',
-        active: false
-      }));
-
-      let activeIndex = 0;
-      if (previousKey) {
-        const foundIndex = devices.findIndex((item) => item.logicalKey === previousKey);
-        if (foundIndex >= 0) activeIndex = foundIndex;
-      }
-      if (devices.length > 0) {
-        devices[activeIndex].active = true;
-      }
-
-      const selected = devices[activeIndex] || null;
-      const selectedLogicalKey = selected ? selected.logicalKey : '';
+      const deviceState = indexState.buildDeviceRows(raw, previousKey, {
+        isDeviceOffline: (item) => alertService.isDeviceOffline(item)
+      });
 
       this.setData({
-        devices,
-        selectedLogicalKey,
-        plantName: selected ? selected.name : '未选择设备',
-        plantMeta: selected ? selected.summary : '未设置植物种类与地点',
-        hasDevices: devices.length > 0
+        devices: deviceState.devices,
+        selectedLogicalKey: deviceState.selectedLogicalKey,
+        plantName: deviceState.plantName,
+        plantMeta: deviceState.plantMeta,
+        hasDevices: deviceState.devices.length > 0
       });
 
       if (!raw.length) {
@@ -275,9 +191,22 @@ Page({
           await this.loadTodos('');
         }
       } else {
-        this.applyLatestParams(raw, selectedLogicalKey);
+        const telemetryState = indexState.buildTelemetryState(raw, deviceState.selectedLogicalKey, {
+          formatTs: (ts) => this.formatTs(ts),
+          isDeviceOffline: (item) => alertService.isDeviceOffline(item),
+          computeBubbles,
+          computeMoodEmoji
+        });
+        this.setData({
+          sensors: telemetryState.sensors,
+          extraMetrics: telemetryState.extraMetrics,
+          fan: telemetryState.fan,
+          bubbles: telemetryState.bubbles,
+          moodEmoji: telemetryState.moodEmoji,
+          dialogue: telemetryState.dialogue
+        });
         if (refreshTodos) {
-          await this.loadTodos(selectedLogicalKey);
+          await this.loadTodos(deviceState.selectedLogicalKey);
         }
 
         const offlineAlerts = alertService.checkDeviceOffline(raw);
@@ -295,8 +224,8 @@ Page({
       this.setData({
         devices: [],
         selectedLogicalKey: '',
-        plantName: '未选择设备',
-        plantMeta: '未设置植物种类与地点',
+        plantName: '请选择设备',
+        plantMeta: '未设置植物类型和位置',
         todos: [],
         hasDevices: false
       });
@@ -334,7 +263,7 @@ Page({
       sensors: cloneSensors(),
       extraMetrics: cloneExtra(),
       bubbles: [],
-      moodEmoji: '😊'
+      moodEmoji: '\u{1F642}'
     });
   },
 
@@ -356,184 +285,27 @@ Page({
   },
 
   applyLatestParams(deviceRows, selectedLogicalKey = '') {
-    if (!Array.isArray(deviceRows) || deviceRows.length === 0) {
+    const telemetryState = buildTelemetryState(deviceRows, selectedLogicalKey, {
+      formatTs: (ts) => this.formatTs(ts),
+      isDeviceOffline: (item) => alertService.isDeviceOffline(item),
+      computeBubbles,
+      computeMoodEmoji
+    });
+
+    if (telemetryState.shouldReset) {
       this.resetTelemetryDefaults();
       this.resetDeviceControlDefaults();
       return;
     }
 
-    const selected =
-      deviceRows.find((item) => item && item.logicalKey === selectedLogicalKey) ||
-      deviceRows.find((item) => item && !alertService.isDeviceOffline(item) && item.params) ||
-      deviceRows[0];
-
-    const params = selected && selected.params ? selected.params : {};
-
-    const getNode = (keys) => {
-      for (const key of keys) {
-        const node = params[key];
-        if (
-          node &&
-          typeof node === 'object' &&
-          node.value !== undefined &&
-          node.value !== null &&
-          node.value !== ''
-        ) {
-          return node;
-        }
-      }
-      return null;
-    };
-
-    const getBooleanValue = (node) => {
-      if (typeof node === 'boolean') return node;
-      if (node && typeof node === 'object' && typeof node.value === 'boolean') {
-        return node.value;
-      }
-      return null;
-    };
-
-    const getNodeTime = (node) => {
-      if (node && typeof node === 'object' && node.time) {
-        return this.formatTs(node.time);
-      }
-      return null;
-    };
-
-    const tempNode = getNode(['dht_temp', 'temp', 'temperature', 'air_temp']);
-    const humidityNode = getNode(['dht_humi', 'humidity', 'air_humidity']);
-    const lightNode = getNode(['light_val', 'light', 'illuminance', 'lux']);
-    const soilNode = getNode(['soil_percent', 'soil', 'soil_moisture']);
-    const uidNode = getNode(['uid']);
-    const dsbTempNode = getNode(['dsb_temp']);
-    const runStateNode = params.run_state || null;
-    const irStatusNode = params.ir_status || null;
-    const isDeadNode = params.is_dead || null;
-    const favorabilityNode = getNode(['favorability', 'favor', 'affinity', 'likability', 'haogandu']);
-    const personalityNode = getNode(['plant_personality', 'personality', 'character']);
-    const plantTypeNode = getNode(['plant_type', 'ptype']);
-    const fanNode = params.fan_switch || params.test || null;
-
-    const sensors = cloneSensors();
-    const extraMetrics = cloneExtra();
-    extraMetrics.reportedPlantType = selected?.plantType || selected?.plant?.name || '--';
-
-    if (tempNode) sensors.temp.value = String(tempNode.value);
-    if (humidityNode) sensors.humidity.value = String(humidityNode.value);
-    if (lightNode) sensors.light.value = String(lightNode.value);
-    if (soilNode) sensors.soil.value = String(soilNode.value);
-    if (uidNode) extraMetrics.uid = String(uidNode.value);
-    if (dsbTempNode) extraMetrics.dsbTemp = String(dsbTempNode.value);
-    const runStateValue = getBooleanValue(runStateNode);
-    const irStatusValue = getBooleanValue(irStatusNode);
-    const isDeadValue = normalizeBooleanMetric(isDeadNode && typeof isDeadNode === 'object' ? isDeadNode.value : isDeadNode);
-    if (runStateValue !== null) extraMetrics.runState = runStateValue;
-    if (irStatusValue !== null) {
-      extraMetrics.irStatus = irStatusValue;
-      extraMetrics.soulState = formatSoulStateByIr(irStatusValue);
-    }
-    if (isDeadValue !== null) extraMetrics.isDead = isDeadValue;
-    if (favorabilityNode) extraMetrics.favorability = normalizeDisplayMetric(favorabilityNode.value);
-    if (personalityNode) extraMetrics.personality = normalizeDisplayMetric(personalityNode.value);
-    if (plantTypeNode) extraMetrics.reportedPlantType = normalizeDisplayMetric(plantTypeNode.value);
-    extraMetrics.updatedAt = selected && selected.updatedAt ? this.formatTs(selected.updatedAt) : '--';
-
-    const fanReportedState = getBooleanValue(fanNode);
-    const fanTime = getNodeTime(fanNode) || extraMetrics.updatedAt;
-    const fan = {
-      ...DEFAULT_FAN,
-      isOn: fanReportedState === true,
-      pending: false,
-      hasReportedState: fanReportedState !== null,
-      statusText: fanReportedState === null ? '暂无上报' : (fanReportedState ? '已开启' : '已关闭'),
-      hintText: fanReportedState === null ? '等待设备上报风扇状态' : `最近同步 ${fanTime}`
-    };
-
-    const latestSensors = {
-      temp: { value: sensors.temp.value },
-      humidity: { value: sensors.humidity.value },
-      light: { value: sensors.light.value },
-      soil: { value: sensors.soil.value }
-    };
-    const bubbles = computeBubbles(latestSensors);
-    const moodEmoji = computeMoodEmoji(latestSensors, extraMetrics);
-    const warningBubble = bubbles.find((item) => item.type === 'warning');
-    const dialogue = warningBubble
-      ? `主人，${warningBubble.text}，请及时处理哦`
-      : '主人，我现在状态很好，继续保持哦。';
-
-    const resolvedFan = fanReportedState === null && this.data && this.data.fan && this.data.fan.hasReportedState
-      ? {
-          ...this.data.fan,
-          pending: false,
-          hintText: '命令已发送，等待设备状态同步'
-        }
-      : fan;
-
     this.setData({
-      sensors,
-      extraMetrics,
-      fan: resolvedFan,
-      bubbles,
-      moodEmoji,
-      dialogue
+      sensors: telemetryState.sensors,
+      extraMetrics: telemetryState.extraMetrics,
+      fan: telemetryState.fan,
+      bubbles: telemetryState.bubbles,
+      moodEmoji: telemetryState.moodEmoji,
+      dialogue: telemetryState.dialogue
     });
-  },
-
-  addTodo() {
-    if (!this.data.selectedLogicalKey) {
-      wx.showToast({ title: '请先选择设备', icon: 'none' });
-      return;
-    }
-
-    wx.showModal({
-      title: '添加待办',
-      editable: true,
-      placeholderText: '请输入任务内容',
-      success: async (res) => {
-        if (!res.confirm || !res.content) return;
-        try {
-          await todoService.addTodo(res.content.trim(), this.data.selectedLogicalKey);
-          await this.loadTodos(this.data.selectedLogicalKey);
-          wx.showToast({ title: '添加成功', icon: 'success' });
-        } catch (error) {
-          console.error('[index] addTodo error:', error);
-          wx.showToast({ title: '添加失败', icon: 'none' });
-        }
-      }
-    });
-  },
-
-  async onTaskDone(e) {
-    const id = e.currentTarget.dataset.id;
-    const todo = this.data.todos.find((item) => item._id === id || item.id === id);
-    if (!todo) return;
-
-    try {
-      if (todo._id) {
-        await todoService.completeTodo(todo._id, todo.logicalKey || this.data.selectedLogicalKey);
-      }
-      await this.loadTodos(this.data.selectedLogicalKey);
-      wx.showToast({ title: '任务已完成', icon: 'success' });
-    } catch (error) {
-      console.error('[index] onTaskDone error:', error);
-      wx.showToast({ title: '操作失败', icon: 'none' });
-    }
-  },
-
-  async toggleUrgency(e) {
-    const id = e.currentTarget.dataset.id;
-    const todo = this.data.todos.find((item) => item._id === id || item.id === id);
-    if (!todo || !todo._id) return;
-
-    try {
-      await todoService.toggleUrgency(todo, todo.logicalKey || this.data.selectedLogicalKey);
-      await this.loadTodos(this.data.selectedLogicalKey);
-      wx.showToast({ title: '优先级已更新', icon: 'none' });
-    } catch (error) {
-      console.error('[index] toggleUrgency error:', error);
-      wx.showToast({ title: '操作失败', icon: 'none' });
-    }
   },
 
   switchDevice(e) {
@@ -548,14 +320,13 @@ Page({
     this.setData({
       devices,
       selectedLogicalKey,
-      plantName: selected ? selected.name : '未选择设备',
-      plantMeta: selected ? selected.summary : '未设置植物种类与地点'
+      plantName: selected ? selected.name : '请选择设备',
+      plantMeta: selected ? selected.summary : '未设置植物类型和位置'
     });
 
     this.applyLatestParams(this._deviceRows, selectedLogicalKey);
     this.loadTodos(selectedLogicalKey);
   },
-
   openDeviceDetail(e) {
     const index = Number(e.currentTarget.dataset.index || 0);
     const selected = this.data.devices[index] || null;
@@ -582,7 +353,7 @@ Page({
     if (!this.checkLoginStatus()) return;
     await this.loadDevices();
     wx.showToast({
-      title: '设备状态已刷新',
+      title: '璁惧鐘舵€佸凡鍒锋柊',
       icon: 'none',
       duration: 1800
     });
@@ -606,13 +377,13 @@ Page({
     const targetState = !this.data.fan.isOn;
     this.setData({
       'fan.pending': true,
-      'fan.statusText': targetState ? '开启中...' : '关闭中...',
-      'fan.hintText': '命令已发出，等待设备上报确认'
+      'fan.statusText': targetState ? '正在开启...' : '正在关闭...',
+      'fan.hintText': '指令已发出，等待设备上报确认'
     });
 
     try {
       const result = await deviceService.sendDeviceCmd(logicalKey, {
-        test: targetState
+        action: targetState ? 'fan.on' : 'fan.off'
       });
 
       if (!result || result.success === false) {
@@ -625,8 +396,8 @@ Page({
       });
       this.setData({
         'fan.pending': false,
-        'fan.statusText': 'Command sent, waiting for device ack',
-        'fan.hintText': 'State will update after the device reports back'
+        'fan.statusText': '命令已发送，等待设备确认',
+        'fan.hintText': '设备上报后状态会自动更新'
       });
 
       setTimeout(() => {

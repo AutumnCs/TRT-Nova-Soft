@@ -3,34 +3,92 @@ const path = require('path');
 
 const rootDir = path.resolve(__dirname, '..');
 const distRoot = path.join(rootDir, 'dist', 'scf');
+const knowledgeSeedPath = path.join(rootDir, 'data', 'knowledge', 'articles.json');
 
 const packages = [
   {
     name: 'auth-scf',
-    source: path.join(rootDir, 'reference', 'authScf.example.js'),
-    env: path.join(rootDir, 'reference', 'authScf.env.example'),
+    description: 'WeChat login -> openid -> JWT token',
+    envLines: [
+      '# WeChat login and JWT settings',
+      'DB_HOST=',
+      'DB_PORT=3306',
+      'DB_NAME=',
+      'DB_USER=',
+      'DB_PASSWORD=',
+      'JWT_SECRET='
+    ],
     dependencies: {
       mysql2: '^3.14.0'
-    },
-    description: 'WeChat login -> openid -> JWT token'
+    }
   },
   {
     name: 'api-scf',
-    source: path.join(rootDir, 'reference', 'scfApi.example.js'),
-    env: path.join(rootDir, 'reference', 'apiScf.env.example'),
+    description: 'Mini program API -> MySQL',
+    envLines: [
+      '# Mini program API settings',
+      'DB_HOST=',
+      'DB_PORT=3306',
+      'DB_NAME=',
+      'DB_USER=',
+      'DB_PASSWORD=',
+      'JWT_SECRET=',
+      'ONENET_PRODUCT_ACCESS_KEY=',
+      'EMQX_PUBLISH_URL='
+    ],
     dependencies: {
       mysql2: '^3.14.0'
-    },
-    description: 'Mini program API -> MySQL'
+    }
   },
   {
     name: 'ingest-scf',
-    source: path.join(rootDir, 'reference', 'ingestScf.lightdb.example.js'),
-    env: path.join(rootDir, 'reference', 'ingestScf.env.example'),
+    description: 'OneNET webhook -> MySQL',
+    envLines: [
+      '# Ingest SCF settings',
+      'DB_HOST=',
+      'DB_PORT=3306',
+      'DB_NAME=',
+      'DB_USER=',
+      'DB_PASSWORD=',
+      'ONENET_ACCESS_KEY='
+    ],
     dependencies: {
       mysql2: '^3.14.0'
-    },
-    description: 'OneNET webhook -> MySQL'
+    }
+  },
+  {
+    name: 'agent-scf',
+    description: 'Plant care chat backend with lightweight knowledge retrieval',
+    envLines: [
+      '# Agent SCF settings',
+      'DB_HOST=',
+      'DB_PORT=3306',
+      'DB_NAME=',
+      'DB_USER=',
+      'DB_PASSWORD=',
+      'LLM_API_ENABLED=false',
+      'LLM_API_BASE_URL=',
+      'LLM_API_KEY=',
+      'LLM_MODEL='
+    ],
+    dependencies: {
+      mysql2: '^3.14.0'
+    }
+  },
+  {
+    name: 'history-cleanup-scf',
+    description: 'History aggregation and cleanup tasks',
+    envLines: [
+      '# History cleanup SCF settings',
+      'DB_HOST=',
+      'DB_PORT=3306',
+      'DB_NAME=',
+      'DB_USER=',
+      'DB_PASSWORD='
+    ],
+    dependencies: {
+      mysql2: '^3.14.0'
+    }
   }
 ];
 
@@ -56,21 +114,25 @@ function writeReadme(pkg) {
     '',
     '## Deploy',
     '',
-    '1. Run `npm install` in this folder',
+    '1. Run `npm install` in this folder if the SCF runtime needs dependencies',
     '2. Fill the SCF environment variables in Tencent Cloud console',
     '3. Upload this folder to SCF and set handler to `index.main` or `index.main_handler`',
     ''
   ].join('\n');
 }
 
-function copyPackage(pkg) {
-  const targetDir = path.join(distRoot, pkg.name);
-  ensureDir(targetDir);
+function writeFileIfMissing(filePath, content) {
+  if (fs.existsSync(filePath)) return;
+  fs.writeFileSync(filePath, content, 'utf8');
+}
 
-  fs.copyFileSync(pkg.source, path.join(targetDir, 'index.js'));
-  fs.copyFileSync(pkg.env, path.join(targetDir, '.env.example'));
+function ensurePackageManifest(pkg, targetDir) {
+  const packageJsonPath = path.join(targetDir, 'package.json');
+  if (fs.existsSync(packageJsonPath)) {
+    return;
+  }
 
-  writeJson(path.join(targetDir, 'package.json'), {
+  writeJson(packageJsonPath, {
     name: `trt-nova-${pkg.name}`,
     version: '0.1.0',
     private: true,
@@ -78,19 +140,54 @@ function copyPackage(pkg) {
     license: 'UNLICENSED',
     dependencies: pkg.dependencies
   });
+}
 
-  fs.writeFileSync(
-    path.join(targetDir, 'README.md'),
-    `${writeReadme(pkg)}\n`,
-    'utf8'
-  );
+function ensureEnvExample(pkg, targetDir) {
+  const envPath = path.join(targetDir, '.env.example');
+  writeFileIfMissing(envPath, `${pkg.envLines.join('\n')}\n`);
+}
+
+function ensureReadme(pkg, targetDir) {
+  const readmePath = path.join(targetDir, 'README.md');
+  writeFileIfMissing(readmePath, `${writeReadme(pkg)}\n`);
+}
+
+function copyFileIfExists(sourcePath, targetPath) {
+  if (!fs.existsSync(sourcePath)) return false;
+  ensureDir(path.dirname(targetPath));
+  fs.copyFileSync(sourcePath, targetPath);
+  return true;
+}
+
+function copyKnowledgeSeed(pkg, targetDir) {
+  if (!['api-scf', 'agent-scf'].includes(pkg.name)) return;
+  const targetPath = path.join(targetDir, 'data', 'knowledge', 'articles.json');
+  if (!copyFileIfExists(knowledgeSeedPath, targetPath)) {
+    console.warn(`Knowledge seed not found, skipped: ${knowledgeSeedPath}`);
+  }
+}
+
+function validateIndexJs(targetDir, pkg) {
+  const indexPath = path.join(targetDir, 'index.js');
+  if (!fs.existsSync(indexPath)) {
+    throw new Error(`Missing index.js for ${pkg.name} at ${indexPath}`);
+  }
 }
 
 function main() {
   ensureDir(distRoot);
-  packages.forEach(copyPackage);
 
-  console.log('SCF deploy packages generated:');
+  packages.forEach((pkg) => {
+    const targetDir = path.join(distRoot, pkg.name);
+    ensureDir(targetDir);
+    validateIndexJs(targetDir, pkg);
+    ensurePackageManifest(pkg, targetDir);
+    ensureEnvExample(pkg, targetDir);
+    ensureReadme(pkg, targetDir);
+    copyKnowledgeSeed(pkg, targetDir);
+  });
+
+  console.log('SCF package directories verified:');
   packages.forEach((pkg) => {
     console.log(`- dist/scf/${pkg.name}`);
   });

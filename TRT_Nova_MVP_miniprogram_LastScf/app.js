@@ -106,7 +106,7 @@ App({
       return;
     }
 
-    wx.redirectTo({
+    wx.reLaunch({
       url: '/pages/auth/auth'
     });
   }

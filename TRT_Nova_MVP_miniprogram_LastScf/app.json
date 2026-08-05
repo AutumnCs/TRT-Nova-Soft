@@ -9,6 +9,7 @@
     "pages/auth/auth",
     "pages/profileEdit/profileEdit",
     "pages/wiki/wiki",
+    "pages/wikiDetail/wikiDetail",
     "pages/plantJournal/plantJournal",
     "pages/profile/profile",
     "pages/about/about"
@@ -36,7 +37,7 @@
       },
       {
         "pagePath": "pages/wiki/wiki",
-        "text": "植物库"
+        "text": "知识库"
       },
       {
         "pagePath": "pages/profile/profile",

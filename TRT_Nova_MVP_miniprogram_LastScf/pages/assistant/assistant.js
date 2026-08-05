@@ -24,19 +24,20 @@ Page({
     devices: [],
     selectedLogicalKey: '',
     selectedDeviceName: '未选择设备',
+    knowledgeContext: null,
     scrollAnchor: '',
     welcomePrompts: [
       '我的植物现在状态怎么样？',
       '我现在要不要浇水？',
       '最近湿度变化如何？',
-      '帮我看下这台设备有没有异常'
+      '帮我看看这台设备有没有异常'
     ],
     messages: [
       {
         id: 'welcome-1',
         role: 'assistant',
         text: '你好，我是 TRT Nova 植物养护助手，可以帮你查看植物状态、分析浇水与光照建议，并解答养护问题。',
-        summary: '我会优先结合你当前设备的数据来回答。',
+        summary: '我会优先结合你当前设备的数据和知识库内容来回答。',
         suggestions: ['我的植物现在状态怎么样？', '我现在要不要浇水？', '最近湿度变化如何？'],
         timeLabel: ''
       }
@@ -48,6 +49,7 @@ Page({
       statusBarHeight: getStatusBarHeight(),
       headerTopGap: 18
     });
+    this.hydrateKnowledgeContext();
     this.checkLoginStatus();
   },
 
@@ -55,8 +57,22 @@ Page({
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });
     }
+    this.hydrateKnowledgeContext();
     if (!this.checkLoginStatus()) return;
     this.loadDevices();
+  },
+
+  hydrateKnowledgeContext() {
+    const context = wx.getStorageSync('nvp_pending_assistant_context');
+    if (context && typeof context === 'object' && context.title) {
+      this.setData({ knowledgeContext: context });
+      wx.removeStorageSync('nvp_pending_assistant_context');
+      return;
+    }
+
+    if (!context) {
+      this.setData({ knowledgeContext: null });
+    }
   },
 
   checkLoginStatus() {
@@ -118,7 +134,7 @@ Page({
   onQuickQuestionTap(e) {
     const text = e.currentTarget.dataset.text || '';
     if (!text) return;
-    this.setData({ inputValue: text });
+    this.setData({ inputValue: text, canSend: Boolean(String(text).trim()) });
     this.sendMessage();
   },
 
@@ -161,7 +177,8 @@ Page({
         message: text,
         context: {
           page: 'assistant',
-          deviceName: this.data.selectedDeviceName
+          deviceName: this.data.selectedDeviceName,
+          knowledgeContext: this.data.knowledgeContext || null
         },
         options: {
           includeHistory: true,
@@ -194,8 +211,8 @@ Page({
     return {
       id: `assistant-${Date.now()}`,
       role: 'assistant',
-      text: [summary, diagnosis].filter(Boolean).join('\n\n') || '我已经收到你的问题，不过当前后端还没有返回完整回答。',
-      summary: [facts.length ? `依据：${facts.slice(0, 3).join('，')}` : '', disclaimer].filter(Boolean).join('\n'),
+      text: [summary, diagnosis].filter(Boolean).join('\n\n') || '我已经收到你的问题，不过当前后端还没有返回完整答案。',
+      summary: [facts.length ? `依据：${facts.slice(0, 3).join('；')}` : '', disclaimer].filter(Boolean).join('\n'),
       suggestions: suggestions.slice(0, 3),
       timeLabel: this.formatTimeLabel(Date.now()),
       loading: false
@@ -210,9 +227,9 @@ Page({
       id: `assistant-fallback-${Date.now()}`,
       role: 'assistant',
       text: isRouteMissing
-        ? '养护助手的聊天界面已经接好了，但后端 `/agent/chat` 还没上线，所以暂时不能返回真正的 Agent 答案。等你把 Agent 接口接通后，这里就会直接开始对话。'
+        ? '助手聊天界面已经连上了，但后端 `/agent/chat` 还没可用，所以现在只能显示前端兜底提示。等 Agent 接口上线后，这里就会返回真正的对话结果。'
         : `这次对话暂时没有成功返回结果。${message || '请稍后再试。'}`,
-      summary: isRouteMissing ? '当前状态：前端已接入，后端接口待实现。' : '',
+      summary: isRouteMissing ? '当前状态：前端已接入，后端接口待完善。' : '',
       suggestions: isRouteMissing
         ? ['我的植物现在状态怎么样？', '我现在要不要浇水？', '最近湿度变化如何？']
         : ['稍后重试', '检查登录状态', '确认 Agent 接口是否可用'],

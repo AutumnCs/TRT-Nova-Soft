@@ -10,6 +10,12 @@
  * - POST /device/cmd
  * - GET /user/profile
  * - POST /user/profile
+ * - GET /knowledge/categories
+ * - POST /knowledge/articles
+ * - POST /knowledge/article
+ * - POST /knowledge/search
+ * - POST /knowledge/recommend
+ * - POST /knowledge/context
  * - POST /journal/month
  * - POST /journal/day
  * - POST /journal/add
@@ -21,6 +27,20 @@
  */
 
 const crypto = require('crypto');
+const {
+  resolveAuthenticatedOpenid
+} = require('./lib/security');
+const {
+  resolveDeviceCommandRequest
+} = require('./lib/device-command');
+const {
+  listKnowledgeCategories,
+  listKnowledgeArticles,
+  getKnowledgeArticle,
+  searchKnowledgeArticles,
+  recommendKnowledgeArticles,
+  buildKnowledgeContext
+} = require('./knowledge');
 
 let pool;
 
@@ -285,26 +305,12 @@ function resolveAuthorizationOpenid(event) {
 }
 
 function resolveOpenid(event, body) {
-  const authOpenid = resolveAuthorizationOpenid(event);
-  if (authOpenid) {
-    return authOpenid;
-  }
-
-  const headers = getHeaders(event);
-  const headerOpenid =
-    headers['x-wx-openid'] ||
-    headers['X-WX-OPENID'] ||
-    headers['x-openid'] ||
-    headers['X-OPENID'];
-
-  const bodyOpenid = body?.openid || '';
-  const openid = headerOpenid || bodyOpenid;
-
-  if (!openid) {
-    throw new Error('Missing openid or bearer token');
-  }
-
-  return String(openid).trim();
+  return resolveAuthenticatedOpenid({
+    headers: getHeaders(event),
+    body,
+    jwtSecret: process.env.JWT_SECRET || '',
+    allowLegacyOpenidFallback: String(process.env.ALLOW_LEGACY_OPENID_FALLBACK || '').trim() === '1'
+  });
 }
 
 function mapUserRow(row = {}) {
@@ -1567,6 +1573,106 @@ async function resolveCommandProvider(db, logicalKey, preferredProvider = '') {
   return normalizeProvider(process.env.DEVICE_CMD_PROVIDER_DEFAULT || 'onenet') || 'onenet';
 }
 
+async function sendDeviceCmdForUserV2(db, openid, input) {
+  const resolved = resolveDeviceCommandRequest(input);
+  if (!resolved.ok) {
+    return { success: false, msg: resolved.msg };
+  }
+
+  const { logicalKey, action, params } = resolved;
+
+  const [aclRows] = await db.execute(
+    `SELECT id FROM device_acl WHERE openid = ? AND logical_key = ? AND status = 'active' LIMIT 1`,
+    [openid, logicalKey]
+  );
+  if (!aclRows.length) {
+    return { success: false, msg: 'Permission denied for this device' };
+  }
+
+  const [deviceRows] = await db.execute(
+    `SELECT product_id, device_name FROM devices WHERE logical_key = ? LIMIT 1`,
+    [logicalKey]
+  );
+  if (!deviceRows.length) {
+    return { success: false, msg: 'Device not found' };
+  }
+
+  const { product_id: productId, device_name: deviceName } = deviceRows[0];
+  if (!productId || !deviceName) {
+    return { success: false, msg: 'Device missing productId or deviceName' };
+  }
+
+  const provider = await resolveCommandProvider(db, logicalKey, input?.provider || input?.transport || '');
+
+  if (provider === 'emqx') {
+    const topic = buildEmqxCommandTopic(logicalKey, productId, deviceName);
+    const emqxResp = await callEmqxPublishCommand({
+      topic,
+      logicalKey,
+      productId,
+      deviceName,
+      action,
+      params
+    });
+
+    if (Number(emqxResp.httpStatus) < 200 || Number(emqxResp.httpStatus) >= 300) {
+      return {
+        success: false,
+        provider,
+        msg: emqxResp.message || emqxResp.msg || 'EMQX publish error',
+        logicalKey,
+        action,
+        productId,
+        deviceName,
+        commandTopic: topic,
+        sentParams: params,
+        emqxResp
+      };
+    }
+
+    return {
+      success: true,
+      provider,
+      logicalKey,
+      action,
+      productId,
+      deviceName,
+      commandTopic: topic,
+      sentParams: params,
+      emqxResp
+    };
+  }
+
+  const oneNetResp = await callOneNetSetProperty(productId, deviceName, params);
+
+  if (oneNetResp.code !== 0) {
+    return {
+      success: false,
+      provider: 'onenet',
+      msg: oneNetResp.msg || 'OneNET error',
+      logicalKey,
+      action,
+      productId,
+      deviceName,
+      sentParams: params,
+      authInfo: oneNetResp._authInfo || null,
+      oneNetResp
+    };
+  }
+
+  return {
+    success: true,
+    provider: 'onenet',
+    logicalKey,
+    action,
+    productId,
+    deviceName,
+    sentParams: params,
+    authInfo: oneNetResp._authInfo || null,
+    oneNetResp
+  };
+}
+
 async function sendDeviceCmdForUser(db, openid, input) {
   const logicalKey = normalizeLogicalKey(input?.logicalKey);
   const resolved = resolveCommandParams(input);
@@ -1703,7 +1809,31 @@ exports.main = async (event) => {
     }
 
     if (method === 'POST' && path.endsWith('/device/cmd')) {
-      return json(200, await sendDeviceCmdForUser(db, openid, body));
+      return json(200, await sendDeviceCmdForUserV2(db, openid, body));
+    }
+
+    if (method === 'GET' && path.endsWith('/knowledge/categories')) {
+      return json(200, await listKnowledgeCategories(db));
+    }
+
+    if (method === 'POST' && path.endsWith('/knowledge/articles')) {
+      return json(200, await listKnowledgeArticles(db, body));
+    }
+
+    if (method === 'POST' && path.endsWith('/knowledge/article')) {
+      return json(200, await getKnowledgeArticle(db, body));
+    }
+
+    if (method === 'POST' && path.endsWith('/knowledge/search')) {
+      return json(200, await searchKnowledgeArticles(db, body));
+    }
+
+    if (method === 'POST' && path.endsWith('/knowledge/recommend')) {
+      return json(200, await recommendKnowledgeArticles(db, body));
+    }
+
+    if (method === 'POST' && path.endsWith('/knowledge/context')) {
+      return json(200, await buildKnowledgeContext(db, body));
     }
 
     if (method === 'POST' && path.endsWith('/todo/list')) {
@@ -1764,7 +1894,9 @@ exports.main = async (event) => {
       stack: err.stack,
       path
     });
-    return json(500, {
+    const authMessage = String(err?.message || '');
+    const isAuthError = /Missing bearer token|Missing openid or bearer token|Invalid token format|Invalid token signature|Token expired/i.test(authMessage);
+    return json(isAuthError ? 401 : 500, {
       success: false,
       msg: err.message || 'Internal Server Error'
     });

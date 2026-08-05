@@ -1,14 +1,14 @@
 const app = getApp();
+const knowledgeService = require('../../services/modules/KnowledgeService');
 const plantService = require('../../services/modules/PlantService');
-const todoService = require('../../services/modules/TodoService');
 
-function sortPlantsWithFavorites(plants) {
-  const source = Array.isArray(plants) ? plants : [];
-  return [
-    ...source.filter((item) => item.isFavorite),
-    ...source.filter((item) => !item.isFavorite)
-  ];
-}
+const CATEGORY_LABELS = {
+  all: '全部',
+  'plant-care': '养护知识',
+  'device-protocol': '字段解释',
+  'system-rule': '系统规则',
+  'usage-guide': '使用指南'
+};
 
 function getStatusBarHeight() {
   if (typeof wx.getWindowInfo === 'function') {
@@ -17,55 +17,51 @@ function getStatusBarHeight() {
   return wx.getSystemInfoSync().statusBarHeight || 20;
 }
 
+function countMap(items = []) {
+  const map = new Map();
+  (Array.isArray(items) ? items : []).forEach((item) => {
+    const key = String(item || '').trim();
+    if (!key) return;
+    map.set(key, (map.get(key) || 0) + 1);
+  });
+  return map;
+}
+
+function containsKeyword(parts = [], keyword = '') {
+  const text = String(keyword || '').trim().toLowerCase();
+  if (!text) return true;
+  return parts.some((item) => String(item || '').toLowerCase().includes(text));
+}
+
 Page({
   data: {
     statusBarHeight: 20,
-    detailNavPaddingTop: 40,
+    currentMode: 'articles',
+    loading: false,
+    plantLoading: false,
+    hasLoaded: false,
+    articles: [],
+    filteredArticles: [],
     plants: [],
     filteredPlants: [],
-    activeCategory: 'all',
     searchKeyword: '',
-    showDetail: false,
-    currentPlant: null,
-    showMore: false,
-    loading: false,
-    hasLoadedPlants: false,
-    calendarYear: '',
-    calendarMonth: '',
-    calendarDay: '',
-    calendarTodayPlant: ''
+    countText: '0 篇文章',
+    searchPlaceholder: '搜索养护、字段、规则、问题',
+    activeCategory: 'all',
+    categories: [{ value: 'all', label: '全部' }],
+    stats: {
+      articleCount: 0,
+      categoryCount: 0,
+      tagCount: 0
+    },
+    plantStats: {
+      count: 0
+    }
   },
 
-  onLoad(_options) {
-    const statusBarHeight = getStatusBarHeight();
-    const menuBtn = wx.getMenuButtonBoundingClientRect();
-    // 胶囊底部到页面顶部的距离，再加 8px 间隔，确保按钮不被遮挡
-    const detailNavPaddingTop = menuBtn && menuBtn.bottom
-      ? menuBtn.bottom - statusBarHeight + 8
-      : 40;
-    this.setData({ statusBarHeight, detailNavPaddingTop });
-    this.initCalendar();
+  onLoad() {
+    this.setData({ statusBarHeight: getStatusBarHeight() });
     this.checkLoginStatus();
-  },
-
-  initCalendar() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    const day = now.getDate();
-    const monthlyPlants = [
-      '水仙', '梅花', '郁金香', '牡丹', '月季',
-      '栀子花', '荷花', '茉莉', '桂花', '菊花',
-      '山茶花', '腊梅'
-    ];
-    const todayPlant = monthlyPlants[(month - 1) % monthlyPlants.length];
-
-    this.setData({
-      calendarYear: year,
-      calendarMonth: month,
-      calendarDay: day,
-      calendarTodayPlant: todayPlant
-    });
   },
 
   onShow() {
@@ -73,192 +69,184 @@ Page({
       this.getTabBar().setData({ selected: 2 });
     }
     if (!this.checkLoginStatus()) return;
-    this.hydratePlantsFromCache();
-    this.loadPlants();
+    this.data.currentMode === 'plants' ? this.loadPlants() : this.loadKnowledge();
   },
 
   checkLoginStatus() {
     app.checkLoginStatus();
-    const { hasLogin } = app.globalData;
-    if (!hasLogin) {
-      setTimeout(() => {
-        wx.redirectTo({ url: '/pages/auth/auth' });
-      }, 100);
+    if (!app.globalData.hasLogin) {
+      setTimeout(() => app.gotoLoginPage(), 80);
       return false;
     }
     return true;
   },
 
-  hydratePlantsFromCache() {
-    if (this.data.plants.length > 0) return;
-    const cachedPlants = plantService.getCachedPlants();
-    if (!cachedPlants.length) return;
-
-    this.setData({
-      plants: cachedPlants,
-      filteredPlants: this.filterPlantsByOptions(
-        cachedPlants,
-        this.data.searchKeyword,
-        this.data.activeCategory
-      ),
-      loading: false,
-      hasLoadedPlants: true
-    });
+  decorateArticles(articles = []) {
+    return (Array.isArray(articles) ? articles : []).map((item) => ({
+      ...item,
+      displayCategory: CATEGORY_LABELS[item.category] || item.category || '知识文章'
+    }));
   },
 
-  async loadPlants() {
-    const shouldShowSkeleton = !this.data.hasLoadedPlants && this.data.plants.length === 0;
-    if (shouldShowSkeleton) {
+  async loadKnowledge() {
+    if (!this.data.hasLoaded) {
       this.setData({ loading: true });
     }
 
     try {
-      const res = await plantService.getPlants({ useCache: true });
-      const plants = Array.isArray(res?.plants) && res.plants.length
-        ? res.plants
-        : plantService.getFallbackPlants();
+      const res = await knowledgeService.getArticles({ useCache: false });
+      const articles = this.decorateArticles(Array.isArray(res?.articles) ? res.articles : []);
       this.setData({
-        plants,
+        articles,
+        hasLoaded: true,
         loading: false,
-        hasLoadedPlants: true
+        countText: `${articles.length} 篇文章`
       });
+      this.rebuildArticleMeta(articles);
+      this.applyFilters();
     } catch (err) {
-      console.error('[wiki] loadPlants failed, using local fallback:', err);
+      console.error('[wiki] loadKnowledge failed:', err);
       this.setData({
-        plants: plantService.getFallbackPlants(),
+        articles: [],
+        hasLoaded: true,
         loading: false,
-        hasLoadedPlants: true
+        countText: '0 篇文章'
       });
+      this.rebuildArticleMeta([]);
+      this.applyFilters();
+    }
+  },
+
+  async loadPlants() {
+    if (this.data.plants.length > 0) {
+      this.applyFilters();
+      return;
     }
 
-    this.filterPlants();
+    this.setData({ plantLoading: true });
+    try {
+      const res = await plantService.getPlants({ useCache: true });
+      const plants = Array.isArray(res?.plants) ? res.plants : [];
+      this.setData({
+        plants,
+        plantLoading: false,
+        plantStats: { count: plants.length },
+        countText: `${plants.length} 种植物`
+      });
+      this.applyFilters();
+    } catch (err) {
+      console.error('[wiki] loadPlants failed:', err);
+      const plants = plantService.getFallbackPlants();
+      this.setData({
+        plants,
+        plantLoading: false,
+        plantStats: { count: plants.length },
+        countText: `${plants.length} 种植物`
+      });
+      this.applyFilters();
+    }
+  },
+
+  rebuildArticleMeta(articles = []) {
+    const categoryCounts = countMap(articles.map((item) => item.category));
+    const tagCounts = countMap(articles.flatMap((item) => item.tags || []));
+    const categories = ['all'].concat(Array.from(categoryCounts.keys())).map((value) => ({
+      value,
+      label: CATEGORY_LABELS[value] || value
+    }));
+
+    this.setData({
+      categories,
+      stats: {
+        articleCount: articles.length,
+        categoryCount: Math.max(0, categories.length - 1),
+        tagCount: tagCounts.size
+      }
+    });
   },
 
   onSearch(e) {
-    const keyword = String(e.detail.value || '').toLowerCase();
-    this.setData({ searchKeyword: keyword });
-    this.filterPlants();
+    this.setData({ searchKeyword: String(e.detail.value || '').trim() });
+    this.applyFilters();
   },
 
-  switchCategory(e) {
-    const category = e.currentTarget.dataset.category;
-    this.setData({ activeCategory: category });
-    this.filterPlants();
+  clearFilters() {
+    this.setData({
+      searchKeyword: '',
+      activeCategory: 'all'
+    });
+    this.applyFilters();
   },
 
-  filterPlants() {
-    const filtered = this.filterPlantsByOptions(
-      this.data.plants,
-      this.data.searchKeyword,
-      this.data.activeCategory
-    );
-    this.setData({ filteredPlants: filtered });
+  switchToArticles() {
+    this.setData({
+      currentMode: 'articles',
+      searchKeyword: '',
+      activeCategory: 'all',
+      searchPlaceholder: '搜索养护、字段、规则、问题',
+      countText: `${this.data.articles.length} 篇文章`
+    });
+    this.loadKnowledge();
   },
 
-  filterPlantsByOptions(plants, searchKeyword, activeCategory) {
-    let filtered = Array.isArray(plants) ? plants.slice() : [];
+  switchToPlants() {
+    this.setData({
+      currentMode: 'plants',
+      searchKeyword: '',
+      activeCategory: 'all',
+      searchPlaceholder: '搜索植物名称、科属、特征',
+      countText: `${this.data.plants.length} 种植物`
+    });
+    this.loadPlants();
+  },
 
-    if (activeCategory === 'favorites') {
-      filtered = filtered.filter((item) => item.isFavorite);
-    }
+  setCategory(e) {
+    this.setData({ activeCategory: e.currentTarget.dataset.category || 'all' });
+    this.applyFilters();
+  },
 
-    if (searchKeyword) {
-      filtered = filtered.filter((item) =>
-        item.name.toLowerCase().includes(searchKeyword) ||
-        item.family.toLowerCase().includes(searchKeyword) ||
-        item.featureText.toLowerCase().includes(searchKeyword)
+  applyFilters() {
+    const keyword = this.data.searchKeyword;
+
+    if (this.data.currentMode === 'plants') {
+      const filteredPlants = (this.data.plants || []).filter((plant) =>
+        containsKeyword([
+          plant.name,
+          plant.family,
+          plant.scientificName,
+          plant.featureText,
+          plant.description,
+          ...(Array.isArray(plant.tags) ? plant.tags : [])
+        ], keyword)
       );
+      this.setData({ filteredPlants });
+      return;
     }
 
-    return filtered;
+    const filteredArticles = (this.data.articles || []).filter((article) => {
+      if (this.data.activeCategory !== 'all' && article.category !== this.data.activeCategory) {
+        return false;
+      }
+      return containsKeyword([
+        article.title,
+        article.summary,
+        article.content,
+        article.category,
+        ...(Array.isArray(article.tags) ? article.tags : []),
+        ...(Array.isArray(article.aliases) ? article.aliases : []),
+        ...(Array.isArray(article.plantTypes) ? article.plantTypes : []),
+        ...(Array.isArray(article.problemTypes) ? article.problemTypes : [])
+      ], keyword);
+    });
+
+    this.setData({ filteredArticles });
   },
 
-  async toggleFavorite(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.vibrateShort({ type: 'light' });
-
-    try {
-      const res = await plantService.toggleFavorite(id);
-      if (!res?.success) return;
-
-      const plants = sortPlantsWithFavorites(
-        this.data.plants.map((item) =>
-          item.id === id ? { ...item, isFavorite: res.isFavorite } : item
-        )
-      );
-
-      this.setData({ plants });
-      this.filterPlants();
-    } catch (err) {
-      wx.showToast({ title: '操作失败', icon: 'none' });
-    }
-  },
-
-  async toggleDetailFavorite() {
-    const id = this.data.currentPlant?.id;
-    if (!id) return;
-    wx.vibrateShort({ type: 'light' });
-
-    try {
-      const res = await plantService.toggleFavorite(id);
-      if (!res?.success) return;
-
-      const plants = sortPlantsWithFavorites(
-        this.data.plants.map((item) =>
-          item.id === id ? { ...item, isFavorite: res.isFavorite } : item
-        )
-      );
-
-      this.setData({
-        plants,
-        currentPlant: { ...this.data.currentPlant, isFavorite: res.isFavorite }
-      });
-      this.filterPlants();
-    } catch (err) {
-      wx.showToast({ title: '操作失败', icon: 'none' });
-    }
-  },
-
-  showPlantDetail(e) {
-    const id = e.currentTarget.dataset.id;
-    const plant = this.data.plants.find((item) => item.id === id);
-    if (!plant) return;
-
-    wx.vibrateShort({ type: 'light' });
-    this.setData({ showDetail: true, currentPlant: plant, showMore: false });
-  },
-
-  closeDetail() {
-    wx.vibrateShort({ type: 'light' });
-    this.setData({ showDetail: false, currentPlant: null, showMore: false });
-  },
-
-  toggleMore() {
-    this.setData({ showMore: !this.data.showMore });
-  },
-
-  async addReminder() {
-    const plant = this.data.currentPlant;
-    if (!plant) return;
-
-    wx.vibrateShort({ type: 'medium' });
-
-    const waterTip = plant.care?.water ? `浇水：${plant.care.water}` : '定期浇水';
-    const lightTip = plant.care?.light ? `光照：${plant.care.light}` : '注意光照';
-    const content = `【${plant.name}】${waterTip}；${lightTip}`;
-
-    try {
-      await todoService.addTodo(content, 'global');
-      wx.showToast({ title: '已加入养护提醒', icon: 'success' });
-    } catch (err) {
-      console.error('[wiki] addReminder error:', err);
-      wx.showToast({ title: '添加失败，请重试', icon: 'none' });
-    }
-  },
-
-  openPlantJournal() {
+  openArticle(e) {
+    const articleId = e.currentTarget.dataset.id;
+    if (!articleId) return;
     wx.navigateTo({
-      url: '/pages/plantJournal/plantJournal'
+      url: `/pages/wikiDetail/wikiDetail?articleId=${encodeURIComponent(articleId)}`
     });
   }
 });

@@ -12,17 +12,17 @@ Component({
       {
         pagePath: '/pages/assistant/assistant',
         text: '助手',
-        icon: '⌘'
+        icon: '✦'
       },
       {
         pagePath: '/pages/wiki/wiki',
-        text: '植物库',
-        icon: '◫'
+        text: '知识库',
+        icon: '◇'
       },
       {
         pagePath: '/pages/profile/profile',
         text: '我的',
-        icon: '◌'
+        icon: '○'
       }
     ]
   },

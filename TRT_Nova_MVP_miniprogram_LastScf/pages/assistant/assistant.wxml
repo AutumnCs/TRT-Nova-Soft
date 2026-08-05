@@ -39,6 +39,11 @@
         </view>
       </picker>
 
+      <view wx:if="{{knowledgeContext && knowledgeContext.title}}" class="knowledge-context-chip">
+        <text class="knowledge-context-label">当前引用文章</text>
+        <text class="knowledge-context-title">{{knowledgeContext.title}}</text>
+      </view>
+
       <view class="hero-card">
         <view class="hero-avatar-wrap">
           <view class="hero-avatar">🤖</view>

@@ -31,6 +31,22 @@ function deduplicateStrings(items = []) {
   return Array.from(new Set(items.filter(Boolean)));
 }
 
+function buildKnowledgeContextText(article = {}) {
+  const title = String(article?.title || '').trim();
+  if (!title) return '';
+
+  const parts = [
+    `当前引用文章：${title}`,
+    article.summary ? `摘要：${String(article.summary).trim()}` : '',
+    article.content ? `正文：${String(article.content).trim()}` : '',
+    Array.isArray(article.tags) && article.tags.length ? `标签：${article.tags.join('、')}` : '',
+    Array.isArray(article.plantTypes) && article.plantTypes.length ? `适用植物：${article.plantTypes.join('、')}` : '',
+    Array.isArray(article.problemTypes) && article.problemTypes.length ? `相关问题：${article.problemTypes.join('、')}` : ''
+  ].filter(Boolean);
+
+  return parts.join('\n');
+}
+
 function buildLlmResponse(content, intent, safetyMeta, usage = null, sources = []) {
   return {
     success: true,
@@ -91,6 +107,7 @@ async function handleAgentChat(db, openid, body) {
   const logicalKey = normalizeLogicalKey(body?.logicalKey);
   const context = body?.context && typeof body.context === 'object' ? body.context : {};
   const safetyMeta = buildSafetyMeta();
+  const knowledgeContextText = buildKnowledgeContextText(context.knowledgeContext || context.article || {});
 
   if (!message) {
     return {
@@ -112,15 +129,20 @@ async function handleAgentChat(db, openid, body) {
   const knowledgeBundle = await searchKnowledgeBundle(db, {
     query: message,
     plantType: context.plantType || '',
-    plantLibraryId: context.plantLibraryId || 0
+    plantLibraryId: context.plantLibraryId || 0,
+    knowledgeLimit: 3
   });
+  const combinedKnowledgeContextText = [
+    knowledgeContextText,
+    knowledgeBundle.contextText
+  ].filter(Boolean).join('\n\n');
 
   if (!logicalKey) {
     if (!needsDeviceContext(intent)) {
       try {
         const llmResult = await chatWithLlm({
           message,
-          contextText: knowledgeBundle.contextText
+          contextText: combinedKnowledgeContextText
         });
         if (llmResult.enabled && llmResult.content) {
           return buildLlmResponse(
@@ -189,7 +211,8 @@ async function handleAgentChat(db, openid, body) {
   const deviceKnowledgeBundle = await searchKnowledgeBundle(db, {
     query: message,
     plantType: context.plantType || snapshot.plantType || '',
-    plantLibraryId: context.plantLibraryId || snapshot.plantLibraryId || 0
+    plantLibraryId: context.plantLibraryId || snapshot.plantLibraryId || 0,
+    knowledgeLimit: 3
   });
 
   const facts = risk.facts.slice();
