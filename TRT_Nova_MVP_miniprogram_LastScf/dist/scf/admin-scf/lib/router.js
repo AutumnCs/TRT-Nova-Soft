@@ -11,6 +11,18 @@ export function buildShellPayload() {
   };
 }
 
+function getBody(event = {}) {
+  if (event.body && typeof event.body === 'object') return event.body;
+  if (typeof event.body === 'string') {
+    try {
+      return JSON.parse(event.body);
+    } catch {
+      return {};
+    }
+  }
+  return {};
+}
+
 export function createAdminRouter({ auth, knowledge, devices, users, logs }) {
   void knowledge;
   void devices;
@@ -34,6 +46,22 @@ export function createAdminRouter({ auth, knowledge, devices, users, logs }) {
 
       if (path === '/shell' && method === 'GET') {
         return json(200, buildShellPayload());
+      }
+
+      if (path === '/knowledge/articles' && method === 'GET') {
+        return json(200, await knowledge.listArticles({ includeDrafts: true }));
+      }
+
+      if (path === '/knowledge/article' && method === 'GET') {
+        return json(200, await knowledge.getArticle(getBody(event).idOrSlug));
+      }
+
+      if (path === '/knowledge/articles' && method === 'POST') {
+        return json(200, await knowledge.saveArticle(getBody(event)));
+      }
+
+      if (path === '/knowledge/articles' && method === 'DELETE') {
+        return json(200, await knowledge.deleteArticle(getBody(event).idOrSlug));
       }
 
       return http.notFound();
