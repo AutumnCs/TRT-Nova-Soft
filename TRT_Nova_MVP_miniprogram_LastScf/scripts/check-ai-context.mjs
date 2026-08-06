@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const REQUIRED_FILES = [
+const CORE_REQUIRED_FILES = [
   'AGENTS.md',
   'docs/ai-project-map.md',
   'docs/ai-workflow.md',
@@ -24,12 +24,18 @@ const REQUIRED_FILES = [
   'scripts/link-ai-skills.mjs'
 ];
 
+const ADMIN_REQUIRED_FILES = [
+  'AGENTS.md',
+  'admin-web/index.html',
+  'dist/scf/admin-scf/index.js'
+];
+
 export function checkAiContext({ projectRoot = process.cwd() } = {}) {
   const root = resolve(projectRoot);
   const errors = [];
   const warnings = [];
 
-  for (const file of REQUIRED_FILES) {
+  for (const file of getRequiredFiles(root)) {
     if (!existsSync(join(root, file))) {
       errors.push(`missing: ${file}`);
     }
@@ -40,6 +46,32 @@ export function checkAiContext({ projectRoot = process.cwd() } = {}) {
   validateJunctionsExist(root, warnings);
 
   return { errors, warnings };
+}
+
+function getRequiredFiles(root) {
+  if (hasAdminConsoleBoundary(root) && !hasCoreContextSignals(root)) {
+    return ADMIN_REQUIRED_FILES;
+  }
+
+  return CORE_REQUIRED_FILES;
+}
+
+function hasAdminConsoleBoundary(root) {
+  return (
+    existsSync(join(root, 'admin-web')) ||
+    existsSync(join(root, 'admin-web', 'index.html')) ||
+    existsSync(join(root, 'dist', 'scf', 'admin-scf')) ||
+    existsSync(join(root, 'dist', 'scf', 'admin-scf', 'index.js'))
+  );
+}
+
+function hasCoreContextSignals(root) {
+  return CORE_REQUIRED_FILES.some((file) => {
+    if (file === 'AGENTS.md') {
+      return false;
+    }
+    return existsSync(join(root, file));
+  });
 }
 
 function validateJunctionsExist(root, warnings) {

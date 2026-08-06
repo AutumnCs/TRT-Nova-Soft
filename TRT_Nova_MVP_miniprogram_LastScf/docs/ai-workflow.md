@@ -9,6 +9,7 @@
 - Do not change unrelated subsystems while you are here
 - Favor extraction over adding more logic to a large file
 - Keep deployable backend source and app source aligned with the current architecture docs
+- Prefer UTF-8 without BOM for repo docs and source files, avoid paste-induced mojibake, and read back any Chinese text edits in the same toolchain before finishing
 
 ### Default Scope
 
@@ -50,6 +51,18 @@ Typical backend verification:
 - `node --check` on the changed entry file
 - focused `node --test` for the helper logic
 - a live request if the route is externally observable
+
+### Admin control plane
+
+Use these patterns:
+- `admin-web/` owns the admin console UI only
+- `dist/scf/admin-scf/` owns admin-only HTTP APIs, validation, persistence, and audit logging
+- shared business logic that must serve both the mini program and admin console should stay in `services/modules/*`
+
+Keep the boundary crisp:
+- the admin console is the TRT Nova control plane, not a second product
+- admin flows manage business data and operational views, not OneNET / EMQX transport infrastructure
+- device commands still stay action-based and flow through validated backend paths
 
 ### Shared services
 

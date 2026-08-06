@@ -28,12 +28,14 @@ Keep repo facts, workflow rules, and safety boundaries separate. Use the project
 ## Working Rules
 
 - Prefer the smallest file that owns the behavior.
+- Treat `admin-web/` and `dist/scf/admin-scf/` as the admin console control plane boundary: `admin-web/` owns the management UI, and `dist/scf/admin-scf/` owns admin-only APIs.
 - Treat `dist/scf/*` as deployable backend source, not disposable build output.
 - Treat `data/knowledge/articles.json` as seed or fallback data, not the long-term editorial system.
 - Keep identity strict: WeChat login -> SCF auth -> JWT.
 - Keep device commands action-based, such as `fan.on` and `fan.off`.
 - Treat `emotional_chat_fullsrc/`, `flutter_app/`, and `i18n/` as out of scope unless the user explicitly asks to work on them.
 - Do not scan or edit sibling projects unless the user explicitly puts them in scope.
+- Prefer UTF-8 without BOM for repo docs and source files, avoid paste-induced mojibake, and read back any Chinese text edits in the same toolchain before finishing.
 
 ## Maintenance Loop
 

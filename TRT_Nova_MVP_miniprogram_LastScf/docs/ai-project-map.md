@@ -15,6 +15,7 @@ The current production-style flow is:
 - Device telemetry -> `ingest-scf` -> MySQL
 - Mini program auth -> `auth-scf` -> JWT
 - Mini program API -> `api-scf` -> MySQL / OneNET
+- Admin console -> `admin-scf` -> MySQL / operational data
 
 ## 2. Read This First
 
@@ -46,8 +47,16 @@ These files own page behavior and UI state. Prefer extracting helper logic into 
 - `dist/scf/ingest-scf/index.js`
 - `dist/scf/agent-scf/index.js`
 - `dist/scf/history-cleanup-scf/index.js`
+- `dist/scf/admin-scf/index.js`
 
 These are the deployable backend entry points. Treat them as the authoritative SCF sources for this repo.
+
+### Admin control plane
+
+- `admin-web/`
+- `dist/scf/admin-scf/index.js`
+
+Treat the admin console as a first-class control plane boundary in this repo. `admin-web/` owns the management UI, and `dist/scf/admin-scf/` owns admin-only APIs, validation, persistence, and audit-oriented control-plane behavior.
 
 ### Shared services
 
@@ -88,6 +97,15 @@ Control requests must go through the API backend:
 - backend publishes to the device transport
 
 The front end should only send logical actions like `fan.on` or `fan.off`, not arbitrary device payloads.
+
+### Admin console
+
+The admin console is the TRT Nova control plane, not a second product.
+
+- `admin-web/` is the management UI boundary
+- `dist/scf/admin-scf/` is the admin API boundary
+- admin flows manage business data and operational views, not device transport infrastructure
+- OneNET / EMQX remain the transport and connectivity layer
 
 ### Knowledge
 
