@@ -45,6 +45,23 @@ function renderPage(item) {
 
 async function bootstrap() {
   const api = createAdminApi();
+  const loginPanel = document.querySelector('#login-panel');
+  const content = document.querySelector('#admin-content');
+  if (!api.hasSession()) {
+    loginPanel.hidden = false;
+    content.hidden = true;
+    document.querySelector('#login-form')?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      try {
+        await api.login(form.get('username'), form.get('password'));
+        window.location.reload();
+      } catch {
+        document.querySelector('#login-error').textContent = '登录失败，请检查账号或密码。';
+      }
+    });
+    return;
+  }
   const nav = buildAdminNav();
   const overview = await api.getOverview().catch(() => buildOverviewMetrics());
   renderNav(nav);

@@ -35,6 +35,16 @@ export function createAdminRouter({ auth, knowledge, devices, users, logs }) {
       const method = getRequestMethod(event);
       const path = getRequestPath(event);
 
+      if (method === 'OPTIONS') {
+        return json(204, {});
+      }
+
+      if (path === '/auth/login' && method === 'POST') {
+        const input = getBody(event);
+        const result = await auth.login(input.username, input.password);
+        return json(result.ok ? 200 : 401, result.ok ? result : { ok: false, error: 'invalid_credentials' });
+      }
+
       if (path === '/health' && method === 'GET') {
         return json(200, { ok: true, service: 'admin-scf' });
       }

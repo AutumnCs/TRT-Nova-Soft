@@ -1,5 +1,8 @@
 const JSON_HEADERS = {
-  'content-type': 'application/json; charset=utf-8'
+  'content-type': 'application/json; charset=utf-8',
+  'access-control-allow-origin': process.env.ADMIN_CORS_ORIGIN || '*',
+  'access-control-allow-headers': 'content-type, authorization',
+  'access-control-allow-methods': 'GET, POST, DELETE, OPTIONS'
 };
 
 export function json(statusCode, body, headers = {}) {

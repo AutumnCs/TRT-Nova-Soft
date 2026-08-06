@@ -16,17 +16,28 @@
         <nav id="admin-nav" class="nav" aria-label="管理模块"></nav>
       </aside>
       <main class="main-content">
+        <section id="login-panel" class="login-panel" hidden>
+          <p class="eyebrow">Admin Access</p>
+          <h2>管理员登录</h2>
+          <form id="login-form">
+            <label>用户名<input name="username" autocomplete="username" required></label>
+            <label>密码<input name="password" type="password" autocomplete="current-password" required></label>
+            <button type="submit">登录后台</button>
+            <p id="login-error" class="error-text" role="alert"></p>
+          </form>
+        </section>
         <header class="hero">
           <p class="eyebrow">Control Plane</p>
           <h2>运营总览</h2>
           <p class="hero-copy">首个版本先提供知识库、设备、用户与日志模块入口，以及一个轻量总览页。</p>
         </header>
-        <section>
+        <section id="admin-content">
           <div id="overview-metrics" class="metrics" aria-label="总览指标"></div>
           <div id="admin-page" class="page-panel"></div>
         </section>
       </main>
     </div>
+    <script src="./config.js"></script>
     <script type="module" src="./main.js"></script>
   </body>
 </html>
