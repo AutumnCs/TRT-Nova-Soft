@@ -25,3 +25,21 @@ test('admin router delegates knowledge article listing to the service', async ()
   assert.equal(response.statusCode, 200);
   assert.deepEqual(JSON.parse(response.body).articles, [{ slug: 'watering-basics' }]);
 });
+
+test('admin router exposes read-only operational summaries', async () => {
+  const router = createAdminRouter({
+    auth: { authenticate: async () => ({ ok: true }) },
+    knowledge: {},
+    devices: { getSummary: async () => ({ total: 1, online: 1, abnormal: 0 }) },
+    users: { listUsers: async () => ({ success: true, users: [{ id: 1 }] }) },
+    logs: { listLogs: async () => ({ success: true, logs: [{ id: 1 }] }) }
+  });
+
+  const devices = await router.handle({ httpMethod: 'GET', path: '/admin/devices' });
+  const users = await router.handle({ httpMethod: 'GET', path: '/admin/users' });
+  const logs = await router.handle({ httpMethod: 'GET', path: '/admin/logs' });
+  assert.equal(devices.statusCode, 200);
+  assert.equal(JSON.parse(devices.body).online, 1);
+  assert.equal(JSON.parse(users.body).users.length, 1);
+  assert.equal(JSON.parse(logs.body).logs.length, 1);
+});

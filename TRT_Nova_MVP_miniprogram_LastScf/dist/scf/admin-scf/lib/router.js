@@ -64,6 +64,18 @@ export function createAdminRouter({ auth, knowledge, devices, users, logs }) {
         return json(200, await knowledge.deleteArticle(getBody(event).idOrSlug));
       }
 
+      if (path === '/devices' && method === 'GET') {
+        return json(200, await devices.getSummary(getBody(event)));
+      }
+
+      if (path === '/users' && method === 'GET') {
+        return json(200, await users.listUsers(getBody(event)));
+      }
+
+      if (path === '/logs' && method === 'GET') {
+        return json(200, await logs.listLogs(getBody(event)));
+      }
+
       return http.notFound();
     }
   };

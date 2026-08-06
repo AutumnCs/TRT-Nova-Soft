@@ -1,6 +1,9 @@
 import { createAdminApi } from './lib/api.js';
 import { buildOverviewMetrics } from './lib/metrics.js';
 import { buildAdminNav } from './lib/nav.js';
+import { renderDevicesPage } from './pages/devices.js';
+import { renderUsersPage } from './pages/users.js';
+import { renderLogsPage } from './pages/logs.js';
 
 function renderNav(items) {
   const container = document.querySelector('#admin-nav');
@@ -31,12 +34,28 @@ function renderMetrics(metrics) {
   `).join('');
 }
 
+function renderPage(item) {
+  const container = document.querySelector('#admin-page');
+  if (!container) return;
+  if (item.id === 'devices') return renderDevicesPage(container);
+  if (item.id === 'users') return renderUsersPage(container);
+  if (item.id === 'logs') return renderLogsPage(container);
+  container.innerHTML = '<h2>运营总览</h2><p>选择左侧模块查看管理数据。</p>';
+}
+
 async function bootstrap() {
   const api = createAdminApi();
   const nav = buildAdminNav();
   const overview = await api.getOverview().catch(() => buildOverviewMetrics());
   renderNav(nav);
   renderMetrics(overview);
+  renderPage(nav[0]);
+  document.querySelectorAll('[data-admin-nav]').forEach((link) => {
+    link.addEventListener('click', () => {
+      const item = nav.find((entry) => entry.id === link.dataset.adminNav);
+      if (item) renderPage(item);
+    });
+  });
 }
 
 bootstrap();
