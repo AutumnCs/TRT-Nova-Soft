@@ -49,11 +49,11 @@ export function checkAiContext({ projectRoot = process.cwd() } = {}) {
 }
 
 function getRequiredFiles(root) {
-  if (hasAdminConsoleBoundary(root) && !hasCoreContextSignals(root)) {
-    return ADMIN_REQUIRED_FILES;
+  if (!hasAdminConsoleBoundary(root)) {
+    return CORE_REQUIRED_FILES;
   }
 
-  return CORE_REQUIRED_FILES;
+  return [...CORE_REQUIRED_FILES, ...ADMIN_REQUIRED_FILES.filter((file) => !CORE_REQUIRED_FILES.includes(file))];
 }
 
 function hasAdminConsoleBoundary(root) {
@@ -63,15 +63,6 @@ function hasAdminConsoleBoundary(root) {
     existsSync(join(root, 'dist', 'scf', 'admin-scf')) ||
     existsSync(join(root, 'dist', 'scf', 'admin-scf', 'index.js'))
   );
-}
-
-function hasCoreContextSignals(root) {
-  return CORE_REQUIRED_FILES.some((file) => {
-    if (file === 'AGENTS.md') {
-      return false;
-    }
-    return existsSync(join(root, file));
-  });
 }
 
 function validateJunctionsExist(root, warnings) {
