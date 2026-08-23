@@ -244,3 +244,4 @@ page {
     padding: 16px 20px;
   }
 }
+.container { background: #f7edda; color: #191923; }.header, .app-info-section, .section, .feature-item, .info-card { background: #fffdf7; border-color: #191923; box-shadow: 5rpx 5rpx 0 #2778c9; }.header-title, .app-name, .section-title, .feature-title { color: #191923; }.app-description, .app-version, .feature-desc { color: #626276; }.app-logo { background: #2778c9; border: 4rpx solid #191923; box-shadow: 5rpx 5rpx 0 #ef3d4b; }

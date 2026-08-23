@@ -17,6 +17,7 @@ App({
     runtimeConfig: {
       ...DEFAULT_RUNTIME_CONFIG,
       useCloudBase: false,
+      enableDevPhoneLogin: false,
       scfApiBaseUrl: 'https://1395114552-hkiu70pwre.ap-shanghai.tencentscf.com',
       agentScfBaseUrl: 'https://1395114552-5acci5kbwy.ap-shanghai.tencentscf.com',
       authScfBaseUrl: 'https://1395114552-0etc4ugmnu.ap-shanghai.tencentscf.com'

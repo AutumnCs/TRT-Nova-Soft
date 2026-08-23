@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, normalize } from 'node:path';
 import test from 'node:test';
 import { checkAiContext } from './check-ai-context.mjs';
 
@@ -72,4 +72,28 @@ test('reports no errors on the current repository layout', async () => {
 
   assert.deepEqual(result.errors, []);
   assert.deepEqual(result.warnings, []);
+});
+
+test('reports likely mojibake in active source files', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'trt-nova-mojibake-'));
+  mkdirSync(join(root, 'services'), { recursive: true });
+  writeFileSync(
+    join(root, 'services', 'broken.js'),
+    `module.exports = '${String.fromCodePoint(0x7487, 0x75af)}';\n`,
+    'utf8'
+  );
+
+  const result = await checkAiContext({ projectRoot: root });
+
+  assert.ok(result.errors.includes(`likely mojibake: ${normalize('services/broken.js')}`));
+});
+
+test('accepts clean Chinese in active source files', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'trt-nova-clean-chinese-'));
+  mkdirSync(join(root, 'services'), { recursive: true });
+  writeFileSync(join(root, 'services', 'clean.js'), "module.exports = '设备状态已刷新';\n", 'utf8');
+
+  const result = await checkAiContext({ projectRoot: root });
+
+  assert.ok(!result.errors.some(error => error.includes('services') && error.includes('clean.js')));
 });

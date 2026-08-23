@@ -29,7 +29,7 @@ const COMMAND_DEFINITIONS = {
 function resolveDeviceCommandRequest(input = {}, options = {}) {
   const logicalKey = normalizeLogicalKey(input.logicalKey);
   if (!logicalKey) {
-    return { ok: false, msg: '璁惧鏍囪瘑缂哄け' };
+    return { ok: false, msg: '设备标识缺失' };
   }
 
   const action = normalizeAction(input.action);

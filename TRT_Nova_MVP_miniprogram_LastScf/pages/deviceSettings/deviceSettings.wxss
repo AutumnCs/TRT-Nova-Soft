@@ -724,3 +724,4 @@
   font-weight: 900;
   flex-shrink: 0;
 }
+.page { background: #f7edda; color: #191923; }.shell { background: transparent; }.hero-card, .settings-card, .panel, .setting-item { background: #fffdf7; border: 3rpx solid #191923; box-shadow: 5rpx 5rpx 0 #2778c9; }.title, .hero-title, .section-title, .setting-title { color: #191923; }.eyebrow, .hero-subtitle, .setting-desc { color: #626276; }.status-pill-on { background: #dff1d8; color: #15803d; border-color: #191923; }.status-pill-off { background: #ffe36e; color: #191923; border-color: #191923; }button, .save-btn, .primary-btn { background: #ef3d4b; color: #fffdf7; border: 3rpx solid #191923; box-shadow: 4rpx 4rpx 0 #ffe36e; }

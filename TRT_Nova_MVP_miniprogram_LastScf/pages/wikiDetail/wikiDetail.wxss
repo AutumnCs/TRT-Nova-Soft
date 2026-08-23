@@ -318,3 +318,4 @@ page {
   line-height: 1.65;
   color: rgba(204, 255, 221, 0.66);
 }
+.page { background: #f7edda; color: #191923; }.topbar, .hero-card, .content-card, .article-card { background: #fffdf7; border-color: #191923; box-shadow: 5rpx 5rpx 0 #2778c9; }.brand-title, .article-title, .section-title { color: #191923; }.brand-kicker, .signal-text, .article-category { color: #ef3d4b; }.article-summary, .article-content, .meta { color: #626276; }.tag, .meta-chip { background: #ffe36e; color: #191923; border-color: #191923; }

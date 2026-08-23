@@ -376,3 +376,4 @@ page {
 .save-btn:active {
   transform: scale(0.985);
 }
+.page { background: #f7edda; color: #191923; }.top-shell, .hero, .form-card, .field-card, .section { background: #fffdf7; border-color: #191923; box-shadow: 5rpx 5rpx 0 #2778c9; }.nav-title, .section-title, .field-label { color: #191923; }.hint, .field-desc { color: #626276; }.avatar-ring { border-color: #191923; box-shadow: 0 0 0 8rpx #ffe36e; }.avatar-btn, input, textarea { background: #fffdf7; color: #191923; border-color: #191923; }button, .save-btn, .submit-btn { background: #ef3d4b; color: #fffdf7; border: 3rpx solid #191923; box-shadow: 4rpx 4rpx 0 #ffe36e; }

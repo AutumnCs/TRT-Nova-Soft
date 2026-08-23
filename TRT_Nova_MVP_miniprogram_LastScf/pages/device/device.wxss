@@ -563,3 +563,20 @@ page {
   line-height: 1.6;
   color: rgba(220, 255, 240, 0.5);
 }
+.device-page { background: #f7edda; color: #191923; }
+.topbar, .hero, .panel, .device-card, .bind-panel, .empty-panel { background: #fffdf7; border-color: #191923; box-shadow: 5rpx 5rpx 0 #2778c9; }
+.brand, .hero-title, .panel-title, .device-name, .section-title { color: #191923; }.brand-sub, .hero-subtitle, .panel-tag, .device-desc { color: #626276; }
+.primary-btn, .bind-btn, button { background: #ef3d4b; color: #fffdf7; border: 3rpx solid #191923; box-shadow: 4rpx 4rpx 0 #ffe36e; }
+input, textarea, .input, .field { color: #191923; background: #fffdf7; border-color: #191923; }
+page { background: #f7edda !important; color: #191923 !important; }
+.device-page { min-height: 100vh; background: #f7edda !important; color: #191923 !important; }
+.hero, .bind-panel, .device-card, .empty-state { background: #fffdf7 !important; color: #191923 !important; border: 3rpx solid #191923 !important; box-shadow: 5rpx 5rpx 0 #2778c9 !important; }
+.hero-title, .panel-title, .section-title, .device-name, .empty-title { color: #191923 !important; }
+.hero-subtitle, .panel-tag, .device-meta, .device-desc, .empty-desc, .field-label { color: #626276 !important; }
+.field { background: #fffdf7 !important; border: 3rpx solid #77768a !important; box-shadow: none !important; }
+.field-input, .cmd-input { color: #191923 !important; background: transparent !important; }
+.field-placeholder, .cmd-input::placeholder { color: #626276 !important; opacity: 1 !important; }
+.field-value { color: #191923 !important; }.field-icon, .field-chevron { color: #ef3d4b !important; }
+.empty-icon { color: #15803d !important; }.bind-btn { background: #ef3d4b !important; color: #fffdf7 !important; border: 3rpx solid #191923 !important; box-shadow: 4rpx 4rpx 0 #ffe36e !important; }
+.refresh-btn { background: #dff1d8 !important; color: #15803d !important; border: 2rpx solid #191923 !important; }
+.cmd-input-wrapper { background: #f4f9ef !important; border: 2rpx solid #77768a !important; }

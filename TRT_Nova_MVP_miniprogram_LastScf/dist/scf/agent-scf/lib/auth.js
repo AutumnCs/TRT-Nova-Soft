@@ -38,8 +38,7 @@ function verifyJwt(token, secret) {
   return payload;
 }
 
-function resolveAuthorizationOpenid(event) {
-  const jwtSecret = process.env.JWT_SECRET || '';
+function resolveAuthorizationOpenid(event, jwtSecret = process.env.JWT_SECRET || '') {
   if (!jwtSecret) return '';
 
   const headers = getHeaders(event);
@@ -63,9 +62,18 @@ function resolveAuthorizationOpenid(event) {
   return payload?.openid ? String(payload.openid).trim() : '';
 }
 
-function resolveOpenid(event, body) {
-  const authOpenid = resolveAuthorizationOpenid(event);
+function resolveOpenid(event, body, options = {}) {
+  const jwtSecret = options.jwtSecret ?? process.env.JWT_SECRET ?? '';
+  const allowLegacyOpenidFallback = Object.prototype.hasOwnProperty.call(options, 'allowLegacyOpenidFallback')
+    ? options.allowLegacyOpenidFallback === true
+    : String(process.env.ALLOW_LEGACY_OPENID_FALLBACK || '').trim() === '1';
+  const debugOpenid = options.debugOpenid ?? process.env.DEBUG_OPENID ?? '';
+  const authOpenid = resolveAuthorizationOpenid(event, jwtSecret);
   if (authOpenid) return authOpenid;
+
+  if (!allowLegacyOpenidFallback) {
+    throw new Error('Missing bearer token');
+  }
 
   const headers = getHeaders(event);
   const headerOpenid =
@@ -75,7 +83,6 @@ function resolveOpenid(event, body) {
     headers['X-OPENID'];
 
   const bodyOpenid = body?.openid || '';
-  const debugOpenid = process.env.DEBUG_OPENID || '';
   const openid = headerOpenid || bodyOpenid || debugOpenid;
 
   if (!openid) {

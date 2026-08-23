@@ -78,7 +78,12 @@
     <view class="section">
       <view class="section-header">
         <text class="section-title">今日待办</text>
-        <view class="add-todo-btn" bindtap="addTodo"><text>+</text></view>
+        <view wx:if="{{!showTodoComposer}}" class="add-todo-btn" bindtap="addTodo"><text>+</text></view>
+      </view>
+      <view wx:if="{{showTodoComposer}}" class="todo-composer">
+        <text class="todo-composer-title">帮助植宠成长</text>
+        <input class="todo-input" value="{{todoDraft}}" placeholder="输入今天要做的事" maxlength="80" bindinput="onTodoDraftInput" confirm-type="done" bindconfirm="confirmAddTodo" />
+        <view class="todo-composer-actions"><button class="todo-cancel" bindtap="cancelAddTodo">取消</button><button class="todo-confirm" bindtap="confirmAddTodo">添加</button></view>
       </view>
       <view class="card-list">
         <view

@@ -364,3 +364,8 @@ page {
   font-weight: 500;
   letter-spacing: 0.05em;
 }
+.page { background: #f7edda; color: #191923; }
+.hero, .card, .login-card, .form-card, .phone-card { background: #fffdf7; border: 3rpx solid #191923; box-shadow: 6rpx 6rpx 0 #2778c9, -4rpx -3rpx 0 #ef3d4b; }
+button, .wechat-login-btn, .primary-btn, .submit-btn { background: #ef3d4b; color: #fffdf7; border: 3rpx solid #191923; box-shadow: 4rpx 4rpx 0 #ffe36e; }
+input, textarea, .input, .field { color: #191923; background: #fffdf7; border-color: #191923; }
+.hero-title, .card-title, .section-title { color: #191923; }.hero-subtitle, .card-desc, .hint { color: #626276; }

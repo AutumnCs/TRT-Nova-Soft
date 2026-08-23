@@ -30,6 +30,37 @@ const DEFAULT_FAN = {
   hintText: '等待设备最新上报'
 };
 
+const STALE_THRESHOLD_MS = 2 * 60 * 1000;
+
+function derivePlantStatus({ device = null, soilValue = '--', nowTs = Date.now(), isOffline = false } = {}) {
+  const base = {
+    key: 'empty',
+    tone: 'muted',
+    icon: '○',
+    label: '等待设备',
+    description: '绑定设备后，我会开始陪你照顾它。',
+    freshnessText: '暂无数据',
+    growthText: '成长记录待解锁',
+    careSuggestion: '',
+    metrics: { soil: soilValue, humidity: '--' }
+  };
+  if (!device) return base;
+
+  const updatedAt = Number(device.updatedAt || 0);
+  if (isOffline || device.hasLatest === false) {
+    return { ...base, key: 'offline', tone: 'offline', icon: '!', label: '暂时离线', description: '暂时收不到设备上报，先别急着操作。', freshnessText: '离线 · 等待上报' };
+  }
+  if (updatedAt > 0 && nowTs - updatedAt > STALE_THRESHOLD_MS) {
+    return { ...base, key: 'stale', tone: 'stale', icon: '↻', label: '数据有点旧', description: '设备还在线，但最近一次数据需要再确认。', freshnessText: '数据陈旧 · 请留意' };
+  }
+
+  const soil = Number.parseFloat(soilValue);
+  if (Number.isFinite(soil) && soil < 20) {
+    return { ...base, key: 'attention', tone: 'attention', icon: '!', label: '有点口渴', description: '土壤有点干，今天记得给我浇水。', freshnessText: '在线 · 状态需关注', careSuggestion: '浇水' };
+  }
+  return { ...base, key: 'normal', tone: 'normal', icon: '●', label: '状态不错', description: '今天状态很好，继续保持这份照顾。', freshnessText: '在线 · 数据新鲜' };
+}
+
 function cloneSensors() {
   return JSON.parse(JSON.stringify(DEFAULT_SENSORS));
 }
@@ -67,6 +98,10 @@ function normalizeBooleanMetric(raw) {
 function normalizeDisplayMetric(raw, fallback = '--') {
   if (raw === undefined || raw === null || raw === '') return fallback;
   return String(raw);
+}
+
+function normalizeTodoTitle(raw) {
+  return typeof raw === 'string' ? raw.trim() : '';
 }
 
 function formatSoulStateByIr(raw) {
@@ -121,7 +156,8 @@ function buildTelemetryState(deviceRows, selectedLogicalKey = '', options = {}) 
       fan: { ...DEFAULT_FAN },
       bubbles: [],
       moodEmoji: '\u{1f642}',
-      dialogue: '\u690d\u682a\u72b6\u6001\u826f\u597d\u3002'
+      dialogue: '\u690d\u682a\u72b6\u6001\u826f\u597d\u3002',
+      plantStatus: derivePlantStatus()
     };
   }
 
@@ -236,6 +272,17 @@ function buildTelemetryState(deviceRows, selectedLogicalKey = '', options = {}) 
   const dialogue = warningBubble
     ? `\u6ce8\u610f\uff1a${warningBubble.text}`
     : '\u690d\u682a\u72b6\u6001\u826f\u597d\u3002'
+  const plantStatus = derivePlantStatus({
+    device: selected,
+    soilValue: sensors.soil.value,
+    nowTs: options.nowTs || Date.now(),
+    isOffline: isDeviceOffline(selected)
+  });
+  plantStatus.metrics = {
+    soil: sensors.soil.value,
+    humidity: sensors.humidity.value,
+    updatedAt: extraMetrics.updatedAt
+  };
 
   const resolvedFan = fanReportedState === null && selected && selected.fan && selected.fan.hasReportedState
     ? {
@@ -252,7 +299,8 @@ function buildTelemetryState(deviceRows, selectedLogicalKey = '', options = {}) 
     fan: resolvedFan,
     bubbles,
     moodEmoji,
-    dialogue
+    dialogue,
+    plantStatus
   };
 }
 
@@ -267,6 +315,8 @@ module.exports = {
   buildDeviceMeta,
   normalizeBooleanMetric,
   normalizeDisplayMetric,
+  normalizeTodoTitle,
+  derivePlantStatus,
   formatSoulStateByIr,
   buildDeviceRows,
   buildTelemetryState

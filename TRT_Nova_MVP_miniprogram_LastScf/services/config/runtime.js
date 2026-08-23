@@ -2,6 +2,7 @@ const DEFAULT_RUNTIME_CONFIG = Object.freeze({
   scfApiBaseUrl: '',
   agentScfBaseUrl: '',
   authScfBaseUrl: '',
+  enableDevPhoneLogin: false,
   scfRequestTimeoutMs: 8000
 });
 

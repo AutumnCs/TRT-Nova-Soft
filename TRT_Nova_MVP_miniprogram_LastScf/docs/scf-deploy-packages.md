@@ -1,7 +1,7 @@
 # SCF 部署单元说明
 
 > 文档状态：Current Implementation Reference  
-> 核对日期：2026-07-19  
+> 核对日期：2026-08-12
 > 适用范围：当前 SCF Demo；长期演进顺序见[植宠系统实施顺序与演进路线](./plant-pet-implementation-roadmap.md)
 
 ## 1. 当前部署单元
@@ -34,12 +34,14 @@
 | 部署单元 | 必需变量 | 条件/可选变量 |
 |---|---|---|
 | auth | `WECHAT_APPID`、`WECHAT_SECRET`、`JWT_SECRET`、`DB_HOST`、`DB_PORT`、`DB_NAME`、`DB_USER`、`DB_PASSWORD` | `TOKEN_EXPIRES_IN_SECONDS`、`DB_CONN_LIMIT` |
-| api | `JWT_SECRET`、数据库变量 | `DB_CONN_LIMIT`、OneNET 鉴权与风扇字段配置；`DEBUG_OPENID` 只能用于隔离测试 |
+| api | `JWT_SECRET`、数据库变量 | `DB_CONN_LIMIT`、OneNET 鉴权与风扇字段配置；`ALLOW_LEGACY_OPENID_FALLBACK=1` 与 `DEBUG_OPENID` 只能用于隔离测试 |
 | ingest | 数据库变量、`ONE_NET_TOKEN` | `ONE_NET_AES_KEY`、EMQX 兼容变量、`DB_CONN_LIMIT` |
-| agent | `JWT_SECRET`、数据库变量 | `LLM_API_ENABLED`、`LLM_API_BASE_URL`、`LLM_API_PATH`、`LLM_API_KEY`、`LLM_MODEL`、超时/温度/Token 限制；`DEBUG_OPENID` 只能用于隔离测试 |
+| agent | `JWT_SECRET`、数据库变量 | `LLM_API_ENABLED`、`LLM_API_BASE_URL`、`LLM_API_PATH`、`LLM_API_KEY`、`LLM_MODEL`、超时/温度/Token 限制；`ALLOW_LEGACY_OPENID_FALLBACK=1` 与 `DEBUG_OPENID` 只能用于隔离测试 |
 | cleanup | 数据库变量 | `RAW_RETENTION_DAYS`、`AGG_5M_RETENTION_DAYS`、`AGG_1H_RETENTION_DAYS`、`AGG_1D_RETENTION_DAYS`、`DB_CONN_LIMIT` |
 
-生产环境不得启用身份回退。所有看起来曾经可用的示例凭证都应按泄露处理并轮换，具体风险记录见[当前系统现状与改进路线](./current-system-status-and-improvement-plan.md)。
+`api-scf` 和 `agent-scf` 的旧 openid 回退均默认关闭；生产环境不得设置 `ALLOW_LEGACY_OPENID_FALLBACK=1`。所有看起来曾经可用的示例凭证都应按泄露处理并轮换，具体风险记录见[当前系统现状与改进路线](./current-system-status-and-improvement-plan.md)。
+
+小程序本地手机号体验入口由 `runtimeConfig.enableDevPhoneLogin` 控制并默认关闭。它不经过服务端手机号验证，不能作为正式手机号认证使用。
 
 ## 4. 当前部署与验证顺序
 

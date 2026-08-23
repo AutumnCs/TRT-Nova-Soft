@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, resolve, relative } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -44,8 +44,58 @@ export function checkAiContext({ projectRoot = process.cwd() } = {}) {
   validateSkillMetadata(root, errors);
   validateRedisEvidence(root, warnings);
   validateJunctionsExist(root, warnings);
+  validateTextEncoding(root, errors);
 
   return { errors, warnings };
+}
+
+function validateTextEncoding(root, errors) {
+  const scanTargets = [
+    'AGENTS.md',
+    'README.md',
+    'admin-web',
+    'docs',
+    'dist/scf',
+    'pages',
+    'scripts',
+    'services'
+  ];
+
+  for (const target of scanTargets) {
+    const fullPath = join(root, target);
+    if (!existsSync(fullPath)) continue;
+    scanPathForMojibake(root, fullPath, errors);
+  }
+}
+
+function scanPathForMojibake(root, targetPath, errors) {
+  const ignoredDirectories = new Set(['archive', 'node_modules']);
+  const supportedExtensions = /\.(?:js|json|md|mjs|wxml|wxss|yaml|yml)$/i;
+  const targetStat = statSync(targetPath);
+  if (targetStat.isFile()) {
+    const content = readFileSync(targetPath, 'utf8');
+    if (supportedExtensions.test(targetPath) && likelyMojibake.test(content)) {
+      errors.push(`likely mojibake: ${relative(root, targetPath)}`);
+    }
+    return;
+  }
+  const statEntries = readdirSync(targetPath, { withFileTypes: true });
+
+  for (const entry of statEntries) {
+    const fullPath = join(targetPath, entry.name);
+    if (entry.isDirectory()) {
+      if (!ignoredDirectories.has(entry.name)) {
+        scanPathForMojibake(root, fullPath, errors);
+      }
+      continue;
+    }
+    if (!entry.isFile() || !supportedExtensions.test(entry.name)) continue;
+
+    const content = readFileSync(fullPath, 'utf8');
+    if (likelyMojibake.test(content)) {
+      errors.push(`likely mojibake: ${relative(root, fullPath)}`);
+    }
+  }
 }
 
 function getRequiredFiles(root) {
@@ -146,6 +196,7 @@ function scanMarkdownFor(pattern, dir, excludedPath) {
 }
 
 const redisWord = /\bredis\b/i;
+const likelyMojibake = /(?:\u7487\u75af|\u7481\u60e7|\u951f\u65a4|\ufffd)/;
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const result = checkAiContext();

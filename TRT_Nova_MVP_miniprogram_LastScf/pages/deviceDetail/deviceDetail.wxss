@@ -542,3 +542,8 @@
   letter-spacing: 2rpx;
   font-family: monospace;
 }
+.page { background: #f7edda; color: #191923; }
+.nav, .hero-panel, .panel, .metric-card, .control-card, .empty-panel { background: #fffdf7; border-color: #191923; box-shadow: 5rpx 5rpx 0 #2778c9; }
+.brand, .hero-title, .section-title, .metric-value, .device-name { color: #191923; }.subline, .hero-subtitle, .metric-label, .hint { color: #626276; }
+.status-badge.ok, .status-pill-on { background: #dff1d8; color: #15803d; border-color: #191923; }.status-badge.off, .status-pill-off { background: #ffe4e6; color: #c6283b; border-color: #191923; }
+button, .action-btn, .control-btn { background: #ef3d4b; color: #fffdf7; border: 3rpx solid #191923; box-shadow: 4rpx 4rpx 0 #ffe36e; }

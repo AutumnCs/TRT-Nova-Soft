@@ -14,7 +14,8 @@ const {
   cloneExtra,
   buildDefaultWeather,
   buildDeviceRows,
-  buildTelemetryState
+  buildTelemetryState,
+  normalizeTodoTitle
 } = indexState;
 
 function getStatusBarHeight() {
@@ -29,6 +30,7 @@ Page({
   _loadingDevices: false,
   _deviceRows: [],
   _redirectingToLogin: false,
+  _lastManualRefreshAt: 0,
 
   data: {
     statusBarHeight: 20,
@@ -46,7 +48,10 @@ Page({
     weather: buildDefaultWeather(),
     bubbles: [],
     moodEmoji: '🙂',
-    hasDevices: false
+    plantStatus: indexState.derivePlantStatus(),
+    hasDevices: false,
+    showTodoComposer: false,
+    todoDraft: ''
   },
 
   onLoad() {
@@ -62,7 +67,7 @@ Page({
     if (!this.checkLoginStatus()) return;
     this.loadDevices({ refreshTodos: true });
     this.loadWeather();
-    this.startAutoRefresh();
+    this.stopAutoRefresh();
   },
 
   onHide() {
@@ -203,7 +208,8 @@ Page({
           fan: telemetryState.fan,
           bubbles: telemetryState.bubbles,
           moodEmoji: telemetryState.moodEmoji,
-          dialogue: telemetryState.dialogue
+          dialogue: telemetryState.dialogue,
+          plantStatus: telemetryState.plantStatus
         });
         if (refreshTodos) {
           await this.loadTodos(deviceState.selectedLogicalKey);
@@ -263,8 +269,74 @@ Page({
       sensors: cloneSensors(),
       extraMetrics: cloneExtra(),
       bubbles: [],
-      moodEmoji: '\u{1F642}'
+      moodEmoji: '\u{1F642}',
+      dialogue: '绑定设备后，我会开始陪你照顾它。',
+      plantStatus: indexState.derivePlantStatus()
     });
+  },
+
+  addTodo() {
+    this.setData({ showTodoComposer: true, todoDraft: '' });
+  },
+
+  addSuggestedTodo(e) {
+    const suggestion = normalizeTodoTitle(e?.currentTarget?.dataset?.content || '');
+    this.setData({ showTodoComposer: true, todoDraft: suggestion });
+  },
+
+  onTodoDraftInput(e) {
+    this.setData({ todoDraft: e?.detail?.value || '' });
+  },
+
+  cancelAddTodo() {
+    this.setData({ showTodoComposer: false, todoDraft: '' });
+  },
+
+  async confirmAddTodo() {
+    const title = normalizeTodoTitle(this.data.todoDraft);
+    if (!title) {
+      wx.showToast({ title: '请输入待办内容', icon: 'none' });
+      return;
+    }
+
+    try {
+      wx.showLoading({ title: '添加中...' });
+      await todoService.addTodo(title, this.data.selectedLogicalKey || 'global');
+      await this.loadTodos(this.data.selectedLogicalKey || '');
+      this.setData({ showTodoComposer: false, todoDraft: '' });
+      wx.showToast({ title: '已添加待办', icon: 'success' });
+    } catch (error) {
+      console.error('[index] addTodo error:', error);
+      wx.showToast({ title: '添加失败，请稍后重试', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
+  },
+
+  async onTaskDone(e) {
+    const id = String(e?.currentTarget?.dataset?.id || '').trim();
+    if (!id) return;
+    try {
+      await todoService.completeTodo(id, this.data.selectedLogicalKey || '');
+      await this.loadTodos(this.data.selectedLogicalKey || '');
+      wx.showToast({ title: '已完成', icon: 'success' });
+    } catch (error) {
+      console.error('[index] completeTodo error:', error);
+      wx.showToast({ title: '完成失败，请重试', icon: 'none' });
+    }
+  },
+
+  async toggleUrgency(e) {
+    const id = String(e?.currentTarget?.dataset?.id || '').trim();
+    const todo = this.data.todos.find((item) => String(item._id || item.id) === id);
+    if (!todo) return;
+    try {
+      await todoService.toggleUrgency(todo, this.data.selectedLogicalKey || '');
+      await this.loadTodos(this.data.selectedLogicalKey || '');
+    } catch (error) {
+      console.error('[index] toggleUrgency error:', error);
+      wx.showToast({ title: '更新待办失败', icon: 'none' });
+    }
   },
 
   resetDeviceControlDefaults() {
@@ -304,7 +376,8 @@ Page({
       fan: telemetryState.fan,
       bubbles: telemetryState.bubbles,
       moodEmoji: telemetryState.moodEmoji,
-      dialogue: telemetryState.dialogue
+      dialogue: telemetryState.dialogue,
+      plantStatus: telemetryState.plantStatus
     });
   },
 
@@ -351,9 +424,16 @@ Page({
 
   async refreshDeviceStatus() {
     if (!this.checkLoginStatus()) return;
+    const cooldownMs = 30 * 1000;
+    const remaining = cooldownMs - (Date.now() - this._lastManualRefreshAt);
+    if (remaining > 0) {
+      wx.showToast({ title: `请${Math.ceil(remaining / 1000)}秒后再刷新`, icon: 'none' });
+      return;
+    }
+    this._lastManualRefreshAt = Date.now();
     await this.loadDevices();
     wx.showToast({
-      title: '璁惧鐘舵€佸凡鍒锋柊',
+      title: '设备状态已刷新',
       icon: 'none',
       duration: 1800
     });

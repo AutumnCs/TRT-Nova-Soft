@@ -1,9 +1,4 @@
-page {
-  background:
-    radial-gradient(circle at top, rgba(17, 185, 106, 0.08), transparent 34%),
-    linear-gradient(180deg, #07110d 0%, #0a1713 50%, #07110d 100%);
-  color: #d7f6df;
-}
+page { background: #f3f7e9; color: #244332; }
 
 .page {
   min-height: 100vh;
@@ -14,14 +9,14 @@ page {
 .bg-grid {
   position: fixed;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(48, 255, 156, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(48, 255, 156, 0.08) 1px, transparent 1px);
+  background-image: linear-gradient(rgba(21, 128, 61, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(21, 128, 61, 0.06) 1px, transparent 1px);
   background-size: 32px 32px;
-  opacity: 0.32;
+  opacity: 0.24;
   pointer-events: none;
-  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.2) 55%, transparent 100%);
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.4), transparent 80%);
 }
+
+.bg-glow-1 { background: rgba(166, 220, 153, .38); }.bg-glow-2 { background: rgba(255, 198, 84, .2); }
 
 .bg-glow {
   position: fixed;
@@ -44,6 +39,9 @@ page {
   left: -120px;
   background: rgba(0, 223, 162, 0.22);
 }
+
+.topbar { padding-left: 28rpx; padding-right: 28rpx; }.icon-btn { color: #244332; border: 0; background: #fffdf7; box-shadow: 0 5rpx 0 #c9d8bd; }.brand-kicker { color: #7c3aed; }.brand-title { color: #163b2a; text-shadow: none; }.signal-pill { color: #15803d; background: #e3f3df; border-color: #c5dfbd; }
+.content { padding: 0 28rpx 160rpx; }.hero-card, .panel, .record-card { background: #fffdf7; border: 2rpx solid rgba(21,128,61,.12); box-shadow: 0 7rpx 0 rgba(201,216,189,.7); }.hero-card { border-radius: 30rpx; }.hero-chip { background: #dff1d8; color: #477c43; }.hero-chip.ghost { background: #f5f0ff; color: #7c3aed; }.device-name, .panel-title, .day-title, .record-title, .composer-title { color: #244332; }.device-subtitle, .day-subtitle, .record-type, .record-content, .empty-desc { color: #84958b; }.device-cta { color: #ea580c; }.calendar-panel, .day-panel, .empty-panel { border-radius: 28rpx; }.panel-kicker, .composer-kicker { color: #7c3aed; }.nav-arrow { color: #244332; background: #f4f9ef; }.nav-arrow.active { color: #fff; background: #15803d; }.day-cell.active { background: #a8d99b; color: #163b2a; }.day-dot, .timeline-dot { background: #ea580c; }.action-btn.primary, .composer-btn.primary { background: #ea580c; color: #fff; }.action-btn.ghost, .composer-btn.secondary { color: #15803d; background: #e3f3df; }.record-icon { background: #e3f3df; color: #15803d; }.composer-mask { background: rgba(22,59,42,.36); }.composer { background: #fffdf7; border-radius: 30rpx 30rpx 0 0; }.composer-field { background: #f4f9ef; border-color: #dcebd3; }.composer-field-label { color: #6b7f72; }.composer-input, .composer-textarea, .composer-picker-text { color: #244332; }
 
 .topbar {
   position: relative;

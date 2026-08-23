@@ -89,6 +89,8 @@ Identity is a strict chain:
 
 Do not reintroduce openid fallback flows unless they are explicitly marked legacy and gated.
 
+Current `api-scf` and `agent-scf` behavior is fail-closed by default. Their legacy header/body/debug openid compatibility is available only when `ALLOW_LEGACY_OPENID_FALLBACK=1`, which must not be enabled in production.
+
 ### Device control
 
 Control requests must go through the API backend:
@@ -142,3 +144,9 @@ When changing something, answer these questions first:
 - What is the verification step?
 
 If you cannot answer those four questions, the change is probably too broad and should be split.
+
+## 8. Encoding Guard
+
+- Active source and current documentation use UTF-8 without BOM.
+- `node scripts/check-ai-context.mjs` also reports common mojibake signatures in the active project boundary.
+- The scan excludes archived content and `node_modules`; it complements, rather than replaces, reading edited Chinese back through the same UTF-8 toolchain.

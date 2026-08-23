@@ -2,6 +2,7 @@ const app = getApp();
 const userProfileService = require('../../services/modules/UserProfileService');
 const authService = require('../../services/modules/AuthService');
 const cloudStorageService = require('../../services/modules/CloudStorageService');
+const { isDevPhoneLoginEnabled } = require('./auth-state');
 
 const defaultAvatarUrl =
   'https://mmbiz.qpic.cn/mmbiz/icTdbqWNOwNRna42FI242Lcia07jQodd2FJGIYQfG0LAJGFxM4FbnQP6yfMxBgJ0F3YRqJCJ1aPAK2dQagdusBZg/0';
@@ -23,7 +24,8 @@ Page({
     phone: '',
     saving: false,
     canSave: false,
-    isApp: false
+    isApp: false,
+    devPhoneLoginEnabled: false
   },
 
   onLoad() {
@@ -31,7 +33,8 @@ Page({
     this.setData({
       statusBarHeight: isApp ? 0 : getStatusBarHeight(),
       loginState: 'choose',
-      isApp
+      isApp,
+      devPhoneLoginEnabled: isDevPhoneLoginEnabled(app.globalData.runtimeConfig)
     });
   },
 
@@ -162,6 +165,7 @@ Page({
   },
 
   showPhoneLogin() {
+    if (!this.data.devPhoneLoginEnabled) return;
     this.setData({ loginState: 'phone-login', phone: '', saving: false });
   },
 
@@ -170,6 +174,7 @@ Page({
   },
 
   onPhoneLogin() {
+    if (!this.data.devPhoneLoginEnabled) return;
     if (this.data.saving) return;
     const phone = this.data.phone;
     if (!/^1\d{10}$/.test(phone)) {

@@ -412,6 +412,126 @@ page {
   gap: 10px;
 }
 
+.todo-composer {
+  margin-bottom: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.todo-input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #26352d;
+  border: 1px solid #c7d8bd;
+}
+
+.todo-composer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.todo-cancel,
+.todo-confirm {
+  margin: 0;
+  padding: 0 14px;
+  min-height: 32px;
+  line-height: 32px;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.plant-identity-card,
+.plant-status-card {
+  margin: 20rpx 28rpx 0;
+  padding: 24rpx 28rpx;
+  border-radius: 28rpx;
+  background: #fffdf7;
+  border: 2rpx solid rgba(21, 128, 61, .14);
+  box-shadow: 0 10rpx 24rpx rgba(21, 128, 61, .08);
+}
+.plant-identity-card { display: flex; align-items: center; justify-content: space-between; }
+.identity-main { display: flex; flex-direction: column; gap: 6rpx; }
+.identity-name { color: #163b2a; font-size: 34rpx; font-weight: 700; }
+.identity-type, .identity-growth { color: #6b7f72; font-size: 22rpx; }
+.identity-growth { color: #7c3aed; }
+.plant-status-card { margin-top: 14rpx; }
+.status-card-heading { display: flex; align-items: center; gap: 12rpx; }
+.status-card-icon { width: 36rpx; height: 36rpx; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; background: #15803d; font-weight: 700; }
+.status-card-label { color: #163b2a; font-size: 28rpx; font-weight: 700; }
+.status-card-freshness { margin-left: auto; color: #6b7f72; font-size: 21rpx; }
+.status-card-description { display: block; margin-top: 12rpx; color: #405447; font-size: 25rpx; line-height: 1.6; }
+.status-card-metrics { display: flex; flex-wrap: wrap; gap: 10rpx 20rpx; margin-top: 14rpx; color: #6b7f72; font-size: 21rpx; }
+.status-attention { border-color: rgba(234, 88, 12, .3); background: #fff7ed; }
+.status-attention .status-card-icon { background: #ea580c; }
+.status-offline { border-color: rgba(100, 116, 139, .3); background: #f8fafc; }
+.status-offline .status-card-icon, .status-stale .status-card-icon { background: #64748b; }
+.status-stale { background: #fafaf9; }
+.care-suggestion { display: inline-block; margin-top: 16rpx; padding: 12rpx 18rpx; border-radius: 999rpx; color: #fff; background: #ea580c; font-size: 23rpx; }
+.todo-composer-title { display: block; margin-bottom: 12rpx; color: #405447; font-size: 23rpx; font-weight: 600; }
+.todo-scope { display: block; margin-top: 6rpx; color: #84958b; font-size: 20rpx; }
+.pressed { opacity: .72; transform: scale(.98); }
+
+.topbar-subtitle { margin-left: 12rpx; color: #84958b; font-size: 22rpx; }
+.home-module { margin: 20rpx 28rpx 0; padding: 26rpx; border-radius: 32rpx; background: #fffdf7; border: 2rpx solid rgba(21,128,61,.14); box-shadow: 0 10rpx 24rpx rgba(21,128,61,.08); }
+.plant-main-card { padding: 0; overflow: hidden; }
+.plant-main-visual { position: relative; min-height: 360rpx; border-radius: 30rpx 30rpx 0 0; }
+.plant-main-badge { position: absolute; left: 24rpx; bottom: 24rpx; padding: 10rpx 18rpx; color: #fff; background: #15803d; border-radius: 999rpx; font-size: 22rpx; }
+.plant-main-info { padding: 24rpx; }
+.plant-main-info .status-card { margin-top: 20rpx; padding: 22rpx; border-radius: 24rpx; background: #f4f9ef; }
+.module-heading { display: flex; align-items: center; justify-content: space-between; }
+.module-kicker { display: block; color: #7c3aed; font-size: 19rpx; letter-spacing: 2rpx; font-weight: 700; }
+.module-title { display: block; margin-top: 4rpx; color: #163b2a; font-size: 32rpx; font-weight: 700; }
+.action-dialogue { margin: 22rpx 0 18rpx; padding: 18rpx 20rpx; color: #405447; background: #f5f0ff; border-radius: 18rpx; font-size: 24rpx; line-height: 1.5; }
+.todo-list { display: flex; flex-direction: column; gap: 12rpx; }
+.todo-row { display: flex; align-items: center; gap: 16rpx; padding: 18rpx 12rpx; border-bottom: 1rpx solid #edf2e9; }
+.todo-row:last-child { border-bottom: 0; }
+.todo-check { width: 42rpx; height: 42rpx; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: #fff; background: #15803d; font-size: 28rpx; }
+.todo-row-urgent .todo-check { background: #ea580c; }
+.todo-row-info { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
+.todo-row-title { color: #244332; font-size: 26rpx; font-weight: 600; }
+.todo-row-desc { color: #84958b; font-size: 21rpx; }
+.device-empty { padding: 36rpx 12rpx 18rpx; text-align: center; }
+.device-empty-icon { display: block; color: #15803d; font-size: 48rpx; }
+.device-empty-title { display: block; margin-top: 8rpx; color: #244332; font-size: 28rpx; font-weight: 700; }
+.device-empty-desc { display: block; margin-top: 8rpx; color: #84958b; font-size: 22rpx; }
+.facts-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10rpx; margin-top: 24rpx; }
+.fact-item { padding: 16rpx 8rpx; text-align: center; background: #f4f9ef; border-radius: 18rpx; }
+.fact-value { display: block; color: #244332; font-size: 27rpx; font-weight: 700; }
+.fact-unit { margin-left: 2rpx; color: #84958b; font-size: 17rpx; }
+.fact-label { display: block; margin-top: 6rpx; color: #84958b; font-size: 19rpx; }
+.fan-row { display: flex; align-items: center; gap: 14rpx; margin-top: 18rpx; padding: 18rpx; border-radius: 20rpx; background: #fff7ed; }
+.fan-row-pending { opacity: .7; }
+.fan-state-dot { width: 20rpx; height: 20rpx; border-radius: 50%; }
+.fan-on { background: #15803d; box-shadow: 0 0 0 6rpx rgba(21,128,61,.12); }
+.fan-off { background: #94a3b8; }
+.fan-row-info { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
+.fan-row-title { color: #244332; font-size: 25rpx; font-weight: 600; }
+.fan-row-desc { color: #84958b; font-size: 20rpx; }
+.fan-row-action { color: #ea580c; font-size: 22rpx; }
+.device-detail-link { display: flex; justify-content: space-between; margin-top: 18rpx; padding-top: 18rpx; border-top: 1rpx solid #edf2e9; color: #6b7f72; font-size: 21rpx; }
+
+.todo-cancel::after,
+.todo-confirm::after {
+  border: 0;
+}
+
+.todo-cancel {
+  color: #5f6f64;
+  background: #eef2ea;
+}
+
+.todo-confirm {
+  color: #ffffff;
+  background: #4d8758;
+}
+
 .card {
   padding: 14px;
   border-radius: 20px;
@@ -779,3 +899,254 @@ page {
   line-height: 1.6;
   color: rgba(223, 255, 232, 0.58);
 }
+
+/* 潮玩植物伙伴主题：保留业务布局，只重置视觉层。 */
+page {
+  background: #fff8ee;
+  color: #26352d;
+}
+
+.container {
+  background:
+    radial-gradient(circle at 92% 7%, rgba(255, 205, 112, 0.34), transparent 24%),
+    linear-gradient(180deg, #fff7e9 0%, #f2f4e4 46%, #e7efdc 100%);
+}
+
+.container::before,
+.grid-overlay {
+  background-image: none;
+  opacity: 0;
+}
+
+.topbar {
+  padding: 14px 18px 8px;
+}
+
+.topbar-kicker {
+  color: #ee8b42;
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  font-weight: 700;
+}
+
+.plant-picker {
+  padding: 10px 12px;
+  border: 2px solid #26352d;
+  border-radius: 20px;
+  background: #fffdf8;
+  box-shadow: 0 5px 0 #d8e4c8;
+}
+
+.plant-name,
+.section-title,
+.card-title,
+.device-item-name,
+.device-name,
+.no-device-title,
+.extra-value {
+  color: #26352d;
+  text-shadow: none;
+}
+
+.plant-name { font-size: 18px; }
+.plant-meta,
+.plant-personality-label,
+.plant-favorability-label,
+.text-gray,
+.device-item-plant,
+.device-item-location,
+.grid-label,
+.extra-label,
+.device-hint,
+.no-device-desc {
+  color: #718071;
+}
+
+.plant-picker-arrow,
+.topbar-signal-icon {
+  color: #ee8b42;
+}
+
+.topbar-signal {
+  background: #ffd36f;
+  border: 2px solid #26352d;
+  box-shadow: 0 4px 0 #e2b551;
+}
+
+.plant-personality-chip,
+.plant-favorability-chip {
+  border: 1.5px solid #c9ddbf;
+  background: #eff8e9;
+  box-shadow: none;
+}
+
+.plant-personality-value,
+.plant-favorability-value {
+  color: #3f674b;
+}
+
+.dark-panel,
+.dark-card,
+.card,
+.device-item,
+.add-device,
+.grid-item,
+.extra-item,
+.device-card,
+.chat-bubble,
+.no-device-guide {
+  background: #fffdf8;
+  border: 1.5px solid #d7e4ce;
+  box-shadow: 0 5px 0 rgba(195, 211, 183, 0.72);
+}
+
+.plant-section {
+  min-height: 430rpx;
+  border: 2px solid #26352d;
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at 80% 18%, rgba(255, 211, 111, 0.8), transparent 25%),
+    linear-gradient(145deg, #dff1c9 0%, #b9dfb7 100%);
+  box-shadow: 0 7px 0 #9bc39c;
+}
+
+.glow-bg {
+  width: 180px;
+  height: 180px;
+  background: rgba(255, 247, 196, 0.76);
+  filter: blur(18px);
+}
+
+.plant-circle {
+  width: 230rpx;
+  height: 230rpx;
+  border: 6px solid #fffdf8;
+  box-shadow: 0 7px 0 rgba(79, 127, 83, 0.42);
+}
+
+.status-pill,
+.weather-widget,
+.bubble,
+.mood-icon {
+  background: #fffdf8;
+  border: 1.5px solid #26352d;
+  box-shadow: 0 4px 0 rgba(195, 211, 183, 0.8);
+}
+
+.status-pill-label,
+.status-pill-value,
+.weather-temp,
+.bubble-text {
+  color: #385440;
+}
+
+.status-pill-label { font-weight: 800; }
+.bubble-warning { border-color: #e6a14a; }
+
+.dialogue-section { padding: 12px 2px; }
+.chat-bubble { border-radius: 22px 22px 22px 8px; padding: 15px 17px; }
+.chat-text { color: #435d48; line-height: 1.65; }
+
+.empty-state {
+  margin-top: 2px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #e8ddff;
+  border: 1.5px solid #b6a6ed;
+  color: #5b469c;
+  font-size: 12px;
+  box-shadow: 0 3px 0 #c2b5eb;
+}
+
+.section:not(:first-of-type) {
+  padding: 4px 0;
+}
+
+.section-header { margin-bottom: 14px; }
+.section-title { font-size: 18px; font-weight: 800; }
+
+.add-todo-btn,
+.refresh-btn {
+  min-height: 34px;
+  background: #ffd36f;
+  border: 1.5px solid #26352d;
+  color: #26352d;
+  box-shadow: 0 3px 0 #e2b551;
+}
+
+.card { border-radius: 20px; padding: 15px; }
+.border-l-red { border-left: 6px solid #ef8b5d; }
+.border-l-blue { border-left: 6px solid #8bc6a0; }
+
+.icon-circle,
+.grid-icon-wrap,
+.device-item-icon,
+.add-device-icon,
+.device-icon-box {
+  background: #f2e9d9;
+  border: 1.5px solid #dfcba9;
+}
+
+.grid { gap: 14px; }
+.grid-item { min-height: 120px; border-radius: 22px; }
+.grid-value { color: #3c7b52; }
+.unit { color: #718071; }
+
+.device-item,
+.add-device { border-radius: 22px; }
+.device-item.active { border-color: #7eb28a; box-shadow: 0 5px 0 #b5d3b4; }
+.status-text-online { color: #3c9a61; }
+.status-text-offline { color: #c47d35; }
+.add-device { color: #4d8758; border-style: dashed; }
+
+.extra-item { border-radius: 18px; min-height: 82px; }
+.extra-label { letter-spacing: 0; }
+.extra-value.uid { color: #4d8758; }
+
+.device-card { border-radius: 24px; }
+.device-card.active { border-color: #7eb28a; box-shadow: 0 5px 0 #b5d3b4; }
+.device-state-badge { border: 1.5px solid #26352d; background: #f1f4e9; }
+.device-state-badge.is-on { background: #9ed5a1; }
+.device-state-badge-text { color: #26352d; }
+.device-icon { color: #e38a42; }
+.device-status { color: #3c7b52; }
+
+/* 更强的潮玩撞色：用深墨绿和橙黄做锚点，避免整体发淡。 */
+.topbar-kicker { color: #d94f35; }
+.plant-picker { border-color: #17251e; box-shadow: 0 5px 0 #a9c997, 5px 5px 0 rgba(217, 79, 53, 0.12); }
+.plant-name { color: #17251e; }
+.topbar-signal { background: #ffb83e; border-color: #17251e; box-shadow: 0 4px 0 #c87524; }
+.topbar-signal-icon { color: #17251e; }
+
+.plant-section {
+  background:
+    radial-gradient(circle at 78% 16%, #ffcc4d 0 10%, transparent 11%),
+    radial-gradient(circle at 88% 26%, rgba(229, 88, 67, 0.72), transparent 22%),
+    linear-gradient(140deg, #b7e7ae 0%, #8dcc9d 100%);
+  border-color: #17251e;
+  box-shadow: 0 8px 0 #3d7b59, 8px 8px 0 rgba(217, 79, 53, 0.18);
+}
+
+.plant-circle { border-color: #17251e; box-shadow: 0 7px 0 #3d7b59; }
+.status-pill-label { color: #d94f35; }
+.weather-widget { background: #ffb83e; border-color: #17251e; box-shadow: 0 4px 0 #c87524; }
+.weather-temp { color: #17251e; }
+.mood-icon { background: #8d74d8; border-color: #17251e; box-shadow: 0 4px 0 #5b469c; }
+
+.section-title { color: #17251e; }
+.add-todo-btn,
+.refresh-btn { background: #ffb83e; border-color: #17251e; box-shadow: 0 4px 0 #c87524; }
+.card { border-color: #bfd6b8; box-shadow: 0 5px 0 #c7d8bd, 5px 5px 0 rgba(141, 116, 216, 0.1); }
+.border-l-red { border-left-color: #d94f35; }
+.border-l-blue { border-left-color: #8d74d8; }
+.grid-item { box-shadow: 0 5px 0 #c7d8bd; }
+.grid-item:nth-child(2) { background: #fff0c7; border-color: #e5be61; }
+.grid-item:nth-child(3) { background: #e4ddff; border-color: #b6a6ed; }
+.grid-item:nth-child(4) { background: #ffdcd3; border-color: #e7a18e; }
+.grid-value { color: #284d36; }
+.device-item.active,
+.device-card.active { border-color: #d94f35; box-shadow: 0 5px 0 #e5a087; }
+.device-item-icon,
+.add-device-icon,
+.device-icon-box { background: #e4ddff; border-color: #b6a6ed; }
+.device-state-badge.is-on { background: #ffb83e; }
