@@ -989,7 +989,7 @@ async function bindDeviceForUser(db, openid, input) {
   try {
     await conn.beginTransaction();
 
-    const [deviceRows] = await conn.execute(
+    let [deviceRows] = await conn.execute(
       `SELECT id, logical_key, product_id, device_name, status
        FROM devices
        WHERE device_name = ?
@@ -997,7 +997,24 @@ async function bindDeviceForUser(db, openid, input) {
       [fullDeviceName]
     );
 
-    if (!deviceRows.length || (deviceRows[0].status && deviceRows[0].status !== 'active')) {
+    let device = deviceRows[0] || null;
+
+    // 兼容没有 Nova_ 前缀的设备名：带前缀查不到时，用原始设备码再查一次
+    if (!device || (device.status && device.status !== 'active')) {
+      const [fallbackRows] = await conn.execute(
+        `SELECT id, logical_key, product_id, device_name, status
+         FROM devices
+         WHERE device_name = ?
+         LIMIT 1`,
+        [deviceCode]
+      );
+      const fallback = fallbackRows[0];
+      if (fallback && (!fallback.status || fallback.status === 'active')) {
+        device = fallback;
+      }
+    }
+
+    if (!device || (device.status && device.status !== 'active')) {
       await conn.rollback();
       return {
         success: false,
@@ -1005,7 +1022,6 @@ async function bindDeviceForUser(db, openid, input) {
       };
     }
 
-    const device = deviceRows[0];
     const logicalKey = device.logical_key;
 
     const [activeRows] = await conn.execute(
@@ -1090,7 +1106,7 @@ async function bindDeviceForUser(db, openid, input) {
       success: true,
       msg: '绑定成功',
       deviceCode,
-      deviceName: fullDeviceName,
+      deviceName: device.device_name || fullDeviceName,
       logicalKey
     };
   } catch (err) {
