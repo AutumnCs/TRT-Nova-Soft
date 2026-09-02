@@ -1,0 +1,253 @@
+<page-meta background-color="{{theme === 'dark' ? '#0C1410' : '#F7F5EE'}}" page-style="{{theme === 'dark' ? 'background: #0C1410' : 'background: #F7F5EE'}}" />
+<view class="page {{theme === 'dark' ? 'theme-dark' : 'theme-light'}}" wx:if="{{ready}}">
+
+  <!-- ================= 浅色 · 元气日光 · 植宠体检报告 ================= -->
+  <block wx:if="{{theme !== 'dark'}}">
+    <view class="nav" style="padding-top: {{statusBarHeight}}px;">
+      <view class="nav-side" bindtap="goBack">←</view>
+      <view class="nav-center">
+        <text class="brand">NOVA_SYS.v1</text>
+        <text class="subline">{{device ? (device.online ? 'REC // ONLINE' : 'REC // OFFLINE') : 'REC // IDLE'}}</text>
+      </view>
+
+    </view>
+
+    <scroll-view class="content" scroll-y enhanced show-scrollbar="{{false}}">
+      <view wx:if="{{loading}}" class="loading-mask">
+        <view class="loading-dot"></view>
+        <text class="loading-text">SYNCING DEVICE...</text>
+      </view>
+
+      <!-- 体检单 -->
+      <view wx:if="{{device}}" class="report">
+        <view class="bigstamp {{checkupStamp === '待复查' ? 'warn' : (checkupStamp === '待检测' ? 'na' : '')}}">
+          <text class="bs-t">{{checkupStamp}}</text>
+          <text class="bs-s">TRT 植物诊所</text>
+        </view>
+
+        <view class="r-org">
+          <text class="h">TRT 植物诊所</text>
+          <text class="no">NO. {{device.logicalKey || '--'}}</text>
+        </view>
+
+        <view class="r-pet">
+          <view class="r-ava">
+            <image class="r-ava-img" src="{{device.image}}" mode="aspectFill" />
+          </view>
+          <view class="r-pet-copy">
+            <view class="r-name">受检对象：{{device.alias}}</view>
+            <view class="r-meta">
+              <view class="dot {{device.online ? 'on' : 'off'}}"></view>
+              <text>{{device.location}} · {{device.plantType}} · 胸牌 {{device.logicalKey || '--'}} · {{extraInfo.personality}}</text>
+            </view>
+          </view>
+          <view class="r-pet-acts">
+            <view class="mini-btn" bindtap="goPlantJournal">LOG</view>
+            <view class="mini-btn" bindtap="goSettings">CFG</view>
+          </view>
+        </view>
+
+        <view wx:if="{{metricTabs.length > 0}}" class="r-sec">
+          <text>体格检查</text>
+          <view class="ln"></view>
+        </view>
+        <view wx:if="{{metricTabs.length > 0}}" class="rp-list">
+          <view
+            wx:for="{{metricTabs}}"
+            wx:key="key"
+            class="rp-row {{item.active ? 'sel' : ''}}"
+            bindtap="onMetricTap"
+            data-key="{{item.key}}"
+          >
+            <text class="k">{{item.label}}</text>
+            <view class="v">
+              <text class="vn">{{item.value}}</text>
+              <text class="vu">{{item.unit}}</text>
+            </view>
+            <view class="ok {{item.status}}"><text>{{item.statusText}}</text></view>
+          </view>
+        </view>
+
+        <view class="r-advice">
+          <text class="r-advice-txt"><text class="ab">养护建议：</text>{{checkupAdvice}}</text>
+        </view>
+
+        <view class="r-sec">
+          <text>综合评定</text>
+          <view class="ln"></view>
+        </view>
+        <view class="r-sum">
+          <view class="rs">
+            <text class="rk">{{extraInfo.isDead === '是' ? '生命状态' : '好感度'}}</text>
+            <text class="rv">{{extraInfo.isDead === '是' ? '已死亡' : extraInfo.favorability}}</text>
+          </view>
+          <view class="rs">
+            <text class="rk">灵魂状态</text>
+            <text class="rv">{{extraInfo.soulState}}</text>
+          </view>
+          <view class="rs">
+            <text class="rk">植物类型</text>
+            <text class="rv rv-sm">{{extraInfo.reportedPlantType}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 记录墙：成长曲线 -->
+      <view wx:if="{{device}}" class="dd">
+        <text class="dd-tag">成长曲线</text>
+        <view class="dd-head">
+          <view class="dd-head-l">
+            <text class="dd-title">{{selectedMetricLabel}} · 趋势记录</text>
+            <text class="dd-sub">{{rangeDesc}} · {{trendTip}}</text>
+          </view>
+          <view class="range-chips">
+            <view
+              wx:for="{{rangeOptions}}"
+              wx:key="key"
+              class="rchip {{rangeKey === item.key ? 'active' : ''}}"
+              bindtap="onRangeTap"
+              data-key="{{item.key}}"
+            >{{item.label}}</view>
+          </view>
+        </view>
+
+        <view class="growwall">
+          <text class="gw-t">TREND · {{trendMin}}–{{trendMax}}</text>
+          <canvas id="trendCanvas" canvas-id="trendCanvas" class="chart"></canvas>
+          <view class="gw-stats">
+            <view class="gs">
+              <text class="gv">{{trendMin}}</text>
+              <text class="gl">MIN</text>
+            </view>
+            <view class="gs">
+              <text class="gv avg">{{trendAvg}}</text>
+              <text class="gl">AVG</text>
+            </view>
+            <view class="gs">
+              <text class="gv">{{trendMax}}</text>
+              <text class="gl">MAX</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view style="padding-bottom: 60rpx;"></view>
+    </scroll-view>
+  </block>
+
+  <!-- ================= 深色 · 萤火温室 · 监控大屏 ================= -->
+  <block wx:else>
+    <view class="d-root" style="padding-top: {{statusBarHeight}}px;">
+      <view class="nw">守夜手记 · {{device ? '巡到' + device.location + '，' + device.plantType + '的呼吸很平稳' : '巡园中，温室一切平稳'}}</view>
+      <view class="ff f1"></view>
+      <view class="ff f2"></view>
+
+      <scroll-view class="content" scroll-y enhanced show-scrollbar="{{false}}">
+        <view wx:if="{{loading}}" class="loading-mask dark">
+          <view class="loading-dot"></view>
+          <text class="loading-text">SYNCING DEVICE...</text>
+        </view>
+
+        <view class="pg-top">
+          <view class="back" bindtap="goBack">←</view>
+          <view class="mid">
+            <text class="k">NOVA SYS · v1</text>
+            <text class="t">{{device ? (device.online ? 'REC · ONLINE' : 'REC · OFFLINE') : 'REC · IDLE'}}</text>
+          </view>
+    
+        </view>
+
+        <view wx:if="{{device}}" class="dev-row">
+          <view class="dev-ava">
+            <image src="{{device.image}}" mode="aspectFill" />
+          </view>
+          <view class="dev-copy">
+            <view class="dev-name">{{device.alias}}</view>
+            <view class="dev-meta">{{device.location}} · {{device.plantType}} · <text class="mono">{{device.logicalKey || '--'}}</text></view>
+          </view>
+          <view class="dev-acts">
+            <view class="btn-ghost" bindtap="goPlantJournal">LOG</view>
+            <view class="btn-soft" bindtap="goSettings">CFG</view>
+          </view>
+        </view>
+
+        <view wx:if="{{device}}" class="d-screen">
+          <view class="d-big">
+            <view class="scan"></view>
+            <view class="db-top">
+              <text class="bk">{{selectedMetricLabel}} · LIVE</text>
+              <view class="dot {{device.online ? 'on' : 'off'}}"></view>
+            </view>
+            <view class="bignum">
+              <text class="bn-v">{{selectedMetricValue}}</text>
+              <text class="mu">{{selectedMetricUnit}}</text>
+            </view>
+            <text class="db-sub">{{device.online ? '在线 · 实时上报中' : '离线 · 等待设备重连'}}</text>
+          </view>
+
+          <view wx:if="{{metricTabs.length > 0}}" class="lamps">
+            <view
+              wx:for="{{metricTabs}}"
+              wx:key="key"
+              class="lamp {{item.active ? 'hot' : ''}}"
+              bindtap="onMetricTap"
+              data-key="{{item.key}}"
+            >
+              <view class="cap"></view>
+              <view class="ring"></view>
+              <view class="lv">
+                <text class="lvn">{{item.value}}</text>
+                <text class="lvu">{{item.unit}}</text>
+              </view>
+              <text class="lk">{{item.active ? '选中' : item.label}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view wx:if="{{device}}" class="chips">
+          <view class="chip"><text>好感</text><text class="cv">{{extraInfo.isDead === '是' ? '已死亡' : extraInfo.favorability}}</text></view>
+          <view class="chip"><text>灵魂</text><text class="cv">{{extraInfo.soulState}}</text></view>
+          <view class="chip"><text>BIO</text><text class="cv">{{extraInfo.personality}}</text></view>
+          <view class="chip"><text>植物</text><text class="cv">{{extraInfo.reportedPlantType}}</text></view>
+        </view>
+
+        <view wx:if="{{device}}" class="trend-card">
+          <view class="tc-head">
+            <view class="tc-l">
+              <text class="tc-k">本周成长曲线</text>
+              <text class="tc-sub">{{selectedMetricLabel}} · {{rangeDesc}} · {{trendTip}}</text>
+            </view>
+            <view class="range-btns">
+              <view
+                wx:for="{{rangeOptions}}"
+                wx:key="key"
+                class="{{rangeKey === item.key ? 'btn-soft' : 'btn-ghost'}}"
+                bindtap="onRangeTap"
+                data-key="{{item.key}}"
+              >{{item.label}}</view>
+            </view>
+          </view>
+
+          <canvas id="trendCanvas" canvas-id="trendCanvas" class="chart"></canvas>
+
+          <view class="trend-stats">
+            <view class="trend-stat">
+              <text class="tv blue">{{trendMin}}</text>
+              <text class="tl">MIN</text>
+            </view>
+            <view class="trend-stat">
+              <text class="tv gold">{{trendAvg}}</text>
+              <text class="tl">AVG</text>
+            </view>
+            <view class="trend-stat">
+              <text class="tv green">{{trendMax}}</text>
+              <text class="tl">MAX</text>
+            </view>
+          </view>
+        </view>
+
+        <view style="padding-bottom: 60rpx;"></view>
+      </scroll-view>
+    </view>
+  </block>
+</view>

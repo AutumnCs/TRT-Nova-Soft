@@ -1,0 +1,133 @@
+<page-meta background-color="{{theme === 'dark' ? '#0C1410' : '#F7F5EE'}}" page-style="{{theme === 'dark' ? 'background: #0C1410' : 'background: #F7F5EE'}}" />
+<view class="auth-page {{theme === 'dark' ? 'theme-dark' : 'theme-light'}}" style="padding-top: {{statusBarHeight}}px;" wx:if="{{ready}}">
+
+  <view wx:if="{{transitioning}}" class="transition-mask">
+    <view class="transition-inner">
+      <view class="transition-logo">TRT Nova</view>
+      <view class="transition-spinner"><view class="spinner-ring"></view></view>
+      <text class="transition-text">正在进入...</text>
+    </view>
+  </view>
+
+  <!-- ================= 浅色 · 元气日光 · 登录标本卡 ================= -->
+  <block wx:if="{{theme !== 'dark'}}">
+    <view class="specimen">
+      <text class="sp-no">TRT NOVA · NO. 042</text>
+      <text class="sp-pet">🪴</text>
+      <text class="sp-name">TRT Nova</text>
+      <text class="sp-sub">智能植物养护 · 植愈星球</text>
+      <view class="sp-rule"></view>
+      <text class="sp-motto">让每一株植物都被温柔照顾</text>
+    </view>
+  </block>
+
+  <!-- ================= 深色 · 萤火温室 · 温室之门 ================= -->
+  <block wx:else>
+    <view class="nw"><text>守夜手记 · 推开温室的门，夜色刚落</text></view>
+    <view class="d-pad">
+      <view class="d-chips">
+        <view class="d-chip"><text class="d-chip-b">深夜</text><text>温室常亮</text></view>
+        <view class="d-chip"><view class="ff-dot"></view><text class="d-chip-b">3</text><text>只萤火虫醒着</text></view>
+      </view>
+
+      <view wx:if="{{loginState === 'choose'}}" class="d-door">
+        <view class="starfield"></view>
+        <view class="doorline"></view>
+        <view class="ff ff1"></view>
+        <view class="ff ff2"></view>
+        <view class="ff ff3"></view>
+        <text class="d-pet">🪴</text>
+        <text class="d-door-word">「 门没锁，进来吧 」</text>
+        <view class="mat"><text>WELCOME</text></view>
+      </view>
+
+      <view wx:if="{{loginState === 'choose'}}" class="d-brand">
+        <text class="d-brand-name">TRT Nova</text>
+        <text class="d-brand-sub">智能植物养护助手 · 植愈星球</text>
+      </view>
+    </view>
+  </block>
+
+  <!-- ================= 登录入口（结构共用 · 样式随主题） ================= -->
+  <view wx:if="{{loginState === 'choose'}}" class="entry">
+    <button class="main-btn" bindtap="onWeixinLogin" loading="{{saving}}" disabled="{{saving}}">
+      <text class="main-btn-txt">{{saving ? '登录中...' : '微信一键登录'}}</text>
+    </button>
+    <view class="a-hint">
+      <text>登录后即可管理你的植物设备</text>
+      <text wx:if="{{devPhoneLoginEnabled}}" class="a-hint-link" bindtap="showPhoneLogin"> · 开发体验登录</text>
+    </view>
+  </view>
+
+  <!-- 选择头像与昵称 -->
+  <view wx:if="{{loginState === 'wechat-profile'}}" class="form-card">
+    <text class="card-label">选择头像与昵称</text>
+    <text class="card-sub">可以使用微信资料，也可以自定义资料。</text>
+
+    <button class="wechat-profile-btn" bindtap="onUseWechatProfile" disabled="{{saving}}">
+      <text class="wechat-profile-text">使用微信头像昵称</text>
+    </button>
+
+    <view class="avatar-wrap">
+      <button wx:if="{{!isApp}}" class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+        <image class="avatar-img {{userInfo.avatarUrl !== defaultAvatarUrl ? '' : 'avatar-placeholder'}}" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+      </button>
+      <button wx:else class="avatar-btn" bindtap="onPickAvatar">
+        <image class="avatar-img {{userInfo.avatarUrl !== defaultAvatarUrl ? '' : 'avatar-placeholder'}}" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+      </button>
+      <text class="avatar-hint">点击更换头像</text>
+    </view>
+
+    <view class="input-wrap">
+      <text class="input-icon">N</text>
+      <input
+        type="nickname"
+        class="name-input"
+        placeholder="输入你的昵称"
+        placeholder-class="input-placeholder"
+        value="{{userInfo.nickName}}"
+        bindinput="onNickNameChange"
+        maxlength="20"
+      />
+    </view>
+
+    <button
+      class="login-btn {{canSave ? 'login-btn-active' : ''}}"
+      bindtap="onSaveProfile"
+      disabled="{{!canSave || saving}}"
+      loading="{{saving}}"
+    >
+      <text class="login-btn-text">{{saving ? '保存中...' : '进入花园'}}</text>
+    </button>
+
+    <view class="profile-actions">
+      <button class="text-btn" bindtap="onUseCustomProfile">清空重填</button>
+      <button class="text-btn" bindtap="backToChoose">返回</button>
+    </view>
+  </view>
+
+  <!-- 开发体验登录 -->
+  <view wx:if="{{loginState === 'phone-login'}}" class="form-card">
+    <text class="card-label">开发体验登录</text>
+    <text class="card-sub">仅供本地开发，不是正式手机号认证。</text>
+
+    <view class="input-wrap">
+      <text class="input-icon">P</text>
+      <input
+        class="name-input"
+        type="number"
+        placeholder="请输入手机号"
+        placeholder-class="input-placeholder"
+        value="{{phone}}"
+        bindinput="onPhoneInput"
+        maxlength="11"
+      />
+    </view>
+
+    <button class="main-btn" bindtap="onPhoneLogin" loading="{{saving}}" disabled="{{saving}}">
+      <text class="main-btn-txt">进入开发体验</text>
+    </button>
+
+    <button class="text-btn back-btn" bindtap="backToChoose">返回</button>
+  </view>
+</view>

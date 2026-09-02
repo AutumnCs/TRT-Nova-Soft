@@ -1,0 +1,908 @@
+/* ================= 文章详情 · 双主题（浅色元气日光 · 慢读杂志内页 / 深色萤火温室 · 夜读模式） ================= */
+/* 变量沿用 app.wxss 全局定义（--bg / --paper / --line / --text / --matcha / --peach / --gold …） */
+
+page {
+  background: #F7F5EE;
+}
+
+/* page 背景随主题翻转，消除切页瞬间原生底与页面色的跳变 */
+page:has(.theme-dark) { background: #0C1410; }
+
+/* ---------- 容器 ---------- */
+.page {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  font-size: 28rpx;
+  color: var(--text);
+  background-color: var(--bg);
+  background-image: radial-gradient(rgba(47, 162, 102, 0.045) 2rpx, transparent 2rpx);
+  background-size: 56rpx 56rpx;
+}
+
+.page.theme-dark {
+  background-image: radial-gradient(rgba(127, 224, 168, 0.05) 2rpx, transparent 2rpx);
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  box-sizing: border-box;
+  padding: 0 32rpx calc(48rpx + env(safe-area-inset-bottom));
+}
+
+/* ---------- 主题切换按钮 ---------- */
+.theme-btn {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 20rpx;
+  background: var(--jelly2);
+  border: 2rpx solid var(--line2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+}
+
+/* ================= 浅色 · 元气日光 · 慢读杂志内页 ================= */
+
+.top-shell {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  padding: 0 32rpx 24rpx;
+}
+
+.l-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 8rpx 24rpx;
+}
+
+.l-back {
+  width: 72rpx;
+  flex: none;
+  text-align: center;
+  font-size: 44rpx;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--text2);
+}
+
+/* 刊眉 */
+.l-mast {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-family: 'DIN Alternate', 'Bahnschrift', sans-serif;
+}
+
+.l-mast-brand {
+  display: block;
+  font-size: 19rpx;
+  letter-spacing: 4rpx;
+  color: var(--text2);
+}
+
+.l-mast-page {
+  display: block;
+  margin-top: 6rpx;
+  font-size: 17rpx;
+  letter-spacing: 4rpx;
+  color: var(--text2);
+}
+
+.l-acts {
+  min-width: 72rpx;
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.state-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 40rpx 32rpx;
+}
+
+/* 纸感杂志卡 */
+.dd {
+  position: relative;
+  background: var(--paper);
+  border: 2rpx solid #3A423C;
+  border-radius: 12rpx;
+  box-shadow: 0 6rpx 20rpx rgba(52, 66, 58, 0.07);
+}
+
+.zine-card {
+  padding: 36rpx;
+  margin-top: 36rpx;
+}
+
+.dd-tag {
+  position: absolute;
+  top: -18rpx;
+  left: 28rpx;
+  z-index: 3;
+  background: #3A423C;
+  color: #F3F1E8;
+  font-family: var(--font-serif);
+  font-size: 19rpx;
+  font-weight: 700;
+  letter-spacing: 4rpx;
+  padding: 6rpx 20rpx;
+  border-radius: 6rpx;
+}
+
+/* 设备字段 / 系统规则标记 */
+.zine-mark {
+  position: absolute;
+  top: -18rpx;
+  right: 28rpx;
+  z-index: 3;
+  background: var(--peach-deep);
+  color: #FFF7F0;
+  font-size: 19rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  padding: 6rpx 18rpx;
+  border-radius: 6rpx;
+}
+
+/* 章节题花 */
+.zine-head {
+  text-align: center;
+  padding: 16rpx 0 28rpx;
+}
+
+.zine-orn {
+  font-size: 48rpx;
+  line-height: 1;
+  color: var(--peach);
+}
+
+.zine-title {
+  margin-top: 12rpx;
+  font-family: 'Yuanti SC', 'YouYuan', 'PingFang SC', sans-serif;
+  font-size: 40rpx;
+  font-weight: 900;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.zine-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20rpx;
+  margin-top: 20rpx;
+  font-size: 20rpx;
+  color: var(--text2);
+}
+
+.zm-line {
+  width: 52rpx;
+  border-top: 2rpx solid var(--line2);
+}
+
+.zine-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12rpx;
+  padding: 4rpx 0 24rpx;
+  border-bottom: 2rpx dashed var(--line2);
+}
+
+.zine-tag {
+  font-size: 19rpx;
+  color: var(--matcha-deep);
+  background: var(--matcha-soft);
+  border: 2rpx solid var(--line2);
+  border-radius: 999rpx;
+  padding: 4rpx 18rpx;
+}
+
+/* 首字下沉正文 */
+.zine-body {
+  margin-top: 28rpx;
+  font-size: 26rpx;
+  line-height: 2;
+  color: var(--text);
+}
+
+.zine-para {
+  text-align: justify;
+  margin-bottom: 20rpx;
+}
+
+.zine-para.first {
+  min-height: 84rpx;
+}
+
+.dropcap {
+  float: left;
+  font-family: 'Yuanti SC', 'YouYuan', 'PingFang SC', sans-serif;
+  font-size: 84rpx;
+  font-weight: 900;
+  line-height: 0.9;
+  color: var(--matcha-deep);
+  margin: 8rpx 16rpx 0 0;
+}
+
+/* 拉页引言 */
+.pull {
+  margin: 32rpx 0 8rpx;
+  padding: 26rpx 24rpx;
+  background: var(--matcha-soft);
+  border-left: 6rpx solid var(--matcha);
+  border-radius: 6rpx;
+}
+
+.pq {
+  font-family: var(--font-serif);
+  font-size: 27rpx;
+  font-weight: 700;
+  line-height: 1.8;
+  color: var(--matcha-deep);
+  text-align: justify;
+}
+
+.ps {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 19rpx;
+  letter-spacing: 4rpx;
+  color: var(--text2);
+  text-align: right;
+}
+
+/* 小节花体编号 */
+.zine-sec {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin: 36rpx 0 16rpx;
+}
+
+.zs-no {
+  width: 48rpx;
+  height: 48rpx;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3rpx solid var(--peach);
+  border-radius: 50%;
+  font-family: 'Yuanti SC', 'YouYuan', 'PingFang SC', sans-serif;
+  font-size: 24rpx;
+  font-weight: 900;
+  color: var(--peach-deep);
+}
+
+.zs-title {
+  font-family: 'Yuanti SC', 'YouYuan', 'PingFang SC', sans-serif;
+  font-size: 28rpx;
+  font-weight: 900;
+  color: var(--text);
+}
+
+.zs-dash {
+  flex: 1;
+  border-top: 3rpx dashed var(--line2);
+}
+
+/* 要点摘录框 */
+.digest {
+  margin: 28rpx 0;
+  padding: 22rpx 28rpx 18rpx;
+  background: #F2EFE5;
+  border: 2rpx solid #3A423C;
+  border-radius: 6rpx;
+}
+
+.dg-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 12rpx;
+  margin-bottom: 8rpx;
+  border-bottom: 2rpx solid #3A423C;
+}
+
+.dg-head-l {
+  font-family: var(--font-serif);
+  font-size: 21rpx;
+  font-weight: 700;
+  letter-spacing: 6rpx;
+  color: var(--matcha-deep);
+}
+
+.dg-head-r {
+  font-family: 'DIN Alternate', 'Bahnschrift', sans-serif;
+  font-size: 17rpx;
+  letter-spacing: 4rpx;
+  color: var(--text2);
+}
+
+.dg-row {
+  display: flex;
+  align-items: baseline;
+  font-size: 22rpx;
+  color: var(--text);
+  line-height: 2.1;
+}
+
+.dg-dots {
+  flex: 1;
+  border-bottom: 2rpx dotted var(--line2);
+  margin: 0 16rpx;
+  transform: translateY(-6rpx);
+}
+
+.dg-val {
+  font-family: 'DIN Alternate', 'Bahnschrift', sans-serif;
+  font-weight: 700;
+  color: var(--matcha-deep);
+}
+
+/* 旁注（脚注版式） */
+.aside-note {
+  margin: 28rpx 0 24rpx;
+}
+
+.an-rule {
+  width: 32%;
+  border-top: 3rpx solid #3A423C;
+  margin-bottom: 14rpx;
+}
+
+.an-text {
+  display: block;
+  font-size: 21rpx;
+  line-height: 1.95;
+  color: var(--text2);
+  text-align: justify;
+}
+
+.an-label {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  letter-spacing: 4rpx;
+  color: var(--matcha-deep);
+}
+
+/* 文末署名 */
+.zine-foot {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 32rpx;
+  padding-top: 16rpx;
+  border-top: 2rpx solid var(--line2);
+  font-family: 'DIN Alternate', 'Bahnschrift', sans-serif;
+  font-size: 17rpx;
+  letter-spacing: 3rpx;
+  color: var(--text2);
+}
+
+/* 页脚 */
+.zine-pagefoot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 4rpx solid #2D3A2E;
+  font-family: 'DIN Alternate', 'Bahnschrift', sans-serif;
+  font-size: 18rpx;
+  letter-spacing: 2rpx;
+  color: var(--text2);
+}
+
+/* 相关阅读（操作报纸卡） */
+.rel-head {
+  display: flex;
+  align-items: baseline;
+  gap: 20rpx;
+  margin-top: 36rpx;
+  padding: 0 8rpx;
+}
+
+.rel-title {
+  font-family: var(--font-serif);
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.rel-line {
+  flex: 1;
+  border-top: 2rpx dashed var(--line2);
+}
+
+.k-news {
+  position: relative;
+  margin-top: 20rpx;
+  background: var(--paper);
+  border: 2rpx solid #3A423C;
+  border-radius: 10rpx;
+  overflow: hidden;
+  box-shadow: 0 6rpx 20rpx rgba(52, 66, 58, 0.07);
+}
+
+.k-news:active {
+  transform: translateY(2rpx);
+}
+
+.kn-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 14rpx 22rpx 12rpx;
+  background: #F2EFE5;
+  border-bottom: 2rpx solid #3A423C;
+  font-family: 'DIN Alternate', 'Bahnschrift', sans-serif;
+  font-size: 17rpx;
+  letter-spacing: 2rpx;
+  color: var(--text2);
+}
+
+.kn-dot {
+  color: #4C6632;
+}
+
+.kn-brand {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 12rpx 22rpx 10rpx;
+  border-bottom: 2rpx solid var(--line2);
+}
+
+.kn-bs {
+  font-size: 18rpx;
+  letter-spacing: 2rpx;
+  color: var(--text2);
+}
+
+.kn-bw {
+  font-family: var(--font-serif);
+  font-size: 28rpx;
+  font-weight: 900;
+  letter-spacing: 6rpx;
+  color: var(--text);
+}
+
+.kn-t {
+  font-size: 27rpx;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--text);
+  padding: 16rpx 22rpx 4rpx;
+}
+
+.kn-foot {
+  display: flex;
+  justify-content: space-between;
+  padding: 10rpx 22rpx 18rpx;
+  font-family: 'DIN Alternate', 'Bahnschrift', sans-serif;
+  font-size: 17rpx;
+  letter-spacing: 2rpx;
+  color: var(--text2);
+}
+
+/* 浅色加载 / 空态 */
+.sk-line {
+  height: 24rpx;
+  border-radius: 999rpx;
+  background: #EAE6D9;
+  margin-bottom: 22rpx;
+}
+
+.sk-lg { width: 76%; }
+.sk-md { width: 58%; }
+.sk-sm { width: 42%; }
+
+.empty-card {
+  padding: 56rpx 36rpx;
+  text-align: center;
+}
+
+.empty-title {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.empty-desc {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 22rpx;
+  line-height: 1.7;
+  color: var(--text2);
+}
+
+/* ================= 深色 · 萤火温室 · 夜读模式 ================= */
+
+.d-shell {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0 36rpx calc(40rpx + env(safe-area-inset-bottom));
+  box-sizing: border-box;
+}
+
+/* 守夜手记 + 萤火虫 */
+.nw {
+  flex: none;
+  text-align: center;
+  font-size: 17rpx;
+  letter-spacing: 4rpx;
+  color: rgba(245, 217, 139, 0.45);
+  padding: 10rpx 12rpx 0;
+  font-weight: 600;
+  position: relative;
+  z-index: 2;
+}
+
+.ff {
+  position: absolute;
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 20rpx 8rpx rgba(245, 217, 139, 0.5);
+  animation: fly 9s ease-in-out infinite;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.ff.f1 { left: 14%; top: 24%; }
+.ff.f2 { right: 11%; top: 38%; animation-delay: 3.5s; animation-duration: 11s; }
+
+@keyframes fly {
+  0%, 100% { transform: translate(0, 0); opacity: 0.1; }
+  30% { opacity: 0.85; }
+  55% { transform: translate(32rpx, -44rpx); opacity: 0.45; }
+  80% { opacity: 0.9; }
+}
+
+/* 顶栏 */
+.pg-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8rpx 0 28rpx;
+}
+
+.pg-top .back {
+  width: 68rpx;
+  height: 68rpx;
+  flex: none;
+  border-radius: 24rpx;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  font-size: 36rpx;
+}
+
+.pg-top .mid {
+  flex: 1;
+  text-align: center;
+}
+
+.pg-top .mid .t {
+  font-size: 30rpx;
+  font-weight: 800;
+  letter-spacing: 6rpx;
+  color: var(--text);
+}
+
+.pg-top .act {
+  min-width: 68rpx;
+  flex: none;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.chip {
+  height: 46rpx;
+  padding: 0 20rpx;
+  border-radius: 999rpx;
+  border: 2rpx solid var(--border2);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 19rpx;
+  letter-spacing: 1rpx;
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  box-sizing: border-box;
+}
+
+.chip b {
+  font-weight: 800;
+}
+
+.chip.gold {
+  border-color: rgba(245, 217, 139, 0.4);
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+/* 阅读进度条 */
+.d-readbar {
+  flex: none;
+  height: 6rpx;
+  border-radius: 999rpx;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.dr-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 999rpx;
+  background: linear-gradient(90deg, var(--matcha), var(--gold));
+  transition: width 0.2s ease-out;
+}
+
+/* 深色加载 / 空态 */
+.d-state {
+  flex: 1;
+  padding: 48rpx 0;
+}
+
+.dsk-line {
+  height: 24rpx;
+  border-radius: 999rpx;
+  background: var(--surface2);
+  margin-bottom: 24rpx;
+}
+
+.dsk-lg { width: 76%; }
+.dsk-md { width: 58%; }
+.dsk-sm { width: 42%; }
+
+.card {
+  background: var(--surface);
+  border: 2rpx solid var(--border);
+  border-radius: 20rpx;
+  padding: 24rpx;
+}
+
+.d-empty {
+  flex: 1;
+  margin-top: 32rpx;
+  padding: 56rpx 36rpx;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.d-empty-title {
+  font-family: var(--font-serif);
+  font-size: 30rpx;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.d-empty-desc {
+  margin-top: 16rpx;
+  font-size: 22rpx;
+  line-height: 1.7;
+  color: var(--text2);
+}
+
+/* 正文滚动区 */
+.content.dark {
+  padding: 0 0 calc(24rpx + env(safe-area-inset-bottom));
+}
+
+.d-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-top: 36rpx;
+}
+
+.d-meta-txt {
+  font-size: 21rpx;
+  color: var(--text2);
+}
+
+.d-docmark {
+  margin-left: auto;
+  font-size: 19rpx;
+  letter-spacing: 2rpx;
+  color: var(--peach-deep);
+  background: var(--peach-soft);
+  border: 2rpx solid rgba(232, 160, 95, 0.4);
+  border-radius: 8rpx;
+  padding: 4rpx 14rpx;
+}
+
+.d-serif {
+  font-family: var(--font-serif);
+}
+
+.d-title {
+  margin-top: 28rpx;
+  font-size: 46rpx;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.d-author {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin-top: 28rpx;
+}
+
+.d-ava {
+  width: 52rpx;
+  height: 52rpx;
+  flex: none;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 2rpx solid var(--border2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26rpx;
+}
+
+.d-author-txt {
+  font-size: 22rpx;
+  color: var(--text2);
+}
+
+.art-body {
+  margin-top: 32rpx;
+  font-size: 26rpx;
+  line-height: 2;
+  color: var(--text);
+}
+
+.art-body .lead {
+  text-align: justify;
+}
+
+.art-body .ap {
+  text-align: justify;
+  margin-bottom: 24rpx;
+}
+
+.art-h {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  margin: 44rpx 0 20rpx;
+  font-family: var(--font-serif);
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.art-h .n {
+  font-family: 'DIN Alternate', 'Bahnschrift', sans-serif;
+  font-size: 22rpx;
+  font-weight: 700;
+  color: var(--matcha);
+  border: 2rpx solid var(--border2);
+  border-radius: 10rpx;
+  padding: 2rpx 14rpx;
+}
+
+.art-h .ln {
+  flex: 1;
+  border-top: 2rpx dashed var(--border2);
+}
+
+.callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 18rpx;
+  margin: 32rpx 0;
+}
+
+.co-ico {
+  flex: none;
+  font-size: 32rpx;
+  line-height: 1.4;
+}
+
+.co-txt {
+  font-size: 24rpx;
+  line-height: 1.8;
+  color: var(--text2);
+}
+
+.d-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14rpx;
+}
+
+.d-tag {
+  padding: 8rpx 22rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  color: var(--matcha);
+  background: var(--matcha-soft);
+  border: 2rpx solid rgba(127, 224, 168, 0.2);
+}
+
+.d-sec {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  margin: 48rpx 0 20rpx;
+  font-family: var(--font-serif);
+  font-size: 26rpx;
+  color: var(--text2);
+}
+
+.d-sec .b {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.d-sec .ln {
+  flex: 1;
+  border-top: 2rpx dashed var(--border2);
+}
+
+.rel-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 18rpx;
+}
+
+.rel-item:active {
+  background: var(--surface2);
+}
+
+.rel-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  min-width: 0;
+}
+
+.rel-t {
+  font-size: 28rpx;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.rel-s {
+  font-size: 21rpx;
+  color: var(--text2);
+}
+
+.chev {
+  flex: none;
+  font-size: 36rpx;
+  line-height: 1;
+  color: var(--text2);
+}

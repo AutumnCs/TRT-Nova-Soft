@@ -1,0 +1,23 @@
+CREATE TABLE knowledge_articles (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  slug VARCHAR(191) NOT NULL,
+  title VARCHAR(255) NOT NULL,
+  summary VARCHAR(512) NOT NULL,
+  content LONGTEXT NOT NULL,
+  category VARCHAR(64) NOT NULL DEFAULT 'general',
+  tags_json JSON DEFAULT NULL,
+  aliases_json JSON DEFAULT NULL,
+  plant_types_json JSON DEFAULT NULL,
+  problem_types_json JSON DEFAULT NULL,
+  source_type VARCHAR(32) NOT NULL DEFAULT 'seed',
+  source_ref VARCHAR(255) DEFAULT NULL,
+  status VARCHAR(32) NOT NULL DEFAULT 'published',
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uk_knowledge_articles_slug (slug),
+  KEY idx_knowledge_articles_status_sort (status, sort_order, id),
+  KEY idx_knowledge_articles_category (category, status),
+  FULLTEXT KEY ft_knowledge_articles_text (title, summary, content)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

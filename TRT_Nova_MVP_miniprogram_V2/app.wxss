@@ -1,0 +1,199 @@
+/** app.wxss **/
+
+/**
+ * 全局 CSS 变量 - TRT Nova 设计系统
+ * 所有页面通过 var(--color-xxx) 引用，统一修改此处即可全局生效
+ */
+page {
+  /* 品牌主色 */
+  --color-primary: #10B981;
+  --color-primary-dark: #059669;
+  --color-primary-light: #D1FAE5;
+  --color-primary-bg: #F0F9F4;
+
+  /* 状态色 */
+  --color-success: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-danger-light: #FEE2E2;
+  --color-info: #3B82F6;
+  --color-info-light: #EFF6FF;
+
+  /* 中性色 */
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #6B7280;
+  --color-text-muted: #9CA3AF;
+  --color-border: #E5E7EB;
+  --color-bg-page: #F3F4F6;
+  --color-bg-card: #FFFFFF;
+
+  /* 在线/离线状态 */
+  --color-online: #10B981;
+  --color-offline: #9CA3AF;
+
+  /* 圆角 */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  /* 阴影（双层：近距离深 + 远距离浅，补偿 WebView 单层阴影偏平） */
+  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+  --shadow-md: 0 2px 4px rgba(0,0,0,0.05), 0 8px 24px rgba(0,0,0,0.10);
+  --shadow-lg: 0 4px 8px rgba(0,0,0,0.06), 0 16px 40px rgba(0,0,0,0.14);
+}
+
+/**
+ * 双主题变量 · 浅色默认（元气日光），深色由页面根节点 .theme-dark 覆盖（萤火温室）
+ * 与 pages/index/index.wxss 中的变量体系保持一致
+ */
+page {
+  --bg: #F7F5EE;
+  --jelly: #FFFFFF;
+  --jelly2: #EFEBDD;
+  --line: #3A423C;
+  --line2: #C8C2B2;
+  --text: #2A332D;
+  --text2: #7C837B;
+  --matcha: #2FA266;
+  --matcha-deep: #2E8259;
+  --matcha-soft: rgba(47, 162, 102, 0.12);
+  --matcha-ink: #EAF6EF;
+  --peach: #F0A487;
+  --peach-deep: #D96A45;
+  --peach-soft: rgba(240, 164, 135, 0.14);
+  --warn: #C05B3C;
+  --paper: #FAF8F1;
+  --shadow-sm: 0 2px 6rpx rgba(52, 66, 58, 0.05), 0 10px 30rpx rgba(52, 66, 58, 0.08);
+
+  /* 字体：衬线标题按平台回退（iOS:Songti / 安卓:Noto Serif / Win模拟器:仿宋，避免宋体点阵发虚） */
+  --font-serif: 'Songti SC', 'STSong', 'Noto Serif SC', 'Source Han Serif SC', 'Noto Serif CJK SC', 'FangSong', 'SimSun', serif;
+  /* 数字：DIN 风格（iOS:DIN Alternate / Win:Bahnschrift） */
+  --font-num: 'DIN Alternate', 'Bahnschrift', 'DIN Condensed', 'Arial Narrow', sans-serif;
+}
+
+.theme-dark {
+  --bg: #0C1410;
+  --jelly: #132019;
+  --jelly2: #1A2C21;
+  --line: #26402F;
+  --line2: #31523B;
+  --text: #EAF3EA;
+  --text2: #93A896;
+  --matcha: #7FE0A8;
+  --matcha-deep: #5EC98A;
+  --matcha-soft: rgba(127, 224, 168, 0.13);
+  --matcha-ink: #0A2318;
+  --peach: #F5B87A;
+  --peach-deep: #E8A05F;
+  --peach-soft: rgba(245, 184, 122, 0.12);
+  --warn: #E8A05F;
+  --paper: #132019;
+  --gold: #F5D98B;
+  --gold-soft: rgba(245, 217, 139, 0.13);
+  --surface: #132019;
+  --surface2: #1A2C21;
+  --border: #26402F;
+  --border2: #31523B;
+  --accent: #7FE0A8;
+  --accent-soft: rgba(127, 224, 168, 0.13);
+  --danger: #F08E82;
+  --shadow-sm: 0 12px 44rpx rgba(0, 0, 0, 0.35), 0 2px 8rpx rgba(0, 0, 0, 0.30);
+  background-color: #0C1410;
+}
+
+/* 全局通用工具类 */
+.status-online { color: var(--color-online); }
+.status-offline { color: var(--color-offline); }
+.text-warning { color: var(--color-warning); }
+.text-danger { color: var(--color-danger); }
+.text-success { color: var(--color-success); }
+
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+} 
+
+.fade-in {
+  /* opacity 只在动画 keyframe 里控制，不直接写在 class 上
+     这样即使动画不触发，元素也不会永久不可见 */
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- SVG 矢量图标系统 ----------
+ * 用 -webkit-mask 上色：颜色 = currentColor，随文字色自动适配双主题。
+ * 替代系统 emoji，跨端（iOS/安卓/Win模拟器）渲染一致。
+ * 用法：<view class="ico ico-sun"></view>
+ */
+.ico {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex: none;
+  background-color: currentColor;
+  -webkit-mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-position: center;
+  mask-repeat: no-repeat;
+  mask-size: contain;
+}
+.ico-sun {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41'/%3E%3C/svg%3E");
+}
+.ico-moon {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z'/%3E%3C/svg%3E");
+}
+.ico-heart {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' stroke='none'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' stroke='none'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+}
+.ico-heart-o {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z'/%3E%3C/svg%3E");
+}
+.ico-temp {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0z'/%3E%3C/svg%3E");
+}
+.ico-drop {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z'/%3E%3C/svg%3E");
+}
+.ico-sprout {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 20h10'/%3E%3Cpath d='M10 20c5.5-2.5.8-6.4 3-10'/%3E%3Cpath d='M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z'/%3E%3Cpath d='M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 20h10'/%3E%3Cpath d='M10 20c5.5-2.5.8-6.4 3-10'/%3E%3Cpath d='M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z'/%3E%3Cpath d='M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z'/%3E%3C/svg%3E");
+}
+.ico-plug {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 2v6M15 2v6'/%3E%3Cpath d='M6 8h12v4a6 6 0 0 1-12 0V8z'/%3E%3Cpath d='M12 18v4'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 2v6M15 2v6'/%3E%3Cpath d='M6 8h12v4a6 6 0 0 1-12 0V8z'/%3E%3Cpath d='M12 18v4'/%3E%3C/svg%3E");
+}
+.ico-fan {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 12c-1.5-3.5-.5-7 2.5-9 2.5 2.5 2.5 6.5.3 9.2'/%3E%3Cpath d='M12 12c-1.5 3.5-.5 7 2.5 9 2.5-2.5 2.5-6.5.3-9.2' transform='rotate(120 12 12)'/%3E%3Cpath d='M12 12c-1.5 3.5-.5 7 2.5 9 2.5-2.5 2.5-6.5.3-9.2' transform='rotate(240 12 12)'/%3E%3Ccircle cx='12' cy='12' r='1.5' fill='black' stroke='none'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 12c-1.5-3.5-.5-7 2.5-9 2.5 2.5 2.5 6.5.3 9.2'/%3E%3Cpath d='M12 12c-1.5 3.5-.5 7 2.5 9 2.5-2.5 2.5-6.5.3-9.2' transform='rotate(120 12 12)'/%3E%3Cpath d='M12 12c-1.5 3.5-.5 7 2.5 9 2.5-2.5 2.5-6.5.3-9.2' transform='rotate(240 12 12)'/%3E%3Ccircle cx='12' cy='12' r='1.5' fill='black' stroke='none'/%3E%3C/svg%3E");
+}
+.ico-leaf {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z'/%3E%3Cpath d='M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z'/%3E%3Cpath d='M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12'/%3E%3C/svg%3E");
+}
+
+/* 主题切换按钮图标（各页面通用） */
+.theme-btn .ico { width: 34rpx; height: 34rpx; }
+.theme-btn .ico-sun { color: #E8A05F; }
+.theme-btn .ico-moon { color: #F5D98B; }
+

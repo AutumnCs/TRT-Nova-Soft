@@ -1,0 +1,226 @@
+<page-meta background-color="{{theme === 'dark' ? '#0C1410' : '#F7F5EE'}}" page-style="{{theme === 'dark' ? 'background: #0C1410' : 'background: #F7F5EE'}}" />
+<view class="profile-page {{theme === 'dark' ? 'theme-dark' : 'theme-light'}}" style="padding-top: {{statusBarHeight}}px;" wx:if="{{ready}}">
+
+  <!-- ================= 浅色 · 元气日光 · 名片正反两面 ================= -->
+  <block wx:if="{{theme !== 'dark'}}">
+    <scroll-view scroll-y="true" class="body light" show-scrollbar="{{false}}">
+      <view class="l-top">
+        <view class="back-btn" bindtap="goBack"><text>←</text></view>
+        <view class="l-top-mid">
+          <text class="l-title">编辑资料</text>
+          <text class="l-sub">MY PROFILE CARD</text>
+        </view>
+
+      </view>
+
+      <!-- 名片：背面 + 正面 -->
+      <view class="card-zone">
+        <view class="bcard-back"><text>让每株植物都被温柔照顾</text></view>
+        <view class="bcard">
+          <view class="bcard-top">
+            <view class="bcard-left">
+              <text class="bc-name">{{form.nickName || '未填写昵称'}}</text>
+              <text class="bc-role">智能植物养护用户 · LV.1</text>
+            </view>
+            <button wx:if="{{!isApp}}" class="bc-avatar" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+              <image wx:if="{{form.avatarUrl}}" class="bc-avatar-img" src="{{form.avatarUrl}}" mode="aspectFill"></image>
+              <view wx:else class="bc-avatar-ico ico ico-leaf"></view>
+              <view class="bc-avatar-badge"><text>＋</text></view>
+            </button>
+            <button wx:else class="bc-avatar" bindtap="onPickAvatar">
+              <image wx:if="{{form.avatarUrl}}" class="bc-avatar-img" src="{{form.avatarUrl}}" mode="aspectFill"></image>
+              <view wx:else class="bc-avatar-ico ico ico-leaf"></view>
+              <view class="bc-avatar-badge"><text>＋</text></view>
+            </button>
+          </view>
+          <view class="bc-lines">
+            <view class="bc-line"><text class="bc-k">昵称</text><text class="bc-v">{{form.nickName || '—'}}</text></view>
+            <view class="bc-line"><text class="bc-k">签名</text><text class="bc-v">{{form.signature || '和植宠一起慢慢长大…'}}</text></view>
+            <view class="bc-line"><text class="bc-k">账号</text><text class="bc-v">TRT Nova · 植愈星球</text></view>
+          </view>
+          <text class="bc-tip">点击右上角照片更换头像</text>
+        </view>
+      </view>
+
+      <!-- 编辑表单：挂账板 -->
+      <view class="dd">
+        <text class="dd-tag">编辑资料</text>
+
+        <view class="dd-block">
+          <text class="dd-label">昵称</text>
+          <input type="nickname" class="dd-input" placeholder="请输入昵称" placeholder-class="dd-ph" value="{{form.nickName}}" bindinput="onNickNameChange" maxlength="20" />
+        </view>
+        <view class="dd-dash"></view>
+
+        <view class="dd-block">
+          <text class="dd-label">性别</text>
+          <picker mode="selector" range="{{genderOptions}}" range-key="label" value="{{genderIndex}}" bindchange="onGenderChange">
+            <view class="dd-field">
+              <text class="dd-val">{{genderOptions[genderIndex].label}}</text>
+              <text class="dd-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+        <view class="dd-dash"></view>
+
+        <view class="dd-block">
+          <text class="dd-label">所在地</text>
+          <picker mode="region" value="{{form.region}}" bindchange="onRegionChange">
+            <view class="dd-field">
+              <text class="dd-val">{{regionText || '请选择'}}</text>
+              <text class="dd-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+        <view class="dd-dash"></view>
+
+        <view class="dd-block">
+          <text class="dd-label">生日</text>
+          <picker mode="date" value="{{form.birthday}}" bindchange="onBirthdayChange">
+            <view class="dd-field">
+              <text class="dd-val">{{form.birthday || '请选择'}}</text>
+              <text class="dd-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+        <view class="dd-dash"></view>
+
+        <view class="dd-block">
+          <text class="dd-label">种植经验</text>
+          <picker mode="selector" range="{{experienceOptions}}" value="{{experienceIndex}}" bindchange="onExperienceChange">
+            <view class="dd-field">
+              <text class="dd-val">{{form.experienceLevel || '请选择'}}</text>
+              <text class="dd-arrow">›</text>
+            </view>
+          </picker>
+        </view>
+        <view class="dd-dash"></view>
+
+        <view class="dd-block">
+          <text class="dd-label">个性签名</text>
+          <textarea class="dd-textarea" placeholder="介绍一下你自己（可选）" placeholder-class="dd-ph" value="{{form.signature}}" bindinput="onSignatureInput" maxlength="120" auto-height="true" />
+        </view>
+        <view class="dd-dash"></view>
+
+        <view class="dd-block">
+          <text class="dd-label">手机号</text>
+          <input class="dd-input" type="number" placeholder="选填" placeholder-class="dd-ph" value="{{form.phone}}" bindinput="onPhoneInput" maxlength="20" />
+        </view>
+        <view class="dd-dash"></view>
+
+        <view class="dd-block">
+          <text class="dd-label">邮箱</text>
+          <input class="dd-input" type="text" placeholder="选填" placeholder-class="dd-ph" value="{{form.email}}" bindinput="onEmailInput" maxlength="50" />
+        </view>
+      </view>
+
+      <button class="btn" bindtap="onSave" loading="{{saving}}" disabled="{{saving}}">保存资料</button>
+      <view class="footer-space"></view>
+    </scroll-view>
+  </block>
+
+  <!-- ================= 深色 · 萤火温室 · 夜间手账 ================= -->
+  <block wx:else>
+    <view class="ff f1"></view><view class="ff f2"></view>
+    <scroll-view scroll-y="true" class="body dark" show-scrollbar="{{false}}">
+      <view class="nw">守夜手记 · 改一句签名，等太阳出来</view>
+
+      <view class="pg-top">
+        <view class="back" bindtap="goBack"><text>←</text></view>
+        <view class="mid"><text class="t">编辑资料</text></view>
+        <view class="act">
+  
+        </view>
+      </view>
+
+      <!-- 头像卡：光晕 + 圆环 -->
+      <view class="ava-card">
+        <view class="halo"></view>
+        <button wx:if="{{!isApp}}" class="avatar-ring" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+          <image wx:if="{{form.avatarUrl}}" class="ring-img" src="{{form.avatarUrl}}" mode="aspectFill"></image>
+          <view wx:else class="ring-ico ico ico-leaf"></view>
+          <view class="avatar-badge"><text>＋</text></view>
+        </button>
+        <button wx:else class="avatar-ring" bindtap="onPickAvatar">
+          <image wx:if="{{form.avatarUrl}}" class="ring-img" src="{{form.avatarUrl}}" mode="aspectFill"></image>
+          <view wx:else class="ring-ico ico ico-leaf"></view>
+          <view class="avatar-badge"><text>＋</text></view>
+        </button>
+        <text class="ava-hint">点击更换头像</text>
+      </view>
+
+      <!-- 手账表单 -->
+      <view class="form-card">
+        <view class="form-block">
+          <text class="form-label">昵称</text>
+          <input type="nickname" class="field" placeholder="请输入昵称" placeholder-class="d-ph" value="{{form.nickName}}" bindinput="onNickNameChange" maxlength="20" />
+        </view>
+        <view class="divider"></view>
+
+        <view class="form-block">
+          <text class="form-label">性别</text>
+          <picker mode="selector" range="{{genderOptions}}" range-key="label" value="{{genderIndex}}" bindchange="onGenderChange">
+            <view class="field">
+              <text class="val">{{genderOptions[genderIndex].label}}</text>
+              <text class="fi">›</text>
+            </view>
+          </picker>
+        </view>
+        <view class="divider"></view>
+
+        <view class="form-block">
+          <text class="form-label">所在地</text>
+          <picker mode="region" value="{{form.region}}" bindchange="onRegionChange">
+            <view class="field">
+              <text class="val">{{regionText || '请选择'}}</text>
+              <text class="fi">›</text>
+            </view>
+          </picker>
+        </view>
+        <view class="divider"></view>
+
+        <view class="form-block">
+          <text class="form-label">生日</text>
+          <picker mode="date" value="{{form.birthday}}" bindchange="onBirthdayChange">
+            <view class="field">
+              <text class="val">{{form.birthday || '请选择'}}</text>
+              <text class="fi">›</text>
+            </view>
+          </picker>
+        </view>
+        <view class="divider"></view>
+
+        <view class="form-block">
+          <text class="form-label">种植经验</text>
+          <picker mode="selector" range="{{experienceOptions}}" value="{{experienceIndex}}" bindchange="onExperienceChange">
+            <view class="field">
+              <text class="val">{{form.experienceLevel || '请选择'}}</text>
+              <text class="fi">›</text>
+            </view>
+          </picker>
+        </view>
+        <view class="divider"></view>
+
+        <view class="form-block">
+          <text class="form-label">个性签名</text>
+          <textarea class="field ta" placeholder="介绍一下你自己（可选）" placeholder-class="d-ph" value="{{form.signature}}" bindinput="onSignatureInput" maxlength="120" auto-height="true" />
+        </view>
+        <view class="divider"></view>
+
+        <view class="form-block">
+          <text class="form-label">手机号</text>
+          <input class="field" type="number" placeholder="选填" placeholder-class="d-ph" value="{{form.phone}}" bindinput="onPhoneInput" maxlength="20" />
+        </view>
+        <view class="divider"></view>
+
+        <view class="form-block">
+          <text class="form-label">邮箱</text>
+          <input class="field" type="text" placeholder="选填" placeholder-class="d-ph" value="{{form.email}}" bindinput="onEmailInput" maxlength="50" />
+        </view>
+      </view>
+
+      <button class="btn-primary" bindtap="onSave" loading="{{saving}}" disabled="{{saving}}">保存名片</button>
+      <view class="footer-space"></view>
+    </scroll-view>
+  </block>
+</view>

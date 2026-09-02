@@ -1,0 +1,198 @@
+/* TRT Nova Tech Overview - Brand CSS */
+
+/* ============ Root Variables (Light Mode Default) ============ */
+:root {
+  --trt-primary-50: #ecfdf5;
+  --trt-primary-100: #d1fae5;
+  --trt-primary-200: #a7f3d0;
+  --trt-primary-300: #6ee7b7;
+  --trt-primary-400: #34d399;
+  --trt-primary-500: #10b981;
+  --trt-primary-600: #059669;
+  --trt-primary-700: #047857;
+  --trt-primary-800: #065f46;
+  --trt-primary-900: #064e3b;
+  --trt-primary-950: #022c22;
+
+  --trt-neutral-50: #f8fafc;
+  --trt-neutral-100: #f1f5f9;
+  --trt-neutral-200: #e2e8f0;
+  --trt-neutral-300: #cbd5e1;
+  --trt-neutral-400: #94a3b8;
+  --trt-neutral-500: #64748b;
+  --trt-neutral-600: #475569;
+  --trt-neutral-700: #334155;
+  --trt-neutral-800: #1e293b;
+  --trt-neutral-900: #0f172a;
+  --trt-neutral-950: #020617;
+
+  --state-success: #22c55e;
+  --state-warning: #f59e0b;
+  --state-error: #ef4444;
+  --state-info: #3b82f6;
+
+  --trt-background: var(--trt-neutral-50);
+  --trt-foreground: var(--trt-neutral-900);
+  --trt-card: #ffffff;
+  --trt-card-foreground: var(--trt-neutral-900);
+  --trt-popover: #ffffff;
+  --trt-popover-foreground: var(--trt-neutral-900);
+  --trt-primary: var(--trt-primary-600);
+  --trt-primary-foreground: #ffffff;
+  --trt-muted: var(--trt-neutral-100);
+  --trt-muted-foreground: var(--trt-neutral-500);
+  --trt-border: var(--trt-neutral-200);
+  --trt-input: var(--trt-neutral-200);
+  --trt-ring: var(--trt-primary-500);
+
+  --trt-radius-sm: 4px;
+  --trt-radius-md: 8px;
+  --trt-radius-lg: 12px;
+  --trt-radius-small: 4px;
+  --trt-radius-medium: 8px;
+  --trt-radius-large: 12px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+}
+
+/* ============ Light Mode Class ============ */
+.light {
+  --trt-background: var(--trt-neutral-50);
+  --trt-foreground: var(--trt-neutral-900);
+  --trt-card: #ffffff;
+  --trt-card-foreground: var(--trt-neutral-900);
+  --trt-popover: #ffffff;
+  --trt-popover-foreground: var(--trt-neutral-900);
+  --trt-primary: var(--trt-primary-600);
+  --trt-primary-foreground: #ffffff;
+  --trt-muted: var(--trt-neutral-100);
+  --trt-muted-foreground: var(--trt-neutral-500);
+  --trt-border: var(--trt-neutral-200);
+  --trt-input: var(--trt-neutral-200);
+  --trt-ring: var(--trt-primary-500);
+}
+
+/* ============ Dark Mode ============ */
+.dark {
+  --trt-background: var(--trt-neutral-950);
+  --trt-foreground: var(--trt-neutral-100);
+  --trt-card: var(--trt-neutral-900);
+  --trt-card-foreground: var(--trt-neutral-100);
+  --trt-popover: var(--trt-neutral-800);
+  --trt-popover-foreground: var(--trt-neutral-100);
+  --trt-primary: var(--trt-primary-500);
+  --trt-primary-foreground: var(--trt-neutral-950);
+  --trt-muted: var(--trt-neutral-800);
+  --trt-muted-foreground: var(--trt-neutral-400);
+  --trt-border: var(--trt-neutral-800);
+  --trt-input: var(--trt-neutral-700);
+  --trt-ring: var(--trt-primary-500);
+}
+
+/* ============ Tailwind @theme inline ============ */
+@theme inline {
+  --color-background: var(--trt-background);
+  --color-foreground: var(--trt-foreground);
+  --color-card: var(--trt-card);
+  --color-card-foreground: var(--trt-card-foreground);
+  --color-popover: var(--trt-popover);
+  --color-popover-foreground: var(--trt-popover-foreground);
+  --color-primary: var(--trt-primary);
+  --color-primary-foreground: var(--trt-primary-foreground);
+  --color-muted: var(--trt-muted);
+  --color-muted-foreground: var(--trt-muted-foreground);
+  --color-border: var(--trt-border);
+  --color-input: var(--trt-input);
+  --color-ring: var(--trt-ring);
+  --color-primary-50: var(--trt-primary-50);
+  --color-primary-100: var(--trt-primary-100);
+  --color-primary-200: var(--trt-primary-200);
+  --color-primary-300: var(--trt-primary-300);
+  --color-primary-400: var(--trt-primary-400);
+  --color-primary-500: var(--trt-primary-500);
+  --color-primary-600: var(--trt-primary-600);
+  --color-primary-700: var(--trt-primary-700);
+  --color-primary-800: var(--trt-primary-800);
+  --color-primary-900: var(--trt-primary-900);
+  --color-primary-950: var(--trt-primary-950);
+  --color-neutral-50: var(--trt-neutral-50);
+  --color-neutral-100: var(--trt-neutral-100);
+  --color-neutral-200: var(--trt-neutral-200);
+  --color-neutral-300: var(--trt-neutral-300);
+  --color-neutral-400: var(--trt-neutral-400);
+  --color-neutral-500: var(--trt-neutral-500);
+  --color-neutral-600: var(--trt-neutral-600);
+  --color-neutral-700: var(--trt-neutral-700);
+  --color-neutral-800: var(--trt-neutral-800);
+  --color-neutral-900: var(--trt-neutral-900);
+  --color-neutral-950: var(--trt-neutral-950);
+  --color-success: var(--state-success);
+  --color-warning: var(--state-warning);
+  --color-error: var(--state-error);
+  --color-info: var(--state-info);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+}
+
+/* ============ Semantic Token Fallback ============ */
+#semantic-token-fallback {
+  --background: var(--trt-background);
+  --foreground: var(--trt-foreground);
+  --card: var(--trt-card);
+  --card-foreground: var(--trt-card-foreground);
+  --popover: var(--trt-popover);
+  --popover-foreground: var(--trt-popover-foreground);
+  --primary: var(--trt-primary);
+  --primary-foreground: var(--trt-primary-foreground);
+  --muted: var(--trt-muted);
+  --muted-foreground: var(--trt-muted-foreground);
+  --border: var(--trt-border);
+  --input: var(--trt-input);
+  --ring: var(--trt-ring);
+}
+
+/* ============ Typography ============ */
+.trt-display {
+  font-family: "Noto Sans SC", "Inter", system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.trt-heading {
+  font-family: "Noto Sans SC", "Inter", system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+.trt-body {
+  font-family: "Noto Sans SC", "Inter", system-ui, sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+}
+.trt-mono {
+  font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.trt-caption {
+  font-family: "Noto Sans SC", "Inter", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
+
+/* ============ Base Reset ============ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--trt-background);
+  color: var(--trt-foreground);
+  font-family: "Noto Sans SC", "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

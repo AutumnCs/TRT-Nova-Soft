@@ -1,0 +1,268 @@
+<page-meta background-color="{{theme === 'dark' ? '#0C1410' : '#F7F5EE'}}" page-style="{{theme === 'dark' ? 'background: #0C1410' : 'background: #F7F5EE'}}" />
+<view class="page {{theme === 'dark' ? 'theme-dark' : 'theme-light'}}" wx:if="{{ready}}">
+
+  <!-- ================= 浅色 · 元气日光（设备设置功能条目分区） ================= -->
+  <block wx:if="{{theme !== 'dark'}}">
+    <view class="top-shell" style="padding-top: {{statusBarHeight}}px;">
+      <!-- 顶栏 -->
+      <view class="l-top">
+        <view class="l-back" bindtap="goBack"><text>‹</text></view>
+        <view class="l-title"><text>设备设置</text></view>
+        <view class="l-acts">
+          <view class="l-signal"><text>◉</text></view>
+
+        </view>
+      </view>
+
+      <!-- 设备概览 -->
+      <view class="dd dev-overview">
+        <text class="dd-tag">当前设备</text>
+        <view class="dev-fig">
+          <image wx:if="{{selectedPlant}}" class="dev-fig-img" src="{{selectedPlant.image}}" mode="aspectFill" />
+          <text wx:else class="dev-fig-ph">🪴</text>
+        </view>
+        <view class="dev-meta">
+          <text class="dev-name">{{alias || '未设置别名'}}</text>
+          <text class="dev-sub">{{selectedPlant ? selectedPlant.name : '未设置植物'}}{{selectedPlant && selectedPlant.family ? ' · ' + selectedPlant.family : ''}}</text>
+          <text class="dev-id">TRT-{{logicalKey || '----'}} · <text class="{{selectedPlant ? 'on' : 'off'}}">{{selectedPlant ? '在线' : '待配置'}}</text></text>
+        </view>
+      </view>
+
+      <!-- 基础配置 -->
+      <view class="sec-head">
+        <text class="sec-title">基础配置</text>
+        <view class="sec-line"></view>
+      </view>
+
+      <view class="dd furn">
+        <view class="f-ico"><text>🏷</text></view>
+        <view class="f-body">
+          <view class="f-k"><text class="f-no">01</text><text>设备名称</text></view>
+          <view class="f-field">
+            <input class="f-input" placeholder="请输入设备别名" value="{{alias}}" bindinput="onAliasInput" />
+          </view>
+        </view>
+      </view>
+
+      <view class="dd furn" bindtap="openPlantPicker">
+        <view class="f-ico"><view class="ico ico-leaf"></view></view>
+        <view class="f-body">
+          <view class="f-k"><text class="f-no">02</text><text>植物类型</text></view>
+          <view class="f-field f-picker">
+            <view wx:if="{{selectedPlant}}" class="f-pick-row">
+              <image class="f-thumb" src="{{selectedPlant.image}}" mode="aspectFill" />
+              <view class="f-pick-info">
+                <text class="f-pick-name">{{selectedPlant.name}}</text>
+                <text class="f-pick-family">{{selectedPlant.family}}</text>
+              </view>
+            </view>
+            <text wx:else class="f-ph">请选择植物</text>
+            <text class="f-chev">⌄</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="dd furn">
+        <view class="f-ico"><text>📍</text></view>
+        <view class="f-body">
+          <view class="f-k"><text class="f-no">03</text><text>摆放位置</text></view>
+          <view class="f-field">
+            <input class="f-input" placeholder="请输入种植地点" value="{{location}}" bindinput="onLocationInput" />
+          </view>
+        </view>
+      </view>
+
+      <!-- 配网设置 -->
+      <view class="sec-head">
+        <text class="sec-title">配网设置</text>
+        <view class="sec-line"></view>
+      </view>
+
+      <view class="dd provision">
+        <view class="pv-head">
+          <text class="pv-title">设备配网</text>
+          <text class="pv-tag">Browser Setup</text>
+        </view>
+        <text class="pv-desc">设备尚未连接 Wi-Fi 时，请先连接设备热点，再用浏览器访问以下地址完成配网。</text>
+        <view class="pv-url"><text>{{provisionUrl}}</text></view>
+        <view class="pv-acts">
+          <button class="btn ghost" bindtap="showProvisionGuide">查看说明</button>
+          <button class="btn soft" bindtap="copyProvisionUrl">复制地址</button>
+        </view>
+      </view>
+
+      <!-- 危险操作 -->
+      <view class="sec-head">
+        <text class="sec-title danger">危险操作</text>
+        <view class="sec-line"></view>
+      </view>
+
+      <view class="dd danger-card">
+        <view class="dg-ico"><text>!</text></view>
+        <view class="dg-body">
+          <text class="dg-title">解除绑定</text>
+          <text class="dg-desc">解绑后设备将从账号移除，原有信息保留以便重新绑定。</text>
+        </view>
+        <text class="dg-act">解绑</text>
+      </view>
+
+      <button class="btn save-btn" bindtap="onSave" loading="{{saving}}">保存设置</button>
+    </view>
+  </block>
+
+  <!-- ================= 深色 · 萤火温室（它的小房间 · 夜灯布置机架风） ================= -->
+  <block wx:else>
+    <view class="nw">守夜手记 · 把夜灯调暗一格，别惊动多肉</view>
+    <view class="ff f1"></view>
+    <view class="ff f2"></view>
+
+    <view class="top-shell dark" style="padding-top: {{statusBarHeight}}px;">
+      <!-- 顶栏：夜灯布置 -->
+      <view class="pg-top">
+        <view class="back" bindtap="goBack"><text>‹</text></view>
+        <view class="mid">
+          <text class="k">CONFIG MODE</text>
+          <text class="t">它的小房间</text>
+        </view>
+        <view class="act">
+          <view class="chip green">
+            <view class="chip-dot {{selectedPlant ? 'on' : 'off'}}"></view>
+            <text class="chip-b">{{selectedPlant ? 'READY' : 'WAITING'}}</text>
+          </view>
+
+        </view>
+      </view>
+
+      <!-- 客厅花盆 · ONLINE 终端头卡（机架风） -->
+      <view class="d-term">
+        <view class="thead">
+          <text>TRT-{{logicalKey || '----'}} · {{selectedPlant ? 'ONLINE' : 'OFFLINE'}}</text>
+          <b>{{alias || '设备别名'}}</b>
+        </view>
+        <view class="tl">
+          <text class="pr">//</text>
+          <text class="hint">{{selectedPlant ? selectedPlant.name : '未设置植物'}} · {{location || '未设置位置'}}</text>
+        </view>
+      </view>
+
+      <!-- 设备档案 -->
+      <view class="d-sec"><text><b>//</b> DEVICE PROFILE · 设备档案</text><view class="ln"></view></view>
+      <view class="card form-card">
+        <view class="form-block">
+          <view class="form-label">设备别名</view>
+          <view class="field">
+            <input class="field-in" placeholder="请输入设备别名" value="{{alias}}" bindinput="onAliasInput" />
+          </view>
+        </view>
+        <view class="divider"></view>
+        <view class="form-block" bindtap="openPlantPicker">
+          <view class="form-label">植物种类</view>
+          <view class="field pick-field">
+            <view wx:if="{{selectedPlant}}" class="pick-row">
+              <image class="pick-thumb" src="{{selectedPlant.image}}" mode="aspectFill" />
+              <view class="pick-info">
+                <text class="pick-name">{{selectedPlant.name}}</text>
+                <text class="pick-family">{{selectedPlant.family}}</text>
+              </view>
+              <text class="pick-chev">⌄</text>
+            </view>
+            <view wx:else class="pick-row">
+              <text class="pick-ph">请选择植物</text>
+              <text class="pick-chev">⌄</text>
+            </view>
+          </view>
+        </view>
+        <view class="divider"></view>
+        <view class="form-block">
+          <view class="form-label">地理位置</view>
+          <view class="field">
+            <input class="field-in" placeholder="请输入种植地点" value="{{location}}" bindinput="onLocationInput" />
+          </view>
+        </view>
+      </view>
+
+      <!-- 设备配网 -->
+      <view class="d-sec"><text><b>//</b> NETWORK · 设备配网</text><view class="ln"></view></view>
+      <view class="card net-card">
+        <view class="net-head">
+          <text class="net-title">设备配网</text>
+          <text class="net-chip">Browser Setup</text>
+        </view>
+        <text class="net-desc">如果设备还没连上家里的 Wi-Fi，请先连接设备热点，再用浏览器打开下面地址完成配网。</text>
+        <view class="net-url"><text>{{provisionUrl}}</text></view>
+        <view class="net-acts">
+          <button class="dbtn-ghost" bindtap="showProvisionGuide">查看说明</button>
+          <button class="dbtn-soft" bindtap="copyProvisionUrl">复制地址</button>
+        </view>
+      </view>
+
+      <!-- 危险区 -->
+      <view class="d-sec danger"><text class="danger-t"><b>//</b> DANGER ZONE · 危险区</text><view class="ln"></view></view>
+      <view class="card danger-card-d">
+        <view class="dg-ico-d"><text>!</text></view>
+        <view class="dg-body-d">
+          <text class="dg-title-d">解除绑定</text>
+          <text class="dg-desc-d">解绑后设备将从当前账号移除，原有信息保留方便重新绑定。</text>
+        </view>
+        <text class="dg-act-d">UNBIND</text>
+      </view>
+
+      <button class="btn-primary" bindtap="onSave" loading="{{saving}}">保存设置</button>
+    </view>
+  </block>
+
+  <!-- 植物选择弹层（双主题共用） -->
+  <view wx:if="{{showPlantPicker}}" class="picker-mask" catchtap="closePlantPicker">
+    <view class="picker-panel" catchtap="stopPropagation">
+      <view class="picker-header">
+        <view>
+          <text class="picker-title">选择植物</text>
+          <text class="picker-subtitle">Pick a plant for this device</text>
+        </view>
+        <view class="picker-close" bindtap="closePlantPicker">×</view>
+      </view>
+
+      <view class="picker-toolbar">
+        <view class="picker-search-box">
+          <view class="picker-search-badge">
+            <text class="picker-search-badge-text">SEARCH</text>
+          </view>
+          <input
+            class="picker-search-input"
+            placeholder="搜索植物名称或科属"
+            placeholder-class="picker-placeholder"
+            bindinput="onPickerKeywordInput"
+            bindconfirm="onPickerSearchConfirm"
+            value="{{pickerKeyword}}"
+            focus="{{pickerInputFocus}}"
+            confirm-type="done"
+          />
+        </view>
+      </view>
+
+      <scroll-view scroll-y="true" class="picker-list" show-scrollbar="{{false}}">
+        <view wx:if="{{pickerPlants.length === 0}}" class="picker-empty">
+          <text>未找到相关植物</text>
+        </view>
+        <view
+          wx:for="{{pickerPlants}}"
+          wx:key="id"
+          class="picker-item {{selectedPlant && selectedPlant.id === item.id ? 'picker-item-selected' : ''}}"
+          bindtap="selectPlant"
+          data-id="{{item.id}}"
+        >
+          <image class="picker-item-img" src="{{item.image}}" mode="aspectFill" />
+          <view class="picker-item-info">
+            <view class="picker-item-name-row">
+              <text class="picker-item-name">{{item.name}}</text>
+              <text wx:if="{{item.isFavorite}}" class="picker-fav-badge">收藏</text>
+            </view>
+            <text class="picker-item-family">{{item.family}}</text>
+            <view class="picker-item-tag picker-tag-{{item.feature}}">{{item.featureText}}</view>
+          </view>
+          <view wx:if="{{selectedPlant && selectedPlant.id === item.id}}" class="picker-check">OK</view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

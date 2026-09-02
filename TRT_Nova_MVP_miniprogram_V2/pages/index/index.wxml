@@ -1,0 +1,300 @@
+<page-meta background-color="{{theme === 'dark' ? '#0C1410' : '#F7F5EE'}}" page-style="{{theme === 'dark' ? 'background: #0C1410' : 'background: #F7F5EE'}}" />
+<view class="container {{theme === 'dark' ? 'theme-dark' : 'theme-light'}}" style="padding-top: {{statusBarHeight}}px;" wx:if="{{ready}}">
+
+  <!-- ================= 浅色 · 元气日光版 ================= -->
+  <block wx:if="{{theme !== 'dark'}}">
+    <view class="ppad">
+      <!-- 顶栏：问候 + 天气 + 信号 + 主题切换 -->
+      <view class="l-top">
+        <view class="l-top-l">
+          <text class="l-hello">{{greeting}}，{{nickName}}</text>
+          <text class="l-date">{{dateText}} · {{weather.icon}} {{weather.temp}}</text>
+        </view>
+        <view class="l-top-r">
+          <view class="l-signal" bindtap="refreshDeviceStatus"><text class="l-signal-ico">◉</text></view>
+          <view class="theme-btn" bindtap="toggleTheme"><view class="ico ico-{{theme === 'dark' ? 'moon' : 'sun'}}"></view></view>
+        </view>
+      </view>
+
+      <!-- 植宠选择 -->
+      <view class="l-picker" bindtap="goToDeviceManagement">
+        <view class="l-picker-txt">
+          <text class="l-picker-name">{{plantName}}</text>
+          <text class="l-picker-meta">{{plantMeta}}</text>
+        </view>
+        <text class="l-picker-arrow">⌄</text>
+      </view>
+
+      <!-- Live 表情舞台 -->
+      <view class="l-stage">
+        <view class="cloud c1"></view><view class="cloud c2"></view><view class="cloud c3"></view>
+        <view class="sun"><view class="rays"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></view><view class="core"></view></view>
+        <view class="hill"></view>
+        <view class="rec-chip"><view class="dot on"></view><text>REC {{extraMetrics.updatedAt || '--'}}</text></view>
+        <view class="l-stage-wrap">
+          <view class="l-bubble">{{bubbles.length > 0 ? bubbles[0].text : '今天也要好好照顾我哦～'}}</view>
+          <view class="l-pet-ring">
+            <image src="{{plantImage}}" mode="aspectFill" class="l-pet" binderror="onPlantImageError"></image>
+          </view>
+          <view class="l-mood">心情 {{moodEmoji}} · {{plantStatus}}</view>
+        </view>
+        <view class="l-hearts" wx:if="{{extraMetrics.isDead !== true}}">
+          <view class="ico ico-heart"></view><text>好感 {{extraMetrics.favorability || '--'}}</text>
+          <view class="track"><view class="fill" style="width: {{extraMetrics.favorability ? extraMetrics.favorability + '%' : '0%'}}"></view></view>
+        </view>
+        <view class="l-face" bindtap="refreshDeviceStatus"><text>{{moodEmoji}}</text></view>
+      </view>
+
+      <!-- 挂绳吊牌：四路传感 -->
+      <view class="l-dd" wx:if="{{hasDevices}}">
+        <text class="l-dd-tag">实时传感</text>
+        <view class="pegboard">
+          <view class="peg"><view class="ph"></view><view class="peg-ico ico ico-temp"></view><view class="pn">{{sensors.temp.value}}<i>{{sensors.temp.unit}}</i></view><view class="pl">{{sensors.temp.label}}</view></view>
+          <view class="peg"><view class="ph"></view><view class="peg-ico ico ico-sun"></view><view class="pn">{{sensors.light.value}}<i>{{sensors.light.unit}}</i></view><view class="pl">{{sensors.light.label}}</view></view>
+          <view class="peg"><view class="ph"></view><view class="peg-ico ico ico-drop"></view><view class="pn">{{sensors.humidity.value}}<i>{{sensors.humidity.unit}}</i></view><view class="pl">{{sensors.humidity.label}}</view></view>
+          <view class="peg"><view class="ph"></view><view class="peg-ico ico ico-sprout"></view><view class="pn">{{sensors.soil.value}}<i>{{sensors.soil.unit}}</i></view><view class="pl">{{sensors.soil.label}}</view></view>
+        </view>
+        <view class="l-dd-foot">
+          <view class="dot on"></view>
+          <text>{{plantMeta}} · {{extraMetrics.updatedAt || '--'}} 更新</text>
+          <text class="l-more" bindtap="openDeviceDetail" data-index="0">详情 ›</text>
+        </view>
+      </view>
+
+      <!-- AI 提示便签 -->
+      <view class="l-sticky">
+        <view class="sk">NOVA 助手提示</view>
+        <text>{{dialogue}}</text>
+      </view>
+
+      <!-- 无设备引导 -->
+      <view class="l-noguide" wx:if="{{!hasDevices}}" bindtap="goToDeviceManagement">
+        <view class="l-noguide-ico ico ico-plug"></view>
+        <text class="l-noguide-t">还没有绑定设备</text>
+        <text class="l-noguide-d">前往设备管理，绑定你的智能花盆。</text>
+      </view>
+
+      <!-- 今日简报（折叠） -->
+      <view class="sec-fold {{foldOpen ? 'open' : ''}}">
+        <view class="l-dd fold-summary" bindtap="toggleFold">
+          <text class="l-dd-tag">今日简报</text>
+          <view class="fs-head">
+            <text class="fs-title">待办 {{todos.length}} 项</text>
+            <text class="fold-arr {{foldOpen ? 'up' : ''}}">⌄</text>
+          </view>
+          <view class="brief-row" wx:if="{{todos.length > 0}}">
+            <view class="dot off"></view>
+            <text class="b-main">{{todos[0].title}}</text>
+            <text class="b-tag" wx:if="{{todos[0].urgent}}">今日截止</text>
+            <text class="hint" wx:else>待办</text>
+          </view>
+          <view class="brief-row" wx:for="{{briefDevices}}" wx:key="_id">
+            <view class="dot {{item.status === '在线' ? 'on' : 'off'}}"></view>
+            <text>{{item.name}} · {{item.plantType || '未设植物'}}</text>
+            <text class="hint">{{item.status}} ›</text>
+          </view>
+        </view>
+        <view class="fold-body">
+          <!-- 待办录入 -->
+          <view class="l-composer" wx:if="{{showTodoComposer}}">
+            <text class="l-composer-t">帮助植宠成长</text>
+            <input class="l-input" value="{{todoDraft}}" placeholder="输入今天要做的事" maxlength="80" bindinput="onTodoDraftInput" confirm-type="done" bindconfirm="confirmAddTodo" />
+            <view class="l-composer-acts">
+              <button class="l-cancel" bindtap="cancelAddTodo">取消</button>
+              <button class="l-confirm" bindtap="confirmAddTodo">添加</button>
+            </view>
+          </view>
+          <view class="l-add" wx:else bindtap="addTodo"><text>＋ 添加待办</text></view>
+          <!-- 待办列表 -->
+          <view class="l-task" wx:for="{{todos}}" wx:key="_id" bindtap="onTaskDone" data-id="{{item._id || item.id}}" bindlongpress="toggleUrgency" data-index="{{index}}">
+            <view class="task-check {{item.done ? 'done' : ''}}"><view class="ico ico-{{item.done ? 'heart' : 'heart-o'}}"></view></view>
+            <view class="l-task-info">
+              <text class="l-task-title">{{item.title}}</text>
+              <text class="l-task-desc {{item.urgent ? 'warn' : ''}}">{{item.desc}}</text>
+            </view>
+            <text class="l-sticker" wx:if="{{item.urgent}}">今日截止</text>
+          </view>
+          <view class="l-empty" wx:if="{{todos.length === 0}}"><text>暂无待办，点上方添加</text></view>
+          <!-- 设备横滑 -->
+          <view class="l-devband" wx:if="{{hasDevices}}">
+            <view class="l-devcard" wx:for="{{devices}}" wx:key="_id" bindtap="openDeviceDetail" data-index="{{index}}">
+              <view class="l-devcard-h"><text class="l-devcard-n">{{item.name}}</text><view class="dot {{item.status === '在线' ? 'on' : 'off'}}"></view></view>
+              <text class="l-devcard-d">{{item.plantType || '未设植物'}} · {{item.status}}</text>
+            </view>
+            <view class="l-devadd" bindtap="goToDeviceManagement"><text>＋</text></view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 台扇：拉绳开关 -->
+      <view class="l-dd l-fan {{fan.isOn ? '' : 'is-off'}}" wx:if="{{hasDevices}}" bindtap="toggleFan">
+        <text class="l-dd-tag">设备控制 · fan.on / fan.off</text>
+        <view class="l-fan-row">
+          <view class="sfan">
+            <view class="guard"><view class="blade ico ico-fan {{fan.isOn ? 'spin-anim' : ''}}"></view></view>
+            <view class="cord"><i></i></view>
+            <view class="pole"></view>
+            <view class="base"></view>
+          </view>
+          <view class="l-fan-info">
+            <text class="l-fan-name">{{fan.name}}</text>
+            <text class="l-fan-state">{{fan.statusText}}</text>
+            <text class="l-fan-hint">{{fan.hintText}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view style="padding-bottom: calc(170rpx + env(safe-area-inset-bottom));"></view>
+    </view>
+  </block>
+
+  <!-- ================= 深色 · 萤火温室版 ================= -->
+  <block wx:else>
+    <view class="nw">守夜手记 · {{nwText}}</view>
+    <view class="ff f1"></view><view class="ff f2"></view>
+    <view class="ppad">
+      <!-- 顶栏：夜巡问候 -->
+      <view class="d-top">
+        <view class="d-top-l">
+          <text class="d-top-k">GOOD NIGHT · 夜巡中</text>
+          <view class="d-top-t">
+            <text class="d-top-name">{{plantName}}</text>
+            <text class="d-top-meta">{{plantMeta}}</text>
+          </view>
+        </view>
+        <view class="d-top-r">
+          <view class="d-signal"><text>◉</text></view>
+          <view class="theme-btn dark" bindtap="toggleTheme"><view class="ico ico-{{theme === 'dark' ? 'moon' : 'sun'}}"></view></view>
+        </view>
+      </view>
+
+      <!-- 星空草地 -->
+      <view class="d-stage">
+        <view class="starfield"></view><view class="starfield s2"></view>
+        <view class="shoot"></view><view class="shoot s2"></view>
+        <view class="moon"><i></i><i></i><i></i></view>
+        <view class="hills"></view><view class="hills h2"></view>
+        <view class="orbit"><view class="ff"></view><view class="ff b2"></view><view class="ff b3"></view></view>
+        <view class="d-pet-ring">
+          <image src="{{plantImage}}" mode="aspectFill" class="d-pet" binderror="onPlantImageError"></image>
+        </view>
+        <view class="d-bubble">{{dialogue}}</view>
+        <view class="d-heart" wx:if="{{extraMetrics.isDead !== true}}">
+          <view class="hnum">{{extraMetrics.favorability || '--'}}</view>
+          <view class="hlab">好感度</view>
+        </view>
+      </view>
+
+      <!-- 草地夜光读数 -->
+      <view class="bt-scale" wx:if="{{hasDevices}}">
+        <view class="bs"><i>{{sensors.temp.value}}{{sensors.temp.unit}}</i><em>{{sensors.temp.label}}</em></view>
+        <view class="bs"><i>{{sensors.light.value}}</i><em>{{sensors.light.label}}</em></view>
+        <view class="bs"><i>{{sensors.humidity.value}}{{sensors.humidity.unit}}</i><em>{{sensors.humidity.label}}</em></view>
+        <view class="bs"><i>{{sensors.soil.value}}{{sensors.soil.unit}}</i><em>{{sensors.soil.label}}</em></view>
+      </view>
+
+      <!-- 好感度：开心值 -->
+      <view class="bt-liquid" wx:if="{{hasDevices && extraMetrics.isDead !== true}}">
+        <view class="track"><view class="fill" style="width: {{extraMetrics.favorability ? extraMetrics.favorability + '%' : '0%'}}"></view></view>
+        <view class="bt-liquid-b">
+          <text>开心值 · 好感度 {{extraMetrics.favorability || '--'}}</text>
+          <text class="bt-liquid-i">{{extraMetrics.personality || '植宠'}} · {{extraMetrics.updatedAt || '--'}}</text>
+        </view>
+      </view>
+
+      <!-- 草地另一头：打盹的伙伴 -->
+      <view class="bt-sibling" wx:if="{{briefDevices.length > 0}}" bindtap="goToDeviceManagement">
+        <view class="mini"></view>
+        <text><text class="bt-sib-b">{{briefDevices[0].name}}</text> · {{briefDevices[0].plantType || '植宠'}} {{briefDevices[0].status === '在线' ? '在月光下呼吸' : '在月光下打盹'}}</text>
+        <text class="bt-sib-go">去查看 ›</text>
+      </view>
+
+      <!-- AI 夜话 -->
+      <view class="d-card ai-preview">
+        <view class="ai-ava"><view class="ico ico-leaf"></view></view>
+        <view class="ai-body">
+          <view class="ai-text">{{dialogue}}</view>
+          <view class="ai-time">NOVA · {{extraMetrics.updatedAt || '刚刚'}}</view>
+        </view>
+      </view>
+
+      <!-- 无设备引导 -->
+      <view class="d-noguide" wx:if="{{!hasDevices}}" bindtap="goToDeviceManagement">
+        <view class="d-noguide-ico ico ico-plug"></view>
+        <text class="d-noguide-t">还没有绑定设备</text>
+        <text class="d-noguide-d">去设备管理，把智能花盆接进温室。</text>
+      </view>
+
+      <!-- 守夜清单 → 设备控制：整块折叠 -->
+      <view class="sec-fold d-fold {{foldOpen ? 'open' : ''}}">
+        <view class="d-card d-fold-head fold-summary" bindtap="toggleFold">
+          <view class="fh-badge"><text>✓</text></view>
+          <view class="fh-txt">
+            <text class="fh-k">NIGHT DUTY · 守夜清单到设备控制</text>
+            <text class="fh-t">今晚的巡与看顾<i>待办 {{todos.length}} · 设备 {{devices.length}} · 风扇{{fan.isOn ? '开着' : '已关'}}</i></text>
+          </view>
+          <text class="fold-arr {{foldOpen ? 'up' : ''}}">⌄</text>
+        </view>
+        <view class="fold-body">
+          <!-- 守夜清单 -->
+          <view class="d-sec"><text>守夜清单 · <b>{{todos.length}}</b></text><view class="ln"></view></view>
+          <view class="l-composer dark" wx:if="{{showTodoComposer}}">
+            <input class="l-input dark" value="{{todoDraft}}" placeholder="输入今晚要守的事" maxlength="80" bindinput="onTodoDraftInput" confirm-type="done" bindconfirm="confirmAddTodo" />
+            <view class="l-composer-acts">
+              <button class="l-cancel" bindtap="cancelAddTodo">取消</button>
+              <button class="l-confirm" bindtap="confirmAddTodo">添加</button>
+            </view>
+          </view>
+          <view class="d-add" wx:else bindtap="addTodo"><text>＋ 添加守夜待办</text></view>
+          <view class="d-task" wx:for="{{todos}}" wx:key="_id" bindtap="onTaskDone" data-id="{{item._id || item.id}}" bindlongpress="toggleUrgency">
+            <view class="tt">待办</view>
+            <view class="task-check {{item.done ? 'done' : ''}}"><text>{{item.done ? '✓' : '○'}}</text></view>
+            <view class="d-task-info">
+              <text class="d-task-title">{{item.title}}</text>
+              <text class="d-task-desc {{item.urgent ? 'warn' : ''}}">{{item.desc}}</text>
+            </view>
+            <text class="sticker {{item.urgent ? 'warm rt' : ''}}" wx:if="{{item.urgent}}">今日截止</text>
+          </view>
+          <view class="d-empty" wx:if="{{todos.length === 0}}"><text>今晚无事，植宠安睡</text></view>
+
+          <!-- 花园：设备入口 -->
+          <view class="d-sec"><text>花园 · 我的设备</text><view class="ln"></view><view class="btn-ghost" catchtap="refreshDeviceStatus"><text>刷新</text></view></view>
+          <scroll-view class="d-band" scroll-x enable-flex wx:if="{{hasDevices}}">
+            <view class="d-meter {{item.status === '在线' ? 'hot' : ''}}" wx:for="{{devices}}" wx:key="_id" bindtap="openDeviceDetail" data-index="{{index}}">
+              <view class="mk"><text>{{item.name}}</text><view class="dot {{item.status === '在线' ? 'on' : 'off-warn'}}"></view></view>
+              <view class="d-meter-v"><text>{{item.plantType || '未设植物'}} · {{item.status}}</text></view>
+              <view class="mn">{{item.location || '未设地点'}}</view>
+            </view>
+            <view class="d-meter d-meter-add" bindtap="goToDeviceManagement"><text>＋</text></view>
+          </scroll-view>
+
+          <!-- 草地巡检牌 -->
+          <view class="d-sec" wx:if="{{hasDevices}}"><text>草地巡检 · <b>RAW</b></text><view class="ln"></view></view>
+          <view class="d-term" wx:if="{{hasDevices}}">
+            <view class="thead"><text>TRT · SHELL</text><b>{{extraMetrics.runState === true ? 'ON' : (extraMetrics.runState === false ? 'OFF' : '--')}}</b></view>
+            <view class="tl"><text class="pr">&gt;</text><text>UID</text><text class="hint">{{extraMetrics.uid}}</text></view>
+            <view class="tl"><text class="pr">&gt;</text><text>DS18B20</text><text class="hint">{{extraMetrics.dsbTemp}} ℃</text></view>
+            <view class="tl"><text class="pr">&gt;</text><text>灵魂状态</text><text class="hint">{{extraMetrics.soulState}}</text></view>
+            <view class="tl"><text class="pr">&gt;</text><text>植物类型</text><text class="hint">{{extraMetrics.reportedPlantType}}</text></view>
+            <view class="tl"><text class="pr">&gt;</text><text>上报时间</text><text class="hint">{{extraMetrics.updatedAt}}</text></view>
+            <view class="tl"><text class="pr">&gt;</text><view class="cur"></view></view>
+          </view>
+
+          <!-- 设备控制 -->
+          <view class="d-sec" wx:if="{{hasDevices}}"><text>设备控制 · <b>fan.on / fan.off</b></text><view class="ln"></view></view>
+          <view class="d-card fan-card {{fan.isOn ? '' : 'is-off'}}" wx:if="{{hasDevices}}" bindtap="toggleFan">
+            <view class="fan-ico"><view class="ico ico-fan {{fan.isOn ? 'spin-anim' : ''}}"></view></view>
+            <view class="fan-info">
+              <text class="fan-name">{{fan.name}}</text>
+              <text class="fan-state">{{fan.statusText}}</text>
+              <text class="fan-hint">{{fan.hintText}}</text>
+            </view>
+            <view class="fan-toggle {{fan.isOn ? 'on' : ''}}"><view class="knob"></view></view>
+          </view>
+        </view>
+      </view>
+
+      <view style="padding-bottom: calc(170rpx + env(safe-area-inset-bottom));"></view>
+    </view>
+  </block>
+</view>

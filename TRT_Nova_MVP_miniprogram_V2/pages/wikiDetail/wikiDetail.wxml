@@ -1,0 +1,276 @@
+<page-meta background-color="{{theme === 'dark' ? '#0C1410' : '#F7F5EE'}}" page-style="{{theme === 'dark' ? 'background: #0C1410' : 'background: #F7F5EE'}}" />
+<view class="page {{theme === 'dark' ? 'theme-dark' : 'theme-light'}}" wx:if="{{ready}}">
+
+  <!-- ================= 浅色 · 元气日光 · 慢读杂志内页 ================= -->
+  <block wx:if="{{theme !== 'dark'}}">
+    <view class="top-shell" style="padding-top: {{statusBarHeight}}px;">
+      <view class="l-top">
+        <view class="l-back" bindtap="goBack"><text>‹</text></view>
+        <view class="l-mast">
+          <text class="l-mast-brand">TRT GARDENER · 养护文库</text>
+          <text class="l-mast-page">P.42-44 · 慢读杂志</text>
+        </view>
+        <view class="l-acts">
+
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载骨架 -->
+    <view wx:if="{{loading}}" class="state-wrap">
+      <view class="dd zine-card">
+        <view class="sk-line sk-lg"></view>
+        <view class="sk-line sk-md"></view>
+        <view class="sk-line sk-sm"></view>
+      </view>
+    </view>
+
+    <!-- 空态 -->
+    <view wx:elif="{{!article}}" class="state-wrap">
+      <view class="dd zine-card empty-card">
+        <text class="empty-title">没有找到这篇文章</text>
+        <text class="empty-desc">你可以返回知识库列表重新搜索，或者检查文章 ID 是否正确。</text>
+      </view>
+    </view>
+
+    <scroll-view wx:else scroll-y="true" class="content" show-scrollbar="{{false}}">
+      <!-- 刊眉 -->
+      <view class="wk-mast">
+        <text>TRT GARDENER · 养护文库</text>
+        <text>P.42-44 · 约 {{article.readMinutes}} 分钟读完</text>
+      </view>
+
+      <view class="dd zine-card">
+        <text class="dd-tag">{{article.displayCategory}} · {{article.displaySourceType}}</text>
+        <text wx:if="{{article.docMark}}" class="zine-mark">◆ {{article.docMark}}</text>
+
+        <!-- 章节题花 -->
+        <view class="zine-head">
+          <view class="zine-orn"><text>❦</text></view>
+          <view class="zine-title">{{article.title}}</view>
+          <view class="zine-meta">
+            <view class="zm-line"></view>
+            <text>NOVA 文库 · {{article.displaySourceType}}</text>
+            <view class="zm-line"></view>
+          </view>
+        </view>
+
+        <!-- 主题词 -->
+        <view class="zine-tags">
+          <text wx:for="{{article.tags}}" wx:key="*this" class="zine-tag">{{item}}</text>
+        </view>
+
+        <!-- 首字下沉正文 -->
+        <view class="zine-body">
+          <view class="zine-para first">
+            <text class="dropcap">{{article.firstChar}}</text>
+            <text class="para-txt">{{article.leadRest}}</text>
+          </view>
+          <block wx:for="{{article.paragraphs}}" wx:key="*this">
+            <view wx:if="{{index > 0}}" class="zine-para">{{item}}</view>
+          </block>
+        </view>
+
+        <!-- 拉页引言 -->
+        <view class="pull">
+          <view class="pq">「{{article.summary}}」</view>
+          <text class="ps">—— 本文导读</text>
+        </view>
+
+        <!-- 小节壹 · 适用范围 -->
+        <view class="zine-sec">
+          <view class="zs-no"><text>壹</text></view>
+          <text class="zs-title">适用范围</text>
+          <view class="zs-dash"></view>
+        </view>
+        <view class="digest">
+          <view class="dg-head">
+            <text class="dg-head-l">本节要点</text>
+            <text class="dg-head-r">SUMMARY</text>
+          </view>
+          <view wx:if="{{article.plantTypes.length === 0}}" class="dg-row">
+            <text>通用 · 各类常见家养植物</text>
+            <view class="dg-dots"></view>
+            <text class="dg-val">适用</text>
+          </view>
+          <view wx:for="{{article.plantTypes}}" wx:key="*this" class="dg-row">
+            <text>{{item}}</text>
+            <view class="dg-dots"></view>
+            <text class="dg-val">适用</text>
+          </view>
+        </view>
+
+        <!-- 小节贰 · 相关问题 -->
+        <view class="zine-sec">
+          <view class="zs-no"><text>贰</text></view>
+          <text class="zs-title">相关问题</text>
+          <view class="zs-dash"></view>
+        </view>
+        <view class="digest">
+          <view class="dg-head">
+            <text class="dg-head-l">本节要点</text>
+            <text class="dg-head-r">SUMMARY</text>
+          </view>
+          <view wx:if="{{article.problemTypes.length === 0}}" class="dg-row">
+            <text>暂无特定问题指向</text>
+            <view class="dg-dots"></view>
+            <text class="dg-val">通读</text>
+          </view>
+          <view wx:for="{{article.problemTypes}}" wx:key="*this" class="dg-row">
+            <text>{{item}}</text>
+            <view class="dg-dots"></view>
+            <text class="dg-val">排查</text>
+          </view>
+        </view>
+
+        <!-- 旁注贴士 -->
+        <view class="aside-note">
+          <view class="an-rule"></view>
+          <text class="an-text"><text class="an-label">旁注</text>　{{article.docTip}}</text>
+        </view>
+
+        <!-- 文末署名 -->
+        <view class="zine-foot">
+          <text>文 / NOVA 文库编辑部</text>
+          <text>版式 / 亭主美编室</text>
+        </view>
+
+        <!-- 页脚 -->
+        <view class="zine-pagefoot">
+          <text>— 44 —</text>
+          <text>转下页 · 翻页阅读</text>
+        </view>
+      </view>
+
+      <!-- 相关阅读（操作） -->
+      <view class="rel-head">
+        <text class="rel-title">相关阅读</text>
+        <view class="rel-line"></view>
+      </view>
+      <view class="k-news" bindtap="addReminder">
+        <view class="kn-bar">
+          <text><text class="kn-dot">●</text> 收入提醒 · TODO</text>
+          <text>待办清单</text>
+        </view>
+        <view class="kn-brand">
+          <text class="kn-bs">植宠文库</text>
+          <text class="kn-bw">养护时报</text>
+          <text class="kn-bs">待上架</text>
+        </view>
+        <view class="kn-t">阅读并跟进：{{article.title}}</view>
+        <view class="kn-foot">
+          <text>NOVA 待办 · 全局</text>
+          <text>加入提醒 ›</text>
+        </view>
+      </view>
+      <view class="k-news" bindtap="openAssistant">
+        <view class="kn-bar">
+          <text><text class="kn-dot">●</text> 深度追问 · ASK</text>
+          <text>AI 助手</text>
+        </view>
+        <view class="kn-brand">
+          <text class="kn-bs">植宠文库</text>
+          <text class="kn-bw">养护时报</text>
+          <text class="kn-bs">待上架</text>
+        </view>
+        <view class="kn-t">读完还有疑问？带着这篇去问 NOVA</view>
+        <view class="kn-foot">
+          <text>AI 问答 · 植宠助手</text>
+          <text>展开对话 ›</text>
+        </view>
+      </view>
+    </scroll-view>
+  </block>
+
+  <!-- ================= 深色 · 萤火温室 · 夜读模式 ================= -->
+  <block wx:else>
+    <view class="ff f1"></view>
+    <view class="ff f2"></view>
+    <view class="d-shell" style="padding-top: {{statusBarHeight}}px;">
+      <view class="nw">守夜手记 · 萤火虫停在字里行间</view>
+      <view class="pg-top">
+        <view class="back" bindtap="goBack"><text>←</text></view>
+        <view class="mid"><view class="t">夜读</view></view>
+        <view class="act"><view class="chip"><b>{{article ? article.readMinutes : 1}}</b> 分钟</view></view>
+      </view>
+      <view class="d-readbar"><view class="dr-fill" style="width: {{readProgress}}%;"></view></view>
+
+      <!-- 加载骨架 -->
+      <view wx:if="{{loading}}" class="d-state">
+        <view class="dsk-line dsk-lg"></view>
+        <view class="dsk-line dsk-md"></view>
+        <view class="dsk-line dsk-sm"></view>
+      </view>
+
+      <!-- 空态 -->
+      <view wx:elif="{{!article}}" class="card d-empty">
+        <text class="d-empty-title">没有找到这篇文章</text>
+        <text class="d-empty-desc">你可以返回知识库列表重新搜索，或者检查文章 ID 是否正确。</text>
+      </view>
+
+      <scroll-view wx:else scroll-y="true" class="content dark" show-scrollbar="{{false}}" bindscroll="onReadScroll">
+        <view class="d-meta-row">
+          <view class="chip gold"><b>{{article.displayCategory}}</b></view>
+          <text class="d-meta-txt">已读 {{readProgress}}%</text>
+          <text wx:if="{{article.docMark}}" class="d-docmark">◆ {{article.docMark}}</text>
+        </view>
+
+        <view class="d-serif d-title">{{article.title}}</view>
+
+        <view class="d-author">
+          <view class="d-ava"><view class="ico ico-leaf"></view></view>
+          <text class="d-author-txt">NOVA 知识库 · {{article.displaySourceType}}</text>
+        </view>
+
+        <view class="art-body d-serif">
+          <view class="lead">{{article.firstChar}}{{article.leadRest}}</view>
+        </view>
+
+        <view class="art-h"><text class="n">01</text><text>正文 · 全文</text><view class="ln"></view></view>
+        <view class="art-body d-serif">
+          <block wx:for="{{article.paragraphs}}" wx:key="*this">
+            <view wx:if="{{index > 0}}" class="ap">{{item}}</view>
+          </block>
+        </view>
+
+        <view class="card callout">
+          <view class="co-ico ico ico-leaf"></view>
+          <text class="co-txt">小技巧：{{article.docTip}}</text>
+        </view>
+
+        <view class="art-h"><text class="n">02</text><text>适用范围</text><view class="ln"></view></view>
+        <view class="d-tags">
+          <text wx:if="{{article.plantTypes.length === 0}}" class="d-tag">通用</text>
+          <text wx:for="{{article.plantTypes}}" wx:key="*this" class="d-tag">{{item}}</text>
+        </view>
+
+        <view class="art-h"><text class="n">03</text><text>相关问题</text><view class="ln"></view></view>
+        <view class="d-tags">
+          <text wx:if="{{article.problemTypes.length === 0}}" class="d-tag">暂无</text>
+          <text wx:for="{{article.problemTypes}}" wx:key="*this" class="d-tag">{{item}}</text>
+        </view>
+
+        <view class="art-h"><text class="n">04</text><text>主题词</text><view class="ln"></view></view>
+        <view class="d-tags">
+          <text wx:for="{{article.tags}}" wx:key="*this" class="d-tag">{{item}}</text>
+        </view>
+
+        <view class="d-sec"><text>读完这本 · <text class="b">操作</text></text><view class="ln"></view></view>
+        <view class="card rel-item" bindtap="addReminder">
+          <view class="rel-copy">
+            <text class="rel-t">加入提醒</text>
+            <text class="rel-s">NOVA 待办 · 阅读并跟进本文</text>
+          </view>
+          <text class="chev">›</text>
+        </view>
+        <view class="card rel-item" bindtap="openAssistant">
+          <view class="rel-copy">
+            <text class="rel-t">去问 AI</text>
+            <text class="rel-s">NOVA 助手 · 结合本文继续追问</text>
+          </view>
+          <text class="chev">›</text>
+        </view>
+      </scroll-view>
+    </view>
+  </block>
+</view>

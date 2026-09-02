@@ -1,0 +1,1861 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRT Nova · 盆屿群岛</title>
+<style>
+/* ============ 通用令牌 ============ */
+:root{
+  --font-kai:"Kaiti SC","STKaiti","KaiTi","FZKai-Z03S","Noto Serif SC",serif;
+  --font-song:"Noto Serif SC","Songti SC","SimSun",serif;
+  --font-body:-apple-system,"PingFang SC","HarmonyOS Sans SC","Microsoft YaHei",sans-serif;
+  --font-mono:ui-monospace,"Cascadia Mono","JetBrains Mono",Consolas,monospace;
+  --font:var(--font-body);
+}
+/* 浅色 · 盆屿海图 · 日航手帐：海图纸底 × 群岛松绿 × 邮戳朱红，明信片、邮票、胶带、航线 */
+body.theme-light{
+  --bg:#F2EDDC; --grid:rgba(60,90,80,.08);
+  --paper:#FBF7EA; --paper2:#EDE7D2; --ink:#23433B; --ink2:#77826F;
+  --line:#C9C2A6; --line2:#ADA588;
+  --pine:#1B6B5A; --pine-deep:#0F4A3E; --pine-soft:rgba(27,107,90,.10); --pine-ink:#F8F5E9;
+  --stamp:#C0503E; --stamp-soft:rgba(192,80,62,.09);
+  --tide:#3E7E8C; --tide-soft:rgba(62,126,140,.10);
+  --amber:#A87B2F; --amber-soft:rgba(168,123,47,.12);
+  --coral:#B8502F; --coral-soft:rgba(184,80,47,.09);
+  --shadow:0 1px 0 rgba(35,67,59,.06); --shadow-sm:0 1px 0 rgba(35,67,59,.05);
+  --glow:none;
+  --sea:#E7E2CE;
+}
+/* 深色 · 盆屿夜航 · 深海仪器：深海夜底 × 雷达青 × 灯塔琥珀，面板、示波器、扫描、HUD */
+body.theme-dark{
+  --bg:#081118; --grid:rgba(63,224,192,.05);
+  --panel:#0D1D28; --panel2:#132835; --ink:#DDEFE7; --ink2:#7C968D;
+  --line:#1E3A46; --line2:#2A4E58;
+  --radar:#3FE0C0; --radar-deep:#1FB89A; --radar-soft:rgba(63,224,192,.12); --radar-ink:#03110D;
+  --beam:#FFC46B; --beam-soft:rgba(255,196,107,.10);
+  --tide:#5FD3E8; --tide-soft:rgba(95,211,232,.10);
+  --amber:#FFC46B; --amber-soft:rgba(255,196,107,.10);
+  --coral:#FF8E7A; --coral-soft:rgba(255,142,122,.10);
+  --shadow:0 16px 40px rgba(0,0,0,.5),0 0 0 1px rgba(63,224,192,.05); --shadow-sm:0 8px 20px rgba(0,0,0,.4);
+  --glow:0 0 24px rgba(63,224,192,.22);
+  --sea:#0A1A24;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--ink);transition:background .4s,color .4s;padding-bottom:90px}
+/* 海图网格 / 雷达网格 */
+body{background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:44px 44px}
+
+/* ============ 顶部说明 ============ */
+.hero{position:relative;padding:72px 32px 40px;max-width:1560px;margin:0 auto}
+.hero .kicker{display:inline-flex;align-items:center;gap:8px;height:30px;padding:0 14px;border-radius:4px;background:var(--paper);border:1px solid var(--line);font-family:var(--font-mono);font-size:11px;letter-spacing:3px;color:var(--stamp,var(--beam));font-weight:700;margin-bottom:18px}
+body.theme-dark .hero .kicker{color:var(--radar)}
+.hero h1{font-family:var(--font-kai);font-size:clamp(36px,5vw,58px);font-weight:900;letter-spacing:2px;line-height:1.1}
+body.theme-dark .hero h1{font-family:var(--font-body);letter-spacing:-1px}
+.hero h1 em{font-style:normal;color:var(--pine);border-bottom:3px solid var(--stamp)}
+body.theme-dark .hero h1 em{color:var(--radar);border-bottom-color:var(--beam)}
+.hero .sub{margin-top:18px;color:var(--ink2);font-size:15px;line-height:1.9;max-width:680px}
+.hero .sub b{color:var(--ink)}
+.meta-row{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap}
+.meta-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:4px;background:var(--paper);border:1px solid var(--line);font-size:12.5px;color:var(--ink2)}
+.meta-pill b{color:var(--ink);font-weight:600}
+.theme-switch{position:sticky;top:16px;z-index:99;float:right;display:flex;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:4px;box-shadow:var(--shadow-sm)}
+.theme-switch button{border:0;background:transparent;color:var(--ink2);font-family:var(--font);font-size:13px;font-weight:600;padding:8px 18px;border-radius:4px;cursor:pointer;transition:.25s}
+.theme-switch button.on{background:var(--pine);color:var(--pine-ink)}
+body.theme-dark .theme-switch button.on{background:var(--radar);color:var(--radar-ink)}
+
+/* ============ 画板 ============ */
+.board{max-width:1560px;margin:0 auto;padding:0 32px 60px;display:grid;grid-template-columns:repeat(auto-fit,minmax(430px,1fr));gap:44px 32px}
+body.theme-light .board-dark{display:none}
+body.theme-dark .board-light{display:none}
+.slot{display:flex;flex-direction:column;gap:14px;min-width:0}
+.slot-head{display:flex;flex-direction:column;gap:8px;padding:0 6px}
+.slot-head .no{display:inline-flex;align-items:center;width:fit-content;height:24px;padding:0 10px;border-radius:3px;border:1px solid var(--stamp);color:var(--stamp);font-family:var(--font-mono);font-size:10px;letter-spacing:2px;font-weight:700}
+body.theme-dark .slot-head .no{border-color:var(--radar);color:var(--radar)}
+.slot-head h2{font-family:var(--font-kai);font-size:22px;font-weight:900;letter-spacing:1px}
+body.theme-dark .slot-head h2{font-family:var(--font-body);letter-spacing:0}
+.slot-head p{font-size:11.5px;color:var(--ink2);line-height:1.7;max-width:340px}
+.chapter{grid-column:1/-1;display:flex;align-items:baseline;gap:16px;padding:34px 6px 8px;border-top:1px solid var(--line)}
+.chapter:first-of-type{border-top:0;padding-top:6px}
+.ch-no{font-family:var(--font-mono);font-size:11px;font-weight:800;color:var(--stamp);letter-spacing:3px}
+body.theme-dark .ch-no{color:var(--radar)}
+.ch-title{font-family:var(--font-kai);font-size:24px;font-weight:900;letter-spacing:1px}
+body.theme-dark .ch-title{font-family:var(--font-body)}
+.ch-sub{font-size:13px;color:var(--ink2)}
+.ch-line{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+.ch-note{font-size:12px;color:var(--ink2);max-width:300px;text-align:right;line-height:1.5}
+.board-tag{grid-column:1/-1;padding:16px 20px;background:var(--paper);border:1px solid var(--line);font-size:13px;color:var(--ink2);line-height:1.8}
+body.theme-dark .board-tag{background:var(--panel)}
+.board-tag b{color:var(--ink);font-family:var(--font-kai);font-size:15px;letter-spacing:1px}
+body.theme-dark .board-tag b{font-family:var(--font-body)}
+
+/* ============ 手机壳 ============ */
+.phone{width:391px;border-radius:26px;padding:7px;background:#0A0D0B;border:1px solid #202622;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+body.theme-light .phone{border-radius:10px;background:#3B3627;border-color:#57513D;box-shadow:0 16px 40px rgba(35,67,59,.25)}
+.screen{border-radius:20px;overflow:hidden;background:var(--bg);position:relative;transition:background .4s}
+body.theme-light .screen{border-radius:4px}
+.screen::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:30px 30px}
+.pbody{position:relative;padding-bottom:20px}
+.island{width:118px;height:33px;border-radius:20px;background:#000;margin:14px auto 10px;position:relative;z-index:5}
+.pstatus{display:flex;justify-content:space-between;align-items:center;padding:0 30px 6px;font-family:var(--font-mono);font-size:14px;font-weight:600;color:var(--ink);position:relative;z-index:2}
+.ppad{padding:4px 16px 0;position:relative;z-index:2}
+
+/* ============ 底部导航 ============ */
+.tabbar{margin:18px 14px 4px;height:58px;display:flex;justify-content:space-evenly;align-items:center}
+body.theme-light .tabbar{background:var(--paper);border:1px solid var(--line);border-radius:4px}
+body.theme-dark .tabbar{background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.tab-item{display:flex;flex-direction:column;align-items:center;gap:3px;width:70px;padding:7px 0;color:var(--ink2);font-size:10px;font-family:var(--font-kai);letter-spacing:1px}
+body.theme-dark .tab-item{font-family:var(--font-mono);letter-spacing:0}
+.tab-item.on{color:var(--pine);font-weight:700}
+body.theme-dark .tab-item.on{color:var(--radar)}
+.tab-item.on svg{filter:drop-shadow(0 0 6px rgba(63,224,192,.5))}
+
+/* ============ 浅色手帐组件 ============ */
+body.theme-light .pc{background:var(--paper);border:1px solid var(--line);border-radius:3px;box-shadow:0 2px 8px rgba(35,67,59,.08);position:relative}
+/* 明信片齿孔 */
+body.theme-light .pc-teeth{padding:12px}
+body.theme-light .pc-teeth::before{content:"";position:absolute;top:-1px;bottom:-1px;width:10px;background-image:radial-gradient(circle at 5px 8px,var(--bg) 5px,transparent 5.5px);background-size:10px 16px;border-right:1px solid var(--line)}
+/* 邮票 */
+body.theme-light .stamp{background:var(--paper);border:1px solid var(--line2);padding:6px;position:relative;display:inline-flex;flex-direction:column;align-items:center;gap:4px}
+body.theme-light .stamp::before{content:"";position:absolute;inset:-4px;background-image:radial-gradient(circle at 4px 4px,var(--bg) 2.2px,transparent 2.7px);background-size:9px 9px}
+body.theme-light .stamp .s-in{background:var(--tide-soft);border:1px solid var(--tide);padding:8px 10px;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:66px}
+body.theme-light .stamp .s-in.pine{background:var(--pine-soft);border-color:var(--pine)}
+body.theme-light .stamp .s-in.amber{background:var(--amber-soft);border-color:var(--amber)}
+body.theme-light .stamp .sv{font-family:var(--font-song);font-size:15px;font-weight:800;color:var(--ink)}
+body.theme-light .stamp .su{font-size:8.5px;color:var(--ink2);letter-spacing:1px}
+body.theme-light .stamp .sv svg{color:var(--tide)}
+body.theme-light .stamp .s-in.pine .sv svg{color:var(--pine)}
+/* 邮戳 */
+body.theme-light .postmark{position:absolute;width:64px;height:64px;border:1.5px dashed var(--stamp);border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--stamp);transform:rotate(-12deg);font-family:var(--font-kai);pointer-events:none;z-index:3;background:rgba(251,247,234,.85)}
+body.theme-light .postmark b{font-size:11px;letter-spacing:2px}
+body.theme-light .postmark span{font-size:8.5px;letter-spacing:1px;margin-top:2px}
+/* 胶带 */
+body.theme-light .tape{position:absolute;width:74px;height:22px;background:rgba(168,123,47,.28);transform:rotate(-5deg);z-index:4;pointer-events:none;box-shadow:0 1px 3px rgba(35,67,59,.12)}
+body.theme-light .tape::before,body.theme-light .tape::after{content:"";position:absolute;top:0;bottom:0;width:5px;background-image:linear-gradient(45deg,transparent 33%,rgba(251,247,234,.6) 33% 66%,transparent 66%)}
+body.theme-light .tape::before{left:-4px}
+body.theme-light .tape::after{right:-4px}
+body.theme-light .tape.t2{transform:rotate(4deg);background:rgba(27,107,90,.22)}
+body.theme-light .tape.t3{transform:rotate(-8deg);background:rgba(62,126,140,.24)}
+/* 航线虚线 */
+body.theme-light .route{position:relative;height:20px;margin:2px 0}
+body.theme-light .route::before{content:"";position:absolute;left:8px;right:8px;top:50%;border-top:1.5px dashed var(--line2)}
+body.theme-light .route::after{content:"✈";position:absolute;left:50%;top:50%;transform:translate(-50%,-55%);background:var(--bg);padding:0 6px;color:var(--stamp);font-size:12px}
+/* 蜡封 */
+body.theme-light .wax{width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#D66A55,#A03828);display:flex;align-items:center;justify-content:center;color:#F8E8E0;font-size:16px;box-shadow:0 3px 8px rgba(160,56,40,.4);flex:none;position:relative}
+body.theme-light .wax::after{content:"";position:absolute;inset:3px;border-radius:50%;border:1px solid rgba(248,232,224,.4)}
+/* 海图罗盘 */
+body.theme-light .compass{width:34px;height:34px;border:1.5px solid var(--pine);border-radius:50%;position:relative;flex:none}
+body.theme-light .compass::before{content:"N";position:absolute;top:-7px;left:50%;transform:translateX(-50%);font-size:7px;font-weight:800;color:var(--stamp)}
+body.theme-light .compass::after{content:"✦";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--pine);font-size:12px}
+/* 手帐标题行 */
+body.theme-light .h-line{display:flex;align-items:baseline;gap:10px;padding:2px 2px 12px}
+body.theme-light .h-line .ht{font-family:var(--font-kai);font-size:24px;font-weight:900;letter-spacing:2px}
+body.theme-light .h-line .hs{font-size:11px;color:var(--ink2);letter-spacing:1px}
+body.theme-light .h-line .coord{margin-left:auto;font-family:var(--font-mono);font-size:9px;color:var(--ink2);letter-spacing:1px}
+/* 印章按钮 */
+body.theme-light .btn{display:flex;align-items:center;justify-content:center;gap:8px;height:48px;background:var(--pine);color:var(--pine-ink);font-family:var(--font-kai);font-size:16px;font-weight:800;letter-spacing:4px;border:0;cursor:pointer;box-shadow:0 3px 0 var(--pine-deep);border-radius:3px;transition:.15s}
+body.theme-light .btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--pine-deep)}
+body.theme-light .btn.ghost{background:transparent;color:var(--pine);border:1.5px solid var(--pine);box-shadow:none;height:34px;font-size:13px;letter-spacing:2px;padding:0 16px}
+body.theme-light .btn.soft{background:var(--pine-soft);color:var(--pine-deep);border:1px solid var(--pine);box-shadow:none;height:34px;font-size:13px;letter-spacing:2px;padding:0 16px}
+body.theme-light .btn.danger{background:transparent;color:var(--coral);border:1.5px solid var(--coral);box-shadow:none;height:40px;font-size:13px;letter-spacing:2px}
+/* 字段（登记表行） */
+body.theme-light .frow{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 12px;background:var(--paper2);border:1px solid var(--line);border-radius:2px;font-size:13px;color:var(--ink2)}
+body.theme-light .frow .val{color:var(--ink);font-weight:600}
+body.theme-light .frow .fi{font-family:var(--font-kai);color:var(--stamp);width:18px;text-align:center}
+body.theme-light .flabel{font-family:var(--font-kai);font-size:13px;font-weight:800;letter-spacing:2px;color:var(--ink);display:flex;align-items:center;gap:8px}
+body.theme-light .flabel::after{content:"";flex:1;border-top:1px dashed var(--line2)}
+/* 任务卡 */
+body.theme-light .task{display:flex;align-items:center;gap:12px;padding:13px 14px;background:var(--paper);border:1px solid var(--line);border-left:3px solid var(--pine);border-radius:2px}
+body.theme-light .task.todo{border-left-color:var(--stamp)}
+body.theme-light .task b{font-family:var(--font-kai);font-size:15px;font-weight:800;letter-spacing:1px;display:block}
+body.theme-light .task .td{font-size:11px;color:var(--ink2);margin-top:3px;display:block}
+body.theme-light .task .td.warn{color:var(--stamp)}
+/* 打卡章 */
+.task-check{width:28px;height:28px;border:1.5px solid var(--line2);border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;color:var(--paper);cursor:pointer;transition:.2s;background:transparent}
+.task-check.done{background:var(--stamp);border-color:var(--stamp);animation:pop .4s ease}
+@keyframes pop{0%{transform:scale(.5) rotate(-30deg)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+body.theme-dark .task-check.done{background:var(--radar);border-color:var(--radar)}
+/* 传感器邮票排 */
+body.theme-light .stamprow{display:flex;gap:8px;justify-content:space-between;padding:2px 0}
+/* 风扇（手帐拨杆） */
+.fan-toggle{position:relative;width:54px;height:30px;cursor:pointer;flex:none;transition:.25s}
+body.theme-light .fan-toggle{background:var(--paper2);border:1.5px solid var(--line2);border-radius:3px}
+body.theme-dark .fan-toggle{background:#0A1822;border:1px solid var(--line2);border-radius:15px}
+.fan-toggle input{display:none}
+.fan-toggle .knob{position:absolute;left:3px;top:3px;width:22px;height:22px;transition:.25s;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+body.theme-light .fan-toggle .knob{background:var(--paper);border:1.5px solid var(--pine);border-radius:2px;color:var(--pine)}
+body.theme-dark .fan-toggle .knob{background:var(--radar);border-radius:11px;color:var(--radar-ink);box-shadow:0 0 10px rgba(63,224,192,.5)}
+.fan-toggle input:checked ~ .knob{left:auto;right:3px}
+body.theme-light .fan-toggle:has(input:checked){background:var(--pine-soft);border-color:var(--pine)}
+body.theme-dark .fan-toggle:has(input:checked){background:rgba(63,224,192,.15);border-color:var(--radar)}
+/* 对话：信件往来 */
+body.theme-light .letter{position:relative;padding:13px 15px;background:var(--paper);border:1px solid var(--line);border-radius:2px;font-size:13px;line-height:1.9}
+body.theme-light .letter.me{background:var(--pine-soft);border-color:var(--pine);margin-left:34px}
+body.theme-light .letter.ai{margin-right:34px;border-left:3px solid var(--tide)}
+body.theme-light .letter .lw{font-family:var(--font-kai);font-size:10px;color:var(--tide);letter-spacing:2px;margin-bottom:5px;display:flex;align-items:center;gap:6px}
+body.theme-light .letter.me .lw{color:var(--pine-deep)}
+body.theme-light .letter::after{content:"";position:absolute;bottom:6px;right:10px;width:30px;height:14px;background:var(--stamp-soft);border:1px solid var(--stamp);border-radius:2px;opacity:.5}
+body.theme-light .letter.ai::after{display:none}
+/* 输入条 */
+body.theme-light .chatin{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper);border:1px solid var(--line);border-radius:2px;margin-top:16px}
+body.theme-light .chatin .ph{flex:1;font-size:13px;color:var(--ink2);font-family:var(--font-kai)}
+body.theme-light .sendbtn{width:38px;height:38px;background:var(--pine);color:var(--pine-ink);display:flex;align-items:center;justify-content:center;border-radius:2px;box-shadow:0 2px 0 var(--pine-deep)}
+/* 日历：航海月相牌 */
+body.theme-light .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+body.theme-light .calw{font-family:var(--font-kai);font-size:10px;color:var(--stamp);padding:5px 0}
+body.theme-light .cald{font-family:var(--font-song);font-size:12px;color:var(--ink);padding:7px 0;position:relative;font-variant-numeric:tabular-nums}
+body.theme-light .cald.dim{color:var(--ink2);opacity:.4}
+body.theme-light .cald.rec::after{content:"◆";position:absolute;left:50%;transform:translateX(-50%);bottom:1px;font-size:6px;color:var(--pine)}
+body.theme-light .cald.today{background:var(--stamp);color:var(--paper);font-weight:800;border-radius:2px}
+/* 时间线：航线日志 */
+body.theme-light .tl{position:relative;padding-left:24px;margin-top:14px}
+body.theme-light .tl::before{content:"";position:absolute;left:8px;top:6px;bottom:6px;border-left:1.5px dashed var(--line2)}
+body.theme-light .tl-item{position:relative;margin-bottom:12px}
+body.theme-light .tl-node{position:absolute;left:-24px;top:14px;width:15px;height:15px;border-radius:50%;background:var(--paper);border:1.5px solid var(--pine);display:flex;align-items:center;justify-content:center}
+body.theme-light .tl-node::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--pine)}
+/* 花园：群岛海图卡 */
+body.theme-light .isle{padding:14px;background:var(--paper);border:1px solid var(--line);border-radius:3px;position:relative}
+body.theme-light .isle.on{border-color:var(--pine);box-shadow:0 0 0 1px var(--pine)}
+body.theme-light .isle .coast{position:absolute;right:0;top:0;bottom:0;width:44px;background:linear-gradient(180deg,transparent 0%,var(--tide-soft) 100%);clip-path:polygon(30% 0,100% 0,100% 100%,0 100%,18% 84%,36% 66%,16% 48%,40% 30%,20% 16%)}
+/* 简报折叠 */
+.fold-summary{cursor:pointer;-webkit-user-select:none;user-select:none}
+.sec-fold .fold-body{display:none;margin-top:10px}
+.sec-fold.open .fold-body{display:block}
+.sec-fold.open .fold-arr{transform:rotate(180deg)}
+.fold-arr{display:inline-block;transition:transform .25s}
+
+/* ============ 深色仪器组件 ============ */
+@keyframes sweep{to{transform:rotate(360deg)}}
+@keyframes sonar{0%{transform:scale(.3);opacity:.9}100%{transform:scale(1.6);opacity:0}}
+@keyframes blip{0%,100%{opacity:.3}50%{opacity:1}}
+@keyframes scanline{0%{top:-20%}100%{top:120%}}
+@keyframes tickerin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+body.theme-dark .in{background:linear-gradient(170deg,rgba(63,224,192,.05),rgba(63,224,192,0) 40%),var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 26px rgba(0,0,0,.4);position:relative}
+/* HUD 角括号 */
+body.theme-dark .brk{position:relative}
+body.theme-dark .brk::before,body.theme-dark .brk::after{content:"";position:absolute;width:14px;height:14px;pointer-events:none}
+body.theme-dark .brk::before{top:6px;left:6px;border-top:1.5px solid var(--radar);border-left:1.5px solid var(--radar)}
+body.theme-dark .brk::after{bottom:6px;right:6px;border-bottom:1.5px solid var(--radar);border-right:1.5px solid var(--radar)}
+/* 雷达屏 */
+body.theme-dark .scope{position:relative;height:230px;background:radial-gradient(circle,#0A2430 0%,#081420 70%);border:1px solid var(--line2);border-radius:50%;margin:10px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+body.theme-dark .scope .ring{position:absolute;border:1px dashed rgba(63,224,192,.2);border-radius:50%}
+body.theme-dark .scope .r1{width:60%;height:60%}
+body.theme-dark .scope .r2{width:85%;height:85%;border-style:solid;border-color:rgba(63,224,192,.13)}
+body.theme-dark .scope .r3{width:38%;height:38%;border-style:solid;border-color:rgba(63,224,192,.16)}
+body.theme-dark .scope .cross{position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(63,224,192,.1)}
+body.theme-dark .scope .cross.h{left:0;right:0;top:50%;bottom:auto;width:auto;height:1px}
+body.theme-dark .scope .beam{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 0deg,rgba(63,224,192,.3),transparent 18%,transparent);animation:sweep 4s linear infinite}
+body.theme-dark .scope .blip{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--beam);box-shadow:0 0 12px 3px rgba(255,196,107,.6);animation:blip 2.4s infinite}
+body.theme-dark .scope .pet{width:132px;height:132px;position:relative;z-index:2;filter:drop-shadow(0 0 18px rgba(63,224,192,.3))}
+body.theme-dark .scope .pet-label{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--radar);z-index:3;text-align:center}
+body.theme-dark .scope .sonarring{position:absolute;width:70px;height:70px;border:1.5px solid rgba(63,224,192,.5);border-radius:50%;animation:sonar 2.8s ease-out infinite}
+/* 声呐波纹 */
+body.theme-dark .sonar{display:flex;gap:3px;align-items:center;height:18px;justify-content:center}
+body.theme-dark .sonar i{width:3px;background:var(--radar);border-radius:2px;opacity:.35;animation:blip 1.4s infinite}
+body.theme-dark .sonar i:nth-child(3n){opacity:1;animation-duration:.8s}
+body.theme-dark .sonar i:nth-child(2n){animation-delay:.2s}
+/* 仪表带 */
+body.theme-dark .gauges{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+body.theme-dark .gauges::-webkit-scrollbar{display:none}
+body.theme-dark .gauge{flex:1;min-width:88px;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;position:relative;overflow:hidden}
+body.theme-dark .gauge .gk{font-family:var(--font-mono);font-size:8.5px;color:var(--ink2);letter-spacing:2px;display:flex;justify-content:space-between}
+body.theme-dark .gauge .gk .led{width:5px;height:5px;border-radius:50%;background:var(--radar);box-shadow:0 0 6px var(--radar)}
+body.theme-dark .gauge .gv{font-family:var(--font-mono);font-size:22px;font-weight:800;margin-top:6px;color:var(--ink)}
+body.theme-dark .gauge .gv .gu{font-size:10px;color:var(--ink2);font-weight:400}
+body.theme-dark .gauge .gb{height:3px;background:rgba(63,224,192,.12);border-radius:2px;margin-top:7px;overflow:hidden}
+body.theme-dark .gauge .gb i{display:block;height:100%;background:linear-gradient(90deg,var(--radar-deep),var(--radar));border-radius:2px;box-shadow:0 0 8px rgba(63,224,192,.5)}
+body.theme-dark .gauge.hot{border-color:var(--radar);background:linear-gradient(170deg,rgba(63,224,192,.1),var(--panel) 60%)}
+body.theme-dark .gauge.hot .gv{color:var(--radar)}
+/* 面板标题 */
+body.theme-dark .phead{display:flex;align-items:center;gap:8px;padding:10px 14px 8px;font-family:var(--font-mono);font-size:9.5px;letter-spacing:2.5px;color:var(--ink2)}
+body.theme-dark .phead::before{content:"";width:6px;height:6px;background:var(--radar);border-radius:1px;box-shadow:0 0 8px var(--radar)}
+body.theme-dark .phead b{color:var(--radar);font-weight:700}
+body.theme-dark .phead .pr{margin-left:auto;color:var(--beam)}
+/* 数据行 */
+body.theme-dark .drow{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid rgba(30,58,70,.6);font-size:12px}
+body.theme-dark .drow .dk{font-family:var(--font-mono);font-size:9.5px;color:var(--ink2);letter-spacing:1.5px;min-width:64px}
+body.theme-dark .drow .dv{flex:1;font-weight:600}
+body.theme-dark .drow .dv.mono{font-family:var(--font-mono);color:var(--radar)}
+/* 深色按钮 */
+body.theme-dark .btn{display:flex;align-items:center;justify-content:center;gap:8px;height:48px;background:linear-gradient(135deg,var(--radar),var(--radar-deep));color:var(--radar-ink);font-size:15px;font-weight:800;letter-spacing:2px;border:0;cursor:pointer;box-shadow:0 8px 22px rgba(63,224,192,.3);border-radius:10px;transition:.15s}
+body.theme-dark .btn:active{transform:scale(.98)}
+body.theme-dark .btn.ghost{background:transparent;color:var(--radar);border:1px solid var(--radar);box-shadow:none;height:34px;font-size:12.5px;padding:0 16px}
+body.theme-dark .btn.soft{background:rgba(63,224,192,.1);color:var(--radar);border:1px solid rgba(63,224,192,.4);box-shadow:none;height:34px;font-size:12.5px;padding:0 16px}
+body.theme-dark .btn.danger{background:transparent;color:var(--coral);border:1px solid var(--coral);box-shadow:none;height:40px;font-size:13px}
+/* 深色对话：电台频道 */
+body.theme-dark .freq{display:flex;gap:2px;align-items:flex-end;justify-content:center;height:16px}
+body.theme-dark .freq i{width:3px;background:var(--radar);border-radius:2px;opacity:.35;animation:blip 1.6s infinite}
+body.theme-dark .freq i:nth-child(3n){opacity:1;animation-duration:.9s}
+body.theme-dark .msg{padding:13px 16px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--radar);border-radius:12px;font-size:12.5px;line-height:1.9}
+body.theme-dark .msg .mw{font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--radar);margin-bottom:6px;display:flex;align-items:center;gap:6px}
+body.theme-dark .msg.me{border-left-color:var(--beam);background:linear-gradient(135deg,rgba(255,196,107,.07),var(--panel) 60%);margin-left:26px}
+body.theme-dark .msg.me .mw{color:var(--beam)}
+body.theme-dark .chatin{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--panel);border:1px solid var(--line2);border-radius:12px;margin-top:16px}
+body.theme-dark .chatin .ph{flex:1;font-size:13px;color:var(--ink2)}
+body.theme-dark .sendbtn{width:38px;height:38px;background:linear-gradient(135deg,var(--radar),var(--radar-deep));color:var(--radar-ink);display:flex;align-items:center;justify-content:center;border-radius:10px;box-shadow:0 0 16px rgba(63,224,192,.35)}
+/* 深色任务终端 */
+body.theme-dark .dtask{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-top:8px}
+body.theme-dark .dtask .tag{font-family:var(--font-mono);font-size:8.5px;color:var(--radar);letter-spacing:2px;writing-mode:vertical-rl;border-right:1px dashed var(--line2);padding-right:8px;font-weight:700}
+body.theme-dark .dtask .tag.warn{color:var(--beam)}
+/* 深色日历：星点 */
+body.theme-dark .calgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;text-align:center}
+body.theme-dark .calw{font-family:var(--font-mono);font-size:9px;color:var(--beam);padding:5px 0;letter-spacing:1px}
+body.theme-dark .cald{font-family:var(--font-mono);font-size:11px;color:var(--ink2);padding:7px 0;position:relative}
+body.theme-dark .cald.dim{opacity:.25}
+body.theme-dark .cald.rec{color:var(--radar)}
+body.theme-dark .cald.rec::after{content:"✦";position:absolute;top:-1px;right:2px;font-size:7px;color:var(--beam);animation:blip 3s infinite}
+body.theme-dark .cald.today{background:var(--radar);color:var(--radar-ink);font-weight:800;border-radius:4px}
+/* 深色时间线：航迹 */
+body.theme-dark .tl{position:relative;padding-left:22px;margin-top:12px}
+body.theme-dark .tl::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:1px;background:linear-gradient(180deg,var(--radar),transparent)}
+body.theme-dark .tl-item{position:relative;margin-bottom:10px}
+body.theme-dark .tl-node{position:absolute;left:-22px;top:12px;width:9px;height:9px;border-radius:50%;background:var(--bg);border:2px solid var(--radar);box-shadow:0 0 8px rgba(63,224,192,.5)}
+/* 深色夜话 */
+body.theme-dark .logline{text-align:center;font-family:var(--font-mono);font-size:8.5px;letter-spacing:2px;color:rgba(255,196,107,.5);padding:0 6px 5px;position:relative;z-index:2}
+/* 深色趋势图带扫描 */
+body.theme-dark .chartwrap{position:relative;overflow:hidden;border-radius:8px}
+body.theme-dark .chartwrap::after{content:"";position:absolute;left:0;right:0;height:20px;top:-30px;background:linear-gradient(180deg,transparent,rgba(63,224,192,.09),transparent);animation:scanline 4s linear infinite}
+/* 星点 */
+body.theme-dark .stars{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(1.5px 1.5px at 12% 18%,rgba(221,239,231,.8) 50%,transparent 51%),radial-gradient(1px 1px at 28% 9%,rgba(221,239,231,.5) 50%,transparent 51%),radial-gradient(1.5px 1.5px at 44% 22%,rgba(255,196,107,.7) 50%,transparent 51%),radial-gradient(1px 1px at 61% 7%,rgba(221,239,231,.5) 50%,transparent 51%),radial-gradient(1.5px 1.5px at 74% 16%,rgba(221,239,231,.75) 50%,transparent 51%),radial-gradient(1px 1px at 87% 26%,rgba(255,196,107,.6) 50%,transparent 51%),radial-gradient(1px 1px at 8% 42%,rgba(221,239,231,.4) 50%,transparent 51%),radial-gradient(1.2px 1.2px at 92% 48%,rgba(221,239,231,.65) 50%,transparent 51%);z-index:1}
+/* 颗粒 */
+body.theme-dark::after{content:"";position:fixed;inset:0;z-index:999;pointer-events:none;opacity:.04;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>")}
+body.theme-light::after{content:"";position:fixed;inset:0;z-index:999;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>")}
+
+/* ============ 设计系统 ============ */
+.sys-section{max-width:1560px;margin:64px auto 0;padding:0 32px}
+.sys-section h2{font-family:var(--font-kai);font-size:24px;font-weight:900;letter-spacing:2px}
+body.theme-dark .sys-section h2{font-family:var(--font-body)}
+.sys-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-top:24px}
+.swatch-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.swatch{display:flex;flex-direction:column;gap:8px;width:86px}
+.swatch .box{height:56px;border-radius:6px;border:1px solid var(--line)}
+.swatch .nm{font-size:11px;font-weight:700}
+.swatch .vl{font-size:10px;color:var(--ink2);font-family:var(--font-mono)}
+.footer-note{max-width:1560px;margin:52px auto 0;padding:24px 32px;border-top:1px solid var(--line);color:var(--ink2);font-size:12.5px;line-height:1.9}
+@media (max-width:720px){.chapter{flex-wrap:wrap;gap:6px}.ch-note{flex-basis:100%;text-align:left}.board,.hero,.sys-section{padding-left:16px;padding-right:16px}.board{grid-template-columns:1fr;gap:36px}.phone{width:100%;max-width:391px;margin:0 auto}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body class="theme-light">
+
+<!-- ================= 顶部 ================= -->
+<div class="hero">
+  <div class="theme-switch">
+    <button id="btnLight" class="on">☀ 日航手帐</button>
+    <button id="btnDark">🌙 夜航仪器</button>
+  </div>
+  <div class="kicker">◆ TRT NOVA · BOTANICAL ISLES</div>
+  <h1>盆屿群岛 <em>植宠航海志</em></h1>
+  <div class="sub">同一片群岛，两种航行。<b>浅色 · 日航手帐</b>——白天巡航，页面是园丁船长的手帐：海图纸、明信片、邮票、邮戳与胶带，每座盆屿是一张可收藏的明信片；<b>深色 · 夜航仪器</b>——深夜巡航，页面是驾驶舱的仪器阵列：雷达屏、声呐、仪表带与 HUD，每座盆屿是雷达上的一个光点。13 页功能与数据一页不少：设备绑定、命令下发、风扇开关、传感器读数、AI 对话、知识库、成长日历。</div>
+  <div class="meta-row">
+    <span class="meta-pill">◆ 13 页 × 双世界</span>
+    <span class="meta-pill">浅色 <b>日航手帐</b> · 深色 <b>夜航仪器</b></span>
+    <span class="meta-pill">世界观 <b>盆屿群岛 · 园丁船长</b></span>
+    <span class="meta-pill">风扇开关 <b>fan.on / fan.off</b></span>
+  </div>
+</div>
+
+<!-- ================= SVG 符号库 ================= -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <symbol id="i-isle" viewBox="0 0 18 18"><path d="M2.5 12.5c1-4.5 4-7 6.5-7s5.5 2.5 6.5 7c-2 .8-4 1.2-6.5 1.2s-4.5-.4-6.5-1.2z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><path d="M9 5.5V3M7.5 4l3-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M9 4.5l1.6 3.4L14 9l-3.4 1.2L9 13.5 7.4 10.2 4 9l3.4-1.1L9 4.5z" fill="currentColor" opacity=".8"/></symbol>
+    <symbol id="i-log" viewBox="0 0 18 18"><path d="M3 4.5c2.5-1.8 6-1.8 8.5 0v9c-2.5-1.8-6-1.8-8.5 0v-9z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/><path d="M11.5 4.5c2-1.4 4-1.4 5.5 0v9c-1.5-1.4-3.5-1.4-5.5 0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="i-captain" viewBox="0 0 18 18"><circle cx="9" cy="6.5" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M3.5 15.5a5.5 5.5 0 0111 0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M9 1v1.5M5 2l.8 1.3M13 2l-.8 1.3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-back" viewBox="0 0 20 20"><path d="M12.5 4.5L7 10l5.5 5.5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 12 8"><path d="M1 1.5l5 5 5-5" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chev-r" viewBox="0 0 8 12"><path d="M1.5 1l5 5-5 5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 20 20"><circle cx="10" cy="10" r="2.2" fill="currentColor"/><path d="M6.5 6.5a5 5 0 017 0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M4 4a8.5 8.5 0 0112 0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" opacity=".4"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 20 20"><circle cx="10" cy="10" r="4" fill="currentColor"/><path d="M10 1.5v2M10 16.5v2M1.5 10h2M16.5 10h2M3.9 3.9l1.4 1.4M14.7 14.7l1.4 1.4M16.1 3.9l-1.4 1.4M5.3 14.7l-1.4 1.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></symbol>
+    <symbol id="i-drop" viewBox="0 0 20 20"><path d="M10 2.5C10 2.5 4.5 8.6 4.5 12.2a5.5 5.5 0 0011 0C15.5 8.6 10 2.5 10 2.5z" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="i-temp" viewBox="0 0 20 20"><path d="M10 3.5a1.5 1.5 0 00-1.5 1.5v6.6a3 3 0 103 0V5A1.5 1.5 0 0010 3.5z" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round"/><circle cx="10" cy="14.5" r="1.6" fill="currentColor"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 20 20"><path d="M10 18C10 12 12 6 18 3c-1 7-3.5 11-8 15z" fill="currentColor"/><path d="M10 18C6 15 3.5 11 2.5 5c5 1.5 7.5 5.5 7.5 13z" fill="currentColor" opacity=".55"/></symbol>
+    <symbol id="i-fan" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M12 10c0-3.5-1-6-3.5-6C6 4 6 7 8.5 8.5 10 9.5 12 10 12 10z" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round"/><path d="M14 12c3.5 0 6-1 6-3.5C20 6 17 6 15.5 8.5 14.5 10 14 12 14 12z" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round"/><path d="M12 14c0 3.5 1 6 3.5 6C18 20 18 17 15.5 15.5 14 14.5 12 14 12 14z" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round"/><path d="M10 12c-3.5 0-6 1-6 3.5C4 18 7 18 8.5 15.5 9.5 14 10 12 10 12z" stroke="currentColor" stroke-width="1.4" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="i-search" viewBox="0 0 18 18"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M12.5 12.5L16 16" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 12 12"><path d="M6 1v10M1 6h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 12 12"><path d="M2 6.5l2.8 2.8L10 3.5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 12 12"><path d="M10.8 6a4.8 4.8 0 11-1.4-3.4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/><path d="M9.6.7v2.3H7.3" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-anchor" viewBox="0 0 20 20"><circle cx="10" cy="5" r="2" stroke="currentColor" stroke-width="1.5" fill="none"/><path d="M10 7v10M6 9h8M4 12c1 4 3.5 5.5 6 5.5S15 16 16 12" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-send" viewBox="0 0 20 20"><path d="M2 10l16-7-5 16-3.5-6L2 10z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/><path d="M9.5 13L18 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <!-- 植宠：绿萝小绿 -->
+    <symbol id="pet-pothos" viewBox="0 0 200 200">
+      <ellipse cx="100" cy="178" rx="54" ry="9" fill="rgba(61,220,151,.10)"/>
+      <path d="M100 92c-14 0-24-4-31-13-6-8-7-18-4-28 3 12 9 20 18 25s18 6 17 16z" fill="#2FA97B"/>
+      <path d="M100 92c14 0 24-4 31-13 6-8 7-18 4-28-3 12-9 20-18 25s-18 6-17 16z" fill="#3DDC97"/>
+      <path d="M100 96c-16-2-27-9-32-21 9 3 16 1 23-4s13-5 9 25z" fill="#279168" opacity=".8"/>
+      <path d="M100 100v40" stroke="#2FA97B" stroke-width="5" stroke-linecap="round"/>
+      <path d="M100 118c-10 2-16-1-20-8 8 0 14-3 20-8v16z" fill="#3DDC97"/>
+      <path d="M100 128c10 2 16-1 20-8-8 0-14-3-20-8v16z" fill="#2FA97B"/>
+      <path d="M68 138h64l-7 36H75l-7-36z" fill="#2C4636"/>
+      <path d="M68 138h64l-2 10H70l-2-10z" fill="#365A45"/>
+      <path d="M64 132h72v8a4 4 0 01-4 4H68a4 4 0 01-4-4v-8z" fill="#3B6650"/>
+      <circle cx="89" cy="153" r="3.2" fill="#16281D"/><circle cx="111" cy="153" r="3.2" fill="#16281D"/>
+      <circle cx="90" cy="152" r="1" fill="#fff"/><circle cx="112" cy="152" r="1" fill="#fff"/>
+      <path d="M95 160q5 4 10 0" stroke="#16281D" stroke-width="2" stroke-linecap="round" fill="none"/>
+      <circle cx="80" cy="158" r="3.5" fill="#E8836B" opacity=".45"/><circle cx="120" cy="158" r="3.5" fill="#E8836B" opacity=".45"/>
+    </symbol>
+    <symbol id="pet-succulent" viewBox="0 0 200 200">
+      <ellipse cx="100" cy="178" rx="52" ry="9" fill="rgba(61,220,151,.10)"/>
+      <g stroke="#3DDC97" stroke-width="7" stroke-linecap="round" fill="none">
+        <path d="M100 158c0-30-8-52-22-64"/><path d="M100 158c0-30 8-52 22-64"/>
+        <path d="M100 158c-2-36-10-62-24-76" opacity=".7"/><path d="M100 158c2-36 10-62 24-76" opacity=".7"/>
+        <path d="M100 158c0-40-4-66-12-80" opacity=".45"/><path d="M100 158c0-40 4-66 12-80" opacity=".45"/>
+        <path d="M100 158v-88"/>
+      </g>
+      <path d="M66 150h68l-6 26H72l-6-26z" fill="#2C4636"/>
+      <path d="M62 144h76v8a4 4 0 01-4 4H66a4 4 0 01-4-4v-8z" fill="#3B6650"/>
+      <circle cx="89" cy="163" r="3.2" fill="#16281D"/><circle cx="111" cy="163" r="3.2" fill="#16281D"/>
+      <path d="M95 170q5 3.5 10 0" stroke="#16281D" stroke-width="2" stroke-linecap="round" fill="none"/>
+      <circle cx="80" cy="168" r="3.5" fill="#E8836B" opacity=".45"/><circle cx="120" cy="168" r="3.5" fill="#E8836B" opacity=".45"/>
+    </symbol>
+    <symbol id="st-icons" viewBox="0 0 58 12">
+      <rect x="0" y="7" width="3" height="5" rx="1" fill="currentColor" opacity=".45"/>
+      <rect x="4.5" y="5" width="3" height="7" rx="1" fill="currentColor" opacity=".65"/>
+      <rect x="9" y="2.5" width="3" height="9.5" rx="1" fill="currentColor"/>
+      <rect x="13.5" y="0" width="3" height="12" rx="1" fill="var(--pine,#3FE0C0)"/>
+      <path d="M27 9.8l2.3-2.7a3 3 0 00-4.6 0L27 9.8z" fill="currentColor" opacity=".6"/>
+      <path d="M23.2 5.9a5.6 5.6 0 017.6 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none" opacity=".75"/>
+      <path d="M20.8 3.4a9 9 0 0112.4 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" fill="none"/>
+      <rect x="40.5" y=".5" width="14" height="11" rx="3" stroke="currentColor" fill="none" opacity=".5"/>
+      <rect x="42" y="2" width="9" height="8" rx="1.5" fill="var(--pine,#3FE0C0)"/>
+      <rect x="56" y="3.5" width="2" height="5" rx="1" fill="currentColor" opacity=".5"/>
+    </symbol>
+    <linearGradient id="tgrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" style="stop-color:var(--pine,#3FE0C0);stop-opacity:.25"/>
+      <stop offset="1" style="stop-color:var(--pine,#3FE0C0);stop-opacity:0"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- ================= 深色画板（夜航仪器 · 一夜航程） ================= -->
+<div class="board board-dark">
+  <div class="board-tag"><b>深色版 · 盆屿夜航 · 深海仪器</b>——21:15 起锚，05:58 靠岸，13 页是一整夜的海上航程。页面是驾驶舱的仪器：雷达屏、声呐、仪表带、HUD 角括号。功能与数据一页不少。</div>
+
+  <div class="chapter"><span class="ch-no">VOYAGE 01</span><span class="ch-title">起锚离港</span><span class="ch-sub">· 21:15</span><span class="ch-line"></span><span class="ch-note">登录 · 首页 —— 雷达启动，主屿信号锁定</span></div>
+  <div class="slot" id="p10" data-tpl="p10"></div>
+  <div class="slot" id="p1" data-tpl="p1"></div>
+
+  <div class="chapter"><span class="ch-no">VOYAGE 02</span><span class="ch-title">跨海电台</span><span class="ch-sub">· 00:30</span><span class="ch-line"></span><span class="ch-note">AI 助手 · 知识库 · 文章详情 —— 声呐与频道</span></div>
+  <div class="slot" id="p2" data-tpl="p2"></div>
+  <div class="slot" id="p3" data-tpl="p3"></div>
+  <div class="slot" id="p12" data-tpl="p12"></div>
+
+  <div class="chapter"><span class="ch-no">VOYAGE 03</span><span class="ch-title">岛屿勘测</span><span class="ch-sub">· 02:48</span><span class="ch-line"></span><span class="ch-note">设备管理 · 设备详情 · 设备设置 —— 坐标与仪表</span></div>
+  <div class="slot" id="p5" data-tpl="p5"></div>
+  <div class="slot" id="p6" data-tpl="p6"></div>
+  <div class="slot" id="p7" data-tpl="p7"></div>
+
+  <div class="chapter"><span class="ch-no">VOYAGE 04</span><span class="ch-title">群岛巡夜</span><span class="ch-sub">· 04:26</span><span class="ch-line"></span><span class="ch-note">我的花园 · 植物成长日记 —— 航点与航迹</span></div>
+  <div class="slot" id="p8" data-tpl="p8"></div>
+  <div class="slot" id="p9" data-tpl="p9"></div>
+
+  <div class="chapter"><span class="ch-no">VOYAGE 05</span><span class="ch-title" style="color:var(--beam)">靠岸黎明</span><span class="ch-sub">· 05:18</span><span class="ch-line" style="background:linear-gradient(90deg,transparent,rgba(255,196,107,.4))"></span><span class="ch-note" style="color:var(--beam)">我的 · 资料编辑 · 关于 —— 灯塔亮起，航程结束</span></div>
+  <div class="slot" id="p4" data-tpl="p4"></div>
+  <div class="slot" id="p11" data-tpl="p11"></div>
+  <div class="slot" id="p13" data-tpl="p13"></div>
+</div>
+
+<!-- ================= 浅色画板（日航手帐 · Tab 结构） ================= -->
+<div class="board board-light">
+  <div class="board-tag"><b>浅色版 · 盆屿海图 · 日航手帐</b>——沿用 TRT 现有 Tab 结构（首页 / 助手 / 知识库 / 我的），页面是园丁船长摊开的手帐：明信片、邮票、邮戳、胶带与航线虚线。每座盆屿是一张可收藏的明信片。</div>
+  <div class="slot" id="p10l" data-tpl="p10"></div>
+  <div class="slot" id="p1l" data-tpl="p1"></div>
+  <div class="slot" id="p5l" data-tpl="p5"></div>
+  <div class="slot" id="p6l" data-tpl="p6"></div>
+  <div class="slot" id="p7l" data-tpl="p7"></div>
+  <div class="slot" id="p8l" data-tpl="p8"></div>
+  <div class="slot" id="p9l" data-tpl="p9"></div>
+  <div class="slot" id="p2l" data-tpl="p2"></div>
+  <div class="slot" id="p3l" data-tpl="p3"></div>
+  <div class="slot" id="p12l" data-tpl="p12"></div>
+  <div class="slot" id="p4l" data-tpl="p4"></div>
+  <div class="slot" id="p11l" data-tpl="p11"></div>
+  <div class="slot" id="p13l" data-tpl="p13"></div>
+</div>
+
+<!-- ================= 设计系统 ================= -->
+<div class="sys-section" id="sys">
+  <h2>设计系统 · 群岛取色皆有出处</h2>
+  <div class="sys-grid">
+    <div class="pc in sys-swatch" style="padding:20px">
+      <div class="flabel" style="font-family:var(--font-kai);margin-bottom:4px">核心色板</div>
+      <div class="swatch-row">
+        <div class="swatch"><div class="box" style="background:var(--bg)"></div><span class="nm">bg 底</span><span class="vl">海图纸/深海夜</span></div>
+        <div class="swatch"><div class="box" style="background:var(--paper,var(--panel))"></div><span class="nm">容器</span><span class="vl">明信片/面板</span></div>
+        <div class="swatch"><div class="box" style="background:var(--pine,var(--radar))"></div><span class="nm">主色</span><span class="vl">群岛松/雷达青</span></div>
+        <div class="swatch"><div class="box" style="background:var(--stamp,var(--beam))"></div><span class="nm">点缀</span><span class="vl">邮戳朱/灯塔琥</span></div>
+      </div>
+      <div class="swatch-row">
+        <div class="swatch"><div class="box" style="background:var(--tide)"></div><span class="nm">潮汐青</span><span class="vl">次级语义</span></div>
+        <div class="swatch"><div class="box" style="background:var(--amber)"></div><span class="nm">琥珀</span><span class="vl">重点/好感</span></div>
+        <div class="swatch"><div class="box" style="background:var(--coral)"></div><span class="nm">珊瑚</span><span class="vl">仅警示</span></div>
+        <div class="swatch"><div class="box" style="background:var(--ink)"></div><span class="nm">墨色</span><span class="vl">正文</span></div>
+      </div>
+    </div>
+    <div class="pc in" style="padding:20px">
+      <div class="phead" style="padding:0 0 4px">COMPONENT LANGUAGES · 卡片语言</div>
+      <div style="font-size:12px;color:var(--ink2);line-height:2;padding:0 14px">
+        <b style="color:var(--ink)">浅色手帐件：</b>明信片（齿孔）· 邮票 · 邮戳 · 胶带 · 航线虚线 · 蜡封 · 罗盘<br>
+        <b style="color:var(--ink)">深色仪器件：</b>雷达屏（扫描）· 声呐波纹 · 仪表带 · HUD 角括号 · 数据行 · 频闪
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer-note">TRT Nova · 盆屿群岛提案 —— 双击本文件即可在任何浏览器打开 · 右上角切换 <b>日航手帐 / 夜航仪器</b>两套世界 · 风扇开关与任务打卡可点击体验 · 浅色沿用 TRT Tab 结构排布，深色为「一夜航程」杂志式排布，功能与信息不缺斤少两。</div>
+
+<!-- ================= 浅色模板库（日航手帐） ================= -->
+<div id="tpls" hidden>
+
+<!-- P10 登录 · 船票 -->
+<div data-tpl="p10">
+  <div class="slot-head"><span class="no">PAGE 10 · 日</span><h2>登录 · 启航船票</h2><p>微信一键登录与开发体验入口不变——一张登船票，撕下副券即启航。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>9:41</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="ppad" style="min-height:640px;display:flex;flex-direction:column">
+      <div style="text-align:center;padding:34px 0 8px">
+        <div class="compass" style="margin:0 auto 18px;width:52px;height:52px"></div>
+        <div style="font-family:var(--font-kai);font-size:28px;font-weight:900;letter-spacing:6px">盆屿群岛</div>
+        <div style="font-size:11px;color:var(--ink2);margin-top:8px;letter-spacing:3px">BOTANICAL ISLES · 园丁船长登船处</div>
+      </div>
+      <div class="pc" style="margin-top:20px;overflow:hidden">
+        <span class="tape" style="top:-8px;left:24px"></span>
+        <div style="display:flex;align-items:stretch">
+          <div style="flex:1;padding:16px 14px">
+            <div style="font-family:var(--font-kai);font-size:13px;font-weight:800;letter-spacing:2px">登 船 票</div>
+            <div style="font-family:var(--font-mono);font-size:9px;color:var(--ink2);margin-top:4px;letter-spacing:1px">BOARDING PASS · NO. TRT-042</div>
+            <div style="margin-top:14px;display:flex;flex-direction:column;gap:5px;font-size:11px;color:var(--ink2)">
+              <span>乘客：<b style="color:var(--ink)">园丁船长</b></span>
+              <span>目的地：<b style="color:var(--ink)">盆屿群岛 · 全境</b></span>
+              <span>随身行李：<b style="color:var(--ink)">植宠一只</b></span>
+            </div>
+          </div>
+          <div style="width:92px;background:var(--pine-soft);border-left:1.5px dashed var(--line2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
+            <svg width="44" height="44" style="filter:drop-shadow(0 6px 10px rgba(27,107,90,.3))"><use href="#pet-pothos"/></svg>
+            <div style="font-family:var(--font-kai);font-size:9px;color:var(--pine-deep);letter-spacing:2px">等 你 哦</div>
+          </div>
+        </div>
+        <div style="height:10px;background-image:radial-gradient(circle at 5px 5px,var(--paper) 4px,transparent 4.5px);background-size:12px 10px;background-position:-6px 0;border-top:1px dashed var(--line2)"></div>
+      </div>
+      <div style="text-align:center;padding:10px 0 6px;font-family:var(--font-kai);font-size:11px;color:var(--ink2)">来得正好～我等你好久啦，带我回家吧！</div>
+      <div style="margin-top:auto">
+        <button class="btn" style="width:100%">微 信 一 键 登 航</button>
+        <div style="text-align:center;font-size:10.5px;color:var(--ink2);margin-top:12px">登录后即可巡航你的植物群岛 · <span style="text-decoration:underline;text-underline-offset:3px">开发体验登船</span></div>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P1 首页 · 主屿明信片 -->
+<div data-tpl="p1">
+  <div class="slot-head"><span class="no">PAGE 01 · 日</span><h2>首页 · 主屿明信片</h2><p>早安问候、植宠切换、舞台、四传感器、AI 电台、今日简报（任务 + 设备 + 风扇开关）一个不少——首页是手帐摊开的第一页：主屿明信片 + 气象邮票 + 任务贴纸。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>9:41</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="ppad">
+      <div class="h-line"><span class="ht">早安，阿棠船长</span><span class="coord">N23°06′ E113°18′</span></div>
+      <div style="display:flex;gap:8px;align-items:center;padding:0 2px 10px">
+        <span class="hs" style="font-size:11px;color:var(--ink2)">8 月 26 日 周三 · 群岛晴 26° · 日航开始</span>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:5px"><svg width="16" height="16" style="color:var(--pine);animation:blip 3s infinite"><use href="#i-signal"/></svg><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink2)">信号良</span></div>
+      </div>
+      <!-- 主屿明信片 -->
+      <div class="pc pc-teeth" style="padding:0;overflow:visible">
+        <span class="tape t2" style="top:-10px;right:30px"></span>
+        <div class="postmark" style="right:14px;top:64px"><b>盆屿邮政</b><span>PAVILION</span><span>8·26</span></div>
+        <div style="padding:14px 16px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px dashed var(--line2)">
+          <svg width="42" height="42" style="animation:sway 5s ease-in-out infinite"><use href="#pet-pothos"/></svg>
+          <div style="flex:1">
+            <div style="font-family:var(--font-kai);font-size:16px;font-weight:900;letter-spacing:1px">主屿 · 小绿</div>
+            <div style="font-size:10px;color:var(--ink2);margin-top:2px">客厅盆屿 · 观叶 · 已巡 42 天</div>
+          </div>
+          <div class="compass"></div>
+        </div>
+        <div style="padding:16px 12px 14px;display:flex;flex-direction:column;align-items:center;position:relative">
+          <svg width="128" height="128" style="filter:drop-shadow(0 10px 16px rgba(27,107,90,.25));animation:sway 5s ease-in-out infinite"><use href="#pet-pothos"/></svg>
+          <div style="margin-top:8px;font-family:var(--font-kai);font-size:12px;color:var(--pine-deep);border:1px dashed var(--pine);padding:5px 12px;border-radius:2px;background:var(--pine-soft)">嘿嘿～今天也是元气满满的一天！</div>
+          <div style="display:flex;gap:14px;margin-top:10px;font-family:var(--font-kai);font-size:10.5px;color:var(--ink2)">
+            <span>心情 <b style="color:var(--stamp)">98</b></span>
+            <span>好感 <b style="color:var(--pine-deep)">86</b></span>
+            <span>状态 <b style="color:var(--pine)">良好</b></span>
+          </div>
+        </div>
+      </div>
+      <!-- 气象邮票排 -->
+      <div class="route"></div>
+      <div class="stamprow">
+        <div class="stamp"><div class="s-in pine"><div class="sv"><svg width="14" height="14"><use href="#i-temp"/></svg>24.5℃</div><div class="su">屿温</div></div></div>
+        <div class="stamp"><div class="s-in"><div class="sv"><svg width="14" height="14"><use href="#i-sun"/></svg>12.8k</div><div class="su">日照</div></div></div>
+        <div class="stamp"><div class="s-in"><div class="sv"><svg width="14" height="14"><use href="#i-drop"/></svg>62%</div><div class="su">海雾</div></div></div>
+        <div class="stamp"><div class="s-in amber"><div class="sv"><svg width="14" height="14"><use href="#i-leaf"/></svg>58%</div><div class="su">屿壤</div></div></div>
+      </div>
+      <!-- AI 电台便签 -->
+      <div class="pc" style="margin-top:12px;padding:12px 14px;display:flex;gap:10px">
+        <span class="tape t3" style="top:-9px;left:60px;width:56px"></span>
+        <div style="width:34px;height:34px;border:1px solid var(--tide);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--tide);flex:none;align-self:flex-start"><svg width="16" height="16"><use href="#i-leaf"/></svg></div>
+        <div style="flex:1">
+          <div style="font-family:var(--font-kai);font-size:11px;color:var(--tide);letter-spacing:2px">群岛电台 · NOVA</div>
+          <div style="font-size:12px;line-height:1.8;margin-top:3px">嘿嘿～今天阳光刚刚好！中午帮我拉开一点纱帘好不好嘛？水分也足足的，完全不用担心我哦 🌱</div>
+        </div>
+      </div>
+      <!-- 今日简报：任务贴纸板（可折叠） -->
+      <div class="sec-fold" style="margin-top:14px">
+        <div class="pc fold-summary" style="padding:12px 14px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="font-family:var(--font-kai);font-size:14px;font-weight:900;letter-spacing:2px">今日航海简报</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-family:var(--font-kai);font-size:10px;color:var(--pine);border:1px solid var(--pine);padding:2px 8px;border-radius:2px;background:var(--pine-soft)">已办 1/2</span>
+              <svg class="fold-arr" width="12" height="8" style="color:var(--ink2)"><use href="#i-chev"/></svg>
+            </div>
+          </div>
+          <div style="margin-top:9px;display:flex;flex-direction:column;gap:6px;font-size:11.5px">
+            <div style="display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;border-radius:50%;background:var(--stamp)"></span><b style="font-family:var(--font-kai)">待办 · 施一次薄肥</b><span style="font-size:9px;color:var(--stamp);border:1px solid var(--stamp);padding:1px 6px;border-radius:2px;margin-left:auto">今日截止</span></div>
+            <div style="display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;border-radius:50%;background:var(--pine)"></span><span>客厅盆屿 24.5℃ · 一切正常</span><label class="fan-toggle" style="margin-left:auto;transform:scale(.85)"><input type="checkbox" checked><span class="knob">F</span></label></div>
+            <div style="display:flex;align-items:center;gap:7px"><span style="width:7px;height:7px;border-radius:50%;background:var(--amber)"></span><span>阳台盆屿 · 睡了 2 天</span><span style="margin-left:auto;font-size:10px;color:var(--ink2)">去叫醒 ›</span></div>
+          </div>
+        </div>
+        <div class="fold-body">
+          <div class="task" style="margin-top:8px">
+            <div class="task-check done"><svg width="13" height="13"><use href="#i-check"/></svg></div>
+            <div style="flex:1"><b>给小绿擦擦叶子</b><span class="td">擦完亮晶晶，它会超开心 ✨</span></div>
+            <div class="wax" style="width:36px;height:36px">💚</div>
+          </div>
+          <div class="task todo" style="margin-top:8px">
+            <div class="task-check"></div>
+            <div style="flex:1"><b>施一次薄肥</b><span class="td warn">距上次 21 天 · 小绿有点饿了 😋</span></div>
+            <span style="font-family:var(--font-kai);font-size:10px;color:var(--stamp);border:1px dashed var(--stamp);padding:3px 8px;border-radius:2px;transform:rotate(-3deg);white-space:nowrap">今日截止</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab-item on"><svg width="18" height="18"><use href="#i-isle"/></svg>群岛</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-compass"/></svg>电台</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-log"/></svg>图鉴</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-captain"/></svg>船长</div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P2 AI 助手 · 航海电台 -->
+<div data-tpl="p2">
+  <div class="slot-head"><span class="no">PAGE 02 · 日</span><h2>电台 · 航海书信</h2><p>设备上下文选择、快捷提问、对话流与输入面板完整保留——对话是往来书信，AI 的信盖潮汐章，你的信盖松绿章。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>9:41</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="ppad">
+      <div class="h-line"><span class="ht">群岛电台</span><span class="hs">与 NOVA 喝杯茶</span><span class="coord">CH 42.0</span></div>
+      <div class="pc" style="padding:10px 14px;display:flex;align-items:center;gap:9px">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--pine);animation:blip 2.4s infinite"></span>
+        <span style="flex:1;font-size:12px;font-weight:600">正在连线：主屿 · 小绿</span>
+        <span style="font-family:var(--font-kai);font-size:10px;color:var(--pine);border:1px solid var(--pine);padding:2px 8px;border-radius:2px;background:var(--pine-soft)">在线</span>
+        <svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none">
+        <span style="white-space:nowrap;font-family:var(--font-kai);font-size:11px;color:var(--ink2);border:1px solid var(--line);background:var(--paper);padding:5px 11px;border-radius:2px">🪴 小绿还好吗</span>
+        <span style="white-space:nowrap;font-family:var(--font-kai);font-size:11px;color:var(--ink2);border:1px solid var(--line);background:var(--paper);padding:5px 11px;border-radius:2px">💧 今天要浇水吗</span>
+        <span style="white-space:nowrap;font-family:var(--font-kai);font-size:11px;color:var(--ink2);border:1px solid var(--line);background:var(--paper);padding:5px 11px;border-radius:2px">📈 湿度怎么样</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;margin-top:16px">
+        <div class="letter ai">
+          <div class="lw"><svg width="12" height="12"><use href="#i-leaf"/></svg>NOVA · 14:30 收</div>
+          我瞅了一眼主屿的传感器：温度 24.5℃、屿壤湿度 58%，都在舒适区间，今天不用浇水！倒是日照有点猛，拉层纱帘会更舒服～
+        </div>
+        <div class="letter me">
+          <div class="lw">船长 · 14:31 发</div>
+          好嘞！那这周用施肥吗？
+        </div>
+        <div class="letter ai">
+          <div class="lw"><svg width="12" height="12"><use href="#i-leaf"/></svg>NOVA · 14:31 收</div>
+          距上次施肥 21 天啦，该安排一顿薄肥了。我已经偷偷把「施一次薄肥」塞进今天的航海简报咯 😉
+          <div style="display:flex;gap:6px;margin-top:9px"><span style="font-family:var(--font-kai);font-size:10.5px;color:var(--tide);border:1px dashed var(--tide);padding:4px 10px;border-radius:2px">肥料怎么选？</span><span style="font-family:var(--font-kai);font-size:10.5px;color:var(--tide);border:1px dashed var(--tide);padding:4px 10px;border-radius:2px">查看施肥攻略</span></div>
+        </div>
+      </div>
+      <div class="chatin">
+        <div class="ph">写点什么，比如「小绿今天渴不渴？」</div>
+        <div class="sendbtn"><svg width="17" height="17"><use href="#i-send"/></svg></div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-isle"/></svg>群岛</div>
+      <div class="tab-item on"><svg width="18" height="18"><use href="#i-compass"/></svg>电台</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-log"/></svg>图鉴</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-captain"/></svg>船长</div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P3 知识库 · 藏书目录 -->
+<div data-tpl="p3">
+  <div class="slot-head"><span class="no">PAGE 03 · 日</span><h2>图鉴馆 · 书脊目录</h2><p>文章 / 图鉴双模式、搜索与分类筛选原样保留——列表是图书馆的抽屉目录，书脊编号 + 分类标签一眼可辨。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>9:41</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="ppad">
+      <div class="h-line"><span class="ht">群岛图鉴馆</span><span class="hs">128 卷藏书</span><span class="coord">LIB.02</span></div>
+      <div class="frow" style="margin-top:8px"><svg width="15" height="15" style="color:var(--ink2)"><use href="#i-search"/></svg><span>检索书名、植物、养护词…</span></div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <div style="flex:1;padding:11px 12px;border:1.5px solid var(--pine);background:var(--pine-soft);border-radius:2px"><div style="font-family:var(--font-kai);font-size:13px;font-weight:900;color:var(--pine-deep);letter-spacing:1px">养护文库</div><div style="font-size:9.5px;color:var(--ink2);margin-top:2px">养护、字段、规则</div></div>
+        <div style="flex:1;padding:11px 12px;border:1px solid var(--line);background:var(--paper);border-radius:2px"><div style="font-family:var(--font-kai);font-size:13px;font-weight:900;color:var(--ink);letter-spacing:1px">植物图谱</div><div style="font-size:9.5px;color:var(--ink2);margin-top:2px">资料、参数、问答</div></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">
+        <span style="font-family:var(--font-kai);font-size:10.5px;color:var(--pine-deep);border:1px solid var(--pine);background:var(--pine-soft);padding:4px 10px;border-radius:2px">全部</span>
+        <span style="font-family:var(--font-kai);font-size:10.5px;color:var(--ink2);border:1px solid var(--line);padding:4px 10px;border-radius:2px">养护技巧</span>
+        <span style="font-family:var(--font-kai);font-size:10.5px;color:var(--ink2);border:1px solid var(--line);padding:4px 10px;border-radius:2px">浇水光照</span>
+        <span style="font-family:var(--font-kai);font-size:10.5px;color:var(--ink2);border:1px solid var(--line);padding:4px 10px;border-radius:2px">病虫诊断</span>
+        <span style="font-family:var(--font-kai);font-size:10.5px;color:var(--ink2);border:1px solid var(--line);padding:4px 10px;border-radius:2px">植宠养成</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:9px;margin-top:14px">
+        <div class="pc" style="padding:13px 14px;display:flex;gap:12px">
+          <div style="font-family:var(--font-song);font-size:20px;font-weight:900;color:var(--tide);opacity:.7;writing-mode:vertical-rl;letter-spacing:2px;border-right:1px dashed var(--line2);padding-right:8px">壹</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-kai);font-size:10px;color:var(--pine-deep);letter-spacing:1px;border:1px solid var(--pine);padding:1px 7px;border-radius:2px;background:var(--pine-soft)">养护技巧</span><span style="font-size:10px;color:var(--tide)">开卷 ›</span></div>
+            <div style="font-family:var(--font-song);font-size:14px;font-weight:800;margin-top:7px;line-height:1.5">绿萝养护全指南：浇水、光照与换盆时机</div>
+            <div style="font-size:11px;color:var(--ink2);line-height:1.7;margin-top:5px">从浇水频率到光照位置，一次讲清绿萝的日常养护节奏，新手也能养出油亮叶片。</div>
+          </div>
+        </div>
+        <div class="pc" style="padding:13px 14px;display:flex;gap:12px">
+          <div style="font-family:var(--font-song);font-size:20px;font-weight:900;color:var(--tide);opacity:.7;writing-mode:vertical-rl;letter-spacing:2px;border-right:1px dashed var(--line2);padding-right:8px">贰</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-kai);font-size:10px;color:var(--ink2);letter-spacing:1px;border:1px solid var(--line2);padding:1px 7px;border-radius:2px">病虫诊断</span><span style="font-size:10px;color:var(--tide)">开卷 ›</span></div>
+            <div style="font-family:var(--font-song);font-size:14px;font-weight:800;margin-top:7px;line-height:1.5">叶子发黄先别慌：一张表看懂 6 种黄叶原因</div>
+            <div style="font-size:11px;color:var(--ink2);line-height:1.7;margin-top:5px">水多黄、缺光黄、肥伤黄各有长相，对着叶片照片比对，一眼定位病因。</div>
+          </div>
+        </div>
+        <div class="pc" style="padding:13px 14px;display:flex;gap:12px">
+          <div style="font-family:var(--font-song);font-size:20px;font-weight:900;color:var(--tide);opacity:.7;writing-mode:vertical-rl;letter-spacing:2px;border-right:1px dashed var(--line2);padding-right:8px">叁</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-kai);font-size:10px;color:var(--ink2);letter-spacing:1px;border:1px solid var(--line2);padding:1px 7px;border-radius:2px">植宠养成</span><span style="font-size:10px;color:var(--tide)">开卷 ›</span></div>
+            <div style="font-family:var(--font-song);font-size:14px;font-weight:800;margin-top:7px;line-height:1.5">好感度与灵魂状态：植宠养成系统字段说明</div>
+            <div style="font-size:11px;color:var(--ink2);line-height:1.7;margin-top:5px">好感度如何随养护行为变化，灵魂状态又代表什么，这里给出完整数据口径。</div>
+          </div>
+        </div>
+        <div class="pc" style="padding:13px 14px;display:flex;gap:12px">
+          <div style="font-family:var(--font-song);font-size:20px;font-weight:900;color:var(--tide);opacity:.7;writing-mode:vertical-rl;letter-spacing:2px;border-right:1px dashed var(--line2);padding-right:8px">肆</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-kai);font-size:10px;color:var(--ink2);letter-spacing:1px;border:1px solid var(--line2);padding:1px 7px;border-radius:2px">设备玩法</span><span style="font-size:10px;color:var(--tide)">开卷 ›</span></div>
+            <div style="font-family:var(--font-song);font-size:14px;font-weight:800;margin-top:7px;line-height:1.5">设备命令与权限：fan.on / fan.off 的下发链路</div>
+            <div style="font-size:11px;color:var(--ink2);line-height:1.7;margin-top:5px">从小程序到设备执行的完整命令链路，以及为什么只允许逻辑动作。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-isle"/></svg>群岛</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-compass"/></svg>电台</div>
+      <div class="tab-item on"><svg width="18" height="18"><use href="#i-log"/></svg>图鉴</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-captain"/></svg>船长</div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P12 文章 · 慢读书页 -->
+<div data-tpl="p12">
+  <div class="slot-head"><span class="no">PAGE 12 · 日</span><h2>开卷 · 书页慢读</h2><p>分类、标题、作者、正文、要点清单与相关推荐保留——文章页是一页竖排感书页，页码与批注章俱全。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>9:41</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 2px 12px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--pine)"><use href="#i-back"/></svg><span style="font-family:var(--font-kai);font-size:13px;letter-spacing:2px">书页</span></div>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink2)">第 42-44 页 · 128 字/分</span>
+      </div>
+      <div class="pc" style="padding:18px 18px 16px;position:relative">
+        <span class="postmark" style="right:10px;top:-14px;width:56px;height:56px"><b>已阅</b><span>38%</span></span>
+        <div style="font-family:var(--font-kai);font-size:10px;color:var(--pine-deep);border:1px solid var(--pine);display:inline-block;padding:2px 9px;border-radius:2px;background:var(--pine-soft)">养护技巧 · 卷一</div>
+        <div style="font-family:var(--font-song);font-size:20px;font-weight:900;line-height:1.5;margin-top:12px">绿萝养护全指南：<br>浇水、光照与换盆时机</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding-bottom:10px;border-bottom:1px dashed var(--line2)">
+          <span style="width:24px;height:24px;border-radius:50%;background:var(--tide-soft);border:1px solid var(--tide);display:flex;align-items:center;justify-content:center"><svg width="12" height="12" style="color:var(--tide)"><use href="#i-leaf"/></svg></span>
+          <span style="font-size:10.5px;color:var(--ink2)">NOVA 图鉴馆藏 · 2026-08-20 · 已读 1.2k</span>
+        </div>
+        <div style="font-family:var(--font-song);font-size:13px;line-height:2.1;margin-top:14px">
+          <p style="margin-bottom:12px">绿萝是最适合新手的观叶植物之一，但「养不死」不等于「养不好」。想让叶片油亮、藤蔓疯长，关键就三件事：<b style="background:linear-gradient(transparent 68%,var(--amber-soft) 68%)">浇对水、给对光、换对盆</b>。</p>
+          <div style="font-family:var(--font-kai);font-size:13px;font-weight:900;display:flex;align-items:center;gap:8px;margin:16px 0 8px"><span style="width:20px;height:20px;background:var(--stamp);color:var(--paper);font-size:10px;display:flex;align-items:center;justify-content:center;border-radius:2px">一</span>浇水 · 见干见湿<span style="flex:1;border-top:1px dashed var(--line2)"></span></div>
+          <p>浇水的黄金法则是<b style="background:linear-gradient(transparent 68%,var(--amber-soft) 68%)">「见干见湿」</b>：表土 2 厘米干了再浇，浇就浇透。冬季拉长到 10 天以上，夏季蒸发快时可以缩短到 4 天左右。</p>
+          <div style="margin:12px 0;padding:11px 13px;border:1px dashed var(--pine);background:var(--pine-soft);border-radius:2px;display:flex;gap:8px">
+            <svg width="15" height="15" style="color:var(--pine);flex:none;margin-top:2px"><use href="#i-leaf"/></svg>
+            <p style="font-size:11.5px;line-height:1.8">船长批注：在 TRT Nova 绑定盆屿后，屿壤湿度低于 55% 时简报会自动出现浇水待办，不用自己记日子。</p>
+          </div>
+          <div style="font-family:var(--font-kai);font-size:13px;font-weight:900;display:flex;align-items:center;gap:8px;margin:16px 0 8px"><span style="width:20px;height:20px;background:var(--stamp);color:var(--paper);font-size:10px;display:flex;align-items:center;justify-content:center;border-radius:2px">二</span>光照 · 明亮散射<span style="flex:1;border-top:1px dashed var(--line2)"></span></div>
+          <p>绿萝喜欢明亮的散射光。正午直射容易灼伤叶片，太暗则会让<b style="background:linear-gradient(transparent 68%,var(--amber-soft) 68%)">斑纹变淡、节间拉长</b>。放在离南窗 1-2 米的位置最合适。</p>
+          <div style="font-family:var(--font-kai);font-size:13px;font-weight:900;display:flex;align-items:center;gap:8px;margin:16px 0 8px"><span style="width:20px;height:20px;background:var(--stamp);color:var(--paper);font-size:10px;display:flex;align-items:center;justify-content:center;border-radius:2px">三</span>换盆 · 两年一次<span style="flex:1;border-top:1px dashed var(--line2)"></span></div>
+          <p>根系从盆底钻出来、浇水后水渗得特别快，就是它在提醒你该换盆了。<b style="background:linear-gradient(transparent 68%,var(--amber-soft) 68%)">新盆直径只比旧盆大 3-5 厘米</b>——贪大容易闷根。</p>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:16px"><span style="font-family:var(--font-kai);font-size:12px;font-weight:900;letter-spacing:2px">下 一 卷</span><span style="flex:1;border-top:1px dashed var(--line2)"></span></div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px">
+        <div class="pc" style="padding:12px 14px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-family:var(--font-song);font-size:13px;font-weight:800">多肉植物度夏指南</div><div style="font-size:9.5px;color:var(--ink2);margin-top:3px">养护技巧 · 5 分钟开卷</div></div><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+        <div class="pc" style="padding:12px 14px;display:flex;justify-content:space-between;align-items:center"><div><div style="font-family:var(--font-song);font-size:13px;font-weight:800">换盆的正确姿势与时机</div><div style="font-size:9.5px;color:var(--ink2);margin-top:3px">养护技巧 · 8 分钟开卷</div></div><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P5 设备管理 · 新屿登记 -->
+<div data-tpl="p5">
+  <div class="slot-head"><span class="no">PAGE 05 · 日</span><h2>迎新日 · 新屿入籍</h2><p>绑定四字段（编码/名称/地点/植物类型）+ 立即绑定 + 命令发送 + 解绑完整保留——绑新设备是替新岛屿办一张入籍登记表。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>9:41</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="ppad">
+      <div class="h-line"><span class="ht">新屿入籍</span><span class="hs">WELCOME ABOARD</span><span class="coord">REG.01</span></div>
+      <div style="padding:0 2px 12px;font-size:11.5px;color:var(--ink2);line-height:1.7">填一张入籍小卡，这座新盆屿就正式加入你的群岛啦。</div>
+      <div class="pc" style="padding:16px 14px">
+        <span class="tape" style="top:-9px;right:40px"></span>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <span style="font-family:var(--font-kai);font-size:14px;font-weight:900;letter-spacing:2px">入籍登记表</span>
+          <span style="font-family:var(--font-mono);font-size:8.5px;color:var(--ink2)">编码在花盆底铭牌</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="frow"><span class="fi">壹</span><span>设备编码（花盆底铭牌）</span></div>
+          <div class="frow"><span class="fi">贰</span><span>给它起个名字</span></div>
+          <div class="frow"><span class="fi">叁</span><span>岛屿位置（例如：客厅）</span></div>
+          <div class="frow" style="justify-content:space-between"><span style="display:flex;align-items:center;gap:10px"><span class="fi">肆</span><span>植物类型</span></span><span style="display:flex;align-items:center;gap:7px"><span class="val">绿萝</span><svg width="10" height="7" style="color:var(--pine)"><use href="#i-chev"/></svg></span></div>
+        </div>
+        <button class="btn" style="width:100%;margin-top:14px">批 准 入 籍</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:20px"><span style="font-family:var(--font-kai);font-size:13px;font-weight:900;letter-spacing:2px">已入籍群岛</span><span style="flex:1;border-top:1px dashed var(--line2)"></span><span style="font-family:var(--font-kai);font-size:10px;color:var(--pine);border:1px solid var(--pine);padding:2px 9px;border-radius:2px;background:var(--pine-soft)"><svg width="10" height="10" style="vertical-align:-1px"><use href="#i-refresh"/></svg> 刷新</span></div>
+      <div class="pc" style="margin-top:10px;padding:15px 14px;border-color:var(--pine);box-shadow:0 0 0 1px var(--pine)">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="width:46px;height:46px;border:1px solid var(--pine);border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--pine-soft);flex:none"><svg width="40" height="40"><use href="#pet-pothos"/></svg></div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-kai);font-size:15px;font-weight:900">主屿 · 客厅花盆</span><span style="font-family:var(--font-kai);font-size:10px;color:var(--pine);border:1px solid var(--pine);padding:2px 8px;border-radius:2px;background:var(--pine-soft)">● 在籍</span></div>
+            <div style="font-size:10.5px;color:var(--ink2);margin-top:4px">客厅 · 绿萝 · 胸牌 TRT-0117</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:var(--paper2);border:1px solid var(--line);padding:9px 11px;margin-top:11px;border-radius:2px">
+          <div><div style="font-size:9.5px;color:var(--ink2)">平安信标</div><div style="font-size:11.5px;font-weight:700;margin-top:2px">刚刚报过平安</div></div>
+          <span style="font-family:var(--font-mono);font-size:10px;color:var(--ink2)">14:32</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:11px">
+          <div class="frow" style="flex:1;font-family:var(--font-mono);font-size:11px"><span>输入 JSON 命令…</span></div>
+          <button class="btn soft" style="height:44px">发送</button>
+          <button class="btn danger" style="height:44px">除籍</button>
+        </div>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P6 设备详情 · 勘测报告 -->
+<div data-tpl="p6">
+  <div class="slot-head"><span class="no">PAGE 06 · 日</span><h2>植宠体检 · 勘测报告</h2><p>四指标切换、生命面板、趋势图（MIN/AVG/MAX + 时间范围切换）全部保留——详情页是主屿的勘测报告单，数据表格与海图曲线。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>9:41</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 2px 10px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--pine)"><use href="#i-back"/></svg><span style="font-family:var(--font-kai);font-size:13px;letter-spacing:2px">勘测</span></div>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink2)">SURVEY · 8·26</span>
+      </div>
+      <div class="pc" style="padding:14px;display:flex;gap:12px;align-items:center;position:relative;overflow:hidden">
+        <div class="postmark" style="right:8px;top:8px;width:52px;height:52px"><b>体检</b><span>合格</span></div>
+        <div style="width:62px;height:62px;border:1px solid var(--line2);border-radius:50%;background:var(--paper2);display:flex;align-items:center;justify-content:center;flex:none"><svg width="52" height="52"><use href="#pet-pothos"/></svg></div>
+        <div style="flex:1">
+          <div style="font-family:var(--font-kai);font-size:16px;font-weight:900">主屿 · 客厅花盆</div>
+          <div style="font-size:10.5px;color:var(--ink2);margin-top:3px">客厅 · 绿萝 · TRT-0117</div>
+          <div style="display:flex;gap:6px;margin-top:6px"><span style="font-family:var(--font-kai);font-size:10px;color:var(--pine-deep);border:1px solid var(--pine);padding:2px 8px;border-radius:2px;background:var(--pine-soft)">活泼 · 在家</span><span style="font-family:var(--font-kai);font-size:10px;color:var(--ink2);border:1px solid var(--line2);padding:2px 8px;border-radius:2px">体检合格</span></div>
+        </div>
+      </div>
+      <div class="stamprow" style="margin-top:12px">
+        <div class="stamp" style="flex:1"><div class="s-in pine" style="min-width:0;width:100%"><div class="sv">24.5℃</div><div class="su">屿温 · 选中</div></div></div>
+        <div class="stamp" style="flex:1"><div class="s-in" style="min-width:0;width:100%"><div class="sv">12.8k</div><div class="su">日照</div></div></div>
+        <div class="stamp" style="flex:1"><div class="s-in" style="min-width:0;width:100%"><div class="sv">62%</div><div class="su">海雾</div></div></div>
+        <div class="stamp" style="flex:1"><div class="s-in amber" style="min-width:0;width:100%"><div class="sv">58%</div><div class="su">屿壤</div></div></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <div class="pc" style="flex:1;padding:11px;text-align:center"><div style="font-size:9.5px;color:var(--ink2)">好感度</div><div style="font-family:var(--font-song);font-size:16px;font-weight:900;color:var(--pine-deep);margin-top:3px">86</div></div>
+        <div class="pc" style="flex:1;padding:11px;text-align:center"><div style="font-size:9.5px;color:var(--ink2)">灵魂状态</div><div style="font-family:var(--font-song);font-size:16px;font-weight:900;margin-top:3px">安然</div></div>
+        <div class="pc" style="flex:1.3;padding:11px;text-align:center"><div style="font-size:9.5px;color:var(--ink2)">植物类型</div><div style="font-family:var(--font-song);font-size:16px;font-weight:900;margin-top:3px">绿萝</div></div>
+      </div>
+      <div class="pc" style="margin-top:12px;padding:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-family:var(--font-kai);font-size:12px;font-weight:900;letter-spacing:1px;color:var(--pine-deep)">屿壤湿度 · 近 24 时</div>
+            <div style="font-size:10.5px;color:var(--ink2);margin-top:2px">勘测曲线 · 本周成长</div>
+          </div>
+          <div style="display:flex;gap:5px">
+            <span style="font-family:var(--font-kai);font-size:10px;color:var(--pine-deep);border:1.5px solid var(--pine);background:var(--pine-soft);padding:3px 9px;border-radius:2px">24时</span>
+            <span style="font-family:var(--font-kai);font-size:10px;color:var(--ink2);border:1px solid var(--line2);padding:3px 9px;border-radius:2px">7天</span>
+            <span style="font-family:var(--font-kai);font-size:10px;color:var(--ink2);border:1px solid var(--line2);padding:3px 9px;border-radius:2px">30天</span>
+          </div>
+        </div>
+        <svg viewBox="0 0 320 110" style="width:100%;margin-top:12px;display:block">
+          <g stroke="var(--line)" stroke-width="1" stroke-dasharray="3 4"><line x1="0" y1="28" x2="320" y2="28"/><line x1="0" y1="58" x2="320" y2="58"/><line x1="0" y1="88" x2="320" y2="88"/></g>
+          <path d="M0 62 L27 55 L54 60 L80 48 L107 52 L134 40 L160 46 L187 36 L214 44 L240 33 L267 38 L294 30 L320 36 L320 110 L0 110 Z" fill="url(#tgrad)"/>
+          <path d="M0 62 L27 55 L54 60 L80 48 L107 52 L134 40 L160 46 L187 36 L214 44 L240 33 L267 38 L294 30 L320 36" fill="none" stroke="var(--pine)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="1 0"/>
+          <circle cx="240" cy="33" r="3.5" fill="var(--stamp)"/><circle cx="240" cy="33" r="7" fill="none" stroke="var(--stamp)" stroke-width="1" opacity=".5"/>
+        </svg>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;text-align:center">
+          <div><div style="font-family:var(--font-song);font-size:14px;font-weight:900">52%</div><div style="font-size:8.5px;color:var(--ink2);letter-spacing:1px">最低</div></div>
+          <div><div style="font-family:var(--font-song);font-size:14px;font-weight:900;color:var(--pine-deep)">58%</div><div style="font-size:8.5px;color:var(--ink2);letter-spacing:1px">均值</div></div>
+          <div><div style="font-family:var(--font-song);font-size:14px;font-weight:900">64%</div><div style="font-size:8.5px;color:var(--ink2);letter-spacing:1px">最高</div></div>
+        </div>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P7 设备设置 · 营地布置 -->
+<div data-tpl="p7">
+  <div class="slot-head"><span class="no">PAGE 07 · 日</span><h2>它的小房间 · 营地布置</h2><p>档案表单、配网地址、危险区解绑与保存全部保留——设置页是给盆屿布置营地的清单，除籍是唯一的朱红操作。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>9:41</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 2px 10px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--pine)"><use href="#i-back"/></svg><span style="font-family:var(--font-kai);font-size:13px;letter-spacing:2px">营地</span></div>
+        <span style="font-family:var(--font-kai);font-size:10px;color:var(--pine);border:1px solid var(--pine);padding:2px 8px;border-radius:2px;background:var(--pine-soft)">● 就绪</span>
+      </div>
+      <div class="pc" style="padding:14px;display:flex;gap:12px;align-items:center">
+        <div style="width:56px;height:56px;border:1px solid var(--line2);border-radius:50%;background:var(--paper2);display:flex;align-items:center;justify-content:center;flex:none"><svg width="46" height="46"><use href="#pet-pothos"/></svg></div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:9px;color:var(--ink2)">胸牌 TRT-0117 · 在家</div>
+          <div style="font-family:var(--font-kai);font-size:16px;font-weight:900;margin-top:3px">主屿 · 客厅花盆</div>
+          <div style="font-size:10.5px;color:var(--ink2);margin-top:2px">绿萝 · Monstera Friendly</div>
+        </div>
+      </div>
+      <div class="flabel" style="margin:18px 2px 10px">名牌 · 它是谁</div>
+      <div class="pc" style="padding:4px 14px">
+        <div style="padding:11px 0"><div style="font-size:10px;color:var(--ink2);margin-bottom:6px">岛屿别名</div><div class="frow" style="background:var(--paper)"><span class="val">客厅花盆</span></div></div>
+        <div style="border-top:1px dashed var(--line2)"></div>
+        <div style="padding:11px 0"><div style="font-size:10px;color:var(--ink2);margin-bottom:6px">植物种类</div><div class="frow" style="background:var(--paper);justify-content:space-between"><span style="display:flex;align-items:center;gap:9px"><span style="width:30px;height:30px;border:1px solid var(--line2);border-radius:2px;display:flex;align-items:center;justify-content:center"><svg width="24" height="24"><use href="#pet-pothos"/></svg></span><span><b style="display:block;font-size:12.5px">绿萝</b><span style="display:block;font-size:9px;color:var(--ink2)">天南星科</span></span></span><svg width="10" height="7" style="color:var(--pine)"><use href="#i-chev"/></svg></div></div>
+        <div style="border-top:1px dashed var(--line2)"></div>
+        <div style="padding:11px 0"><div style="font-size:10px;color:var(--ink2);margin-bottom:6px">锚泊位置</div><div class="frow" style="background:var(--paper)"><span class="val">客厅窗台</span></div></div>
+      </div>
+      <div class="flabel" style="margin:18px 2px 10px">水电 · 连上家里的网</div>
+      <div class="pc" style="padding:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-kai);font-size:14px;font-weight:900">配网信标</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink2)">Browser Setup</span></div>
+        <div style="font-size:11px;color:var(--ink2);line-height:1.75;margin-top:7px">如果岛屿还没连上家里的 Wi-Fi，请先连接设备热点，再用浏览器打开下面地址完成配网。</div>
+        <div style="margin-top:10px;padding:10px 12px;border:1.5px dashed var(--pine);background:var(--pine-soft);font-family:var(--font-mono);font-size:12px;color:var(--pine-deep);border-radius:2px">http://192.168.4.1</div>
+        <div style="display:flex;gap:8px;margin-top:10px"><span class="btn ghost" style="flex:1">查看海图说明</span><span class="btn soft" style="flex:1">抄下地址</span></div>
+      </div>
+      <div class="flabel" style="margin:18px 2px 10px;color:var(--coral)">除籍 · 好好说再见</div>
+      <div class="pc" style="padding:13px 14px;display:flex;align-items:center;gap:12px;border-color:rgba(184,80,47,.45)">
+        <div style="width:38px;height:38px;border:1.5px solid var(--coral);border-radius:50%;display:flex;align-items:center;justify-content:center;flex:none;color:var(--coral);font-size:18px;font-weight:900;font-family:var(--font-kai)">!</div>
+        <div style="flex:1">
+          <div style="font-family:var(--font-kai);font-size:13.5px;font-weight:900;color:var(--coral)">解除绑定</div>
+          <div style="font-size:10px;color:var(--ink2);line-height:1.6;margin-top:3px">除籍后岛屿将移出你的群岛，原有信息保留方便重新入籍。</div>
+        </div>
+        <span style="font-family:var(--font-kai);font-size:11px;font-weight:800;color:var(--coral);letter-spacing:2px">送别</span>
+      </div>
+      <button class="btn" style="width:100%;margin-top:16px">存 航 图</button>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P8 我的花园 · 群岛海图 -->
+<div data-tpl="p8">
+  <div class="slot-head"><span class="no">PAGE 08 · 日</span><h2>午后巡航 · 群岛海图</h2><p>设备画廊列表 + 状态 + 详情入口 + 添加按钮保留——每座盆屿是海图上一张岛屿卡，右缘是海岸线剪影。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>9:41</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="ppad">
+      <div class="h-line"><span class="ht">群岛海图</span><span class="hs">2 座盆屿 · 1 座醒着</span><span class="coord">CRUISE</span></div>
+      <div style="padding:0 2px 14px;font-size:11.5px;color:var(--ink2)">你的植宠小伙伴散布在群岛各处 🌱 已同行 96 天</div>
+      <div class="isle on">
+        <span class="tape t2" style="top:-9px;left:34px"></span>
+        <div class="coast"></div>
+        <div style="display:flex;gap:12px;position:relative;z-index:1">
+          <div style="width:62px;height:62px;border:1px solid var(--pine);border-radius:50%;background:var(--pine-soft);display:flex;align-items:center;justify-content:center;flex:none"><svg width="50" height="50" style="animation:sway 5s ease-in-out infinite"><use href="#pet-pothos"/></svg></div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-kai);font-size:15px;font-weight:900">主屿 · 客厅花盆</span><span style="font-family:var(--font-kai);font-size:10px;color:var(--pine);border:1px solid var(--pine);padding:2px 8px;border-radius:2px;background:var(--pine-soft)">● 在航</span></div>
+            <div style="font-size:10px;color:var(--ink2);margin-top:4px">客厅窗台 · 智能花盆 · 绿萝</div>
+            <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10.5px"><span style="color:var(--pine-deep);font-weight:700">状态良好 · 心情美美的 😊</span><span style="color:var(--ink2)">勘测 ›</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="route"></div>
+      <div class="isle">
+        <div class="coast" style="background:linear-gradient(180deg,transparent 0%,var(--amber-soft) 100%)"></div>
+        <div style="display:flex;gap:12px;position:relative;z-index:1">
+          <div style="width:62px;height:62px;border:1px solid var(--line2);border-radius:50%;background:var(--paper2);display:flex;align-items:center;justify-content:center;flex:none;position:relative"><svg width="50" height="50" style="opacity:.8"><use href="#pet-succulent"/></svg><span style="position:absolute;top:-2px;right:0;font-family:var(--font-kai);font-size:9px;color:var(--ink2)">z z</span></div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-kai);font-size:15px;font-weight:900">礁屿 · 阳台花盆</span><span style="font-family:var(--font-kai);font-size:10px;color:var(--amber);border:1px solid var(--amber);padding:2px 8px;border-radius:2px;background:var(--amber-soft)">● 睡了 2 天</span></div>
+            <div style="font-size:10px;color:var(--ink2);margin-top:4px">阳台 · 智能花盆 · 多肉</div>
+            <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10.5px"><span style="color:var(--amber);font-weight:700">离线 · 叫醒它？（查供电）</span><span style="color:var(--ink2)">勘测 ›</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="pc" style="margin-top:14px;padding:14px;display:flex;align-items:center;justify-content:center;gap:9px;border:1.5px dashed var(--line2);color:var(--ink2);cursor:pointer">
+        <svg width="13" height="13"><use href="#i-plus"/></svg><span style="font-family:var(--font-kai);font-size:13px;letter-spacing:2px">并入一座新屿</span>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P9 成长日记 · 航海日志 -->
+<div data-tpl="p9">
+  <div class="slot-head"><span class="no">PAGE 09 · 日</span><h2>成长手记 · 航海日志</h2><p>成长日历（记录标记）、当日时间线、设备切换与新增记录入口保留——日记是船上的航海日志本，有记录的日子打松绿菱标。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>9:41</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 2px 10px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--pine)"><use href="#i-back"/></svg><span style="font-family:var(--font-kai);font-size:13px;letter-spacing:2px">日志</span></div>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink2)">LOG · 8·26</span>
+      </div>
+      <div class="pc" style="padding:12px 14px;display:flex;align-items:center;gap:11px">
+        <div class="compass"></div>
+        <div style="flex:1"><b style="font-family:var(--font-kai);font-size:14px;font-weight:900">主屿 · 小绿</b><div style="font-size:10px;color:var(--ink2);margin-top:2px">点击切换盆屿，日志同步到当前植宠</div></div>
+        <span class="btn soft">切换 ›</span>
+      </div>
+      <div class="pc" style="margin-top:12px;padding:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-family:var(--font-kai);font-size:10px;color:var(--stamp);letter-spacing:2px">航海月牌</div><div style="font-family:var(--font-song);font-size:16px;font-weight:900;margin-top:3px">2026 年 8 月</div></div>
+          <div style="display:flex;gap:6px"><span class="btn ghost" style="width:30px;height:30px;padding:0;justify-content:center">‹</span><span class="btn ghost" style="width:30px;height:30px;padding:0;justify-content:center">›</span></div>
+        </div>
+        <div class="calgrid" style="margin-top:12px">
+          <span class="calw">日</span><span class="calw">一</span><span class="calw">二</span><span class="calw">三</span><span class="calw">四</span><span class="calw">五</span><span class="calw">六</span>
+          <span class="cald dim">26</span><span class="cald dim">27</span><span class="cald dim">28</span><span class="cald dim">29</span><span class="cald dim">30</span><span class="cald dim">31</span><span class="cald">1</span>
+          <span class="cald">2</span><span class="cald">3</span><span class="cald">4</span><span class="cald">5</span><span class="cald">6</span><span class="cald">7</span><span class="cald">8</span>
+          <span class="cald">9</span><span class="cald rec">10</span><span class="cald rec">11</span><span class="cald rec">12</span><span class="cald">13</span><span class="cald">14</span><span class="cald">15</span>
+          <span class="cald">16</span><span class="cald">17</span><span class="cald">18</span><span class="cald">19</span><span class="cald">20</span><span class="cald">21</span><span class="cald">22</span>
+          <span class="cald">23</span><span class="cald">24</span><span class="cald">25</span><span class="cald today">26</span><span class="cald">27</span><span class="cald">28</span><span class="cald">29</span>
+          <span class="cald">30</span><span class="cald">31</span><span class="cald dim">1</span><span class="cald dim">2</span><span class="cald dim">3</span><span class="cald dim">4</span><span class="cald dim">5</span>
+        </div>
+      </div>
+      <div class="pc" style="margin-top:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div><div style="font-family:var(--font-kai);font-size:13.5px;font-weight:900">8 月 26 日 · 周三</div><div style="font-size:10px;color:var(--ink2);margin-top:3px">浇水、施肥、修剪与照片批注都记在这里</div></div>
+        <div style="display:flex;gap:6px"><span class="btn ghost">曲线</span><span class="btn soft">+ 批注</span></div>
+      </div>
+      <div class="tl">
+        <div class="tl-item">
+          <div class="tl-node"></div>
+          <div class="pc" style="padding:12px 14px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div style="display:flex;align-items:center;gap:9px"><span style="width:28px;height:28px;border:1px solid var(--pine);border-radius:50%;background:var(--pine-soft);display:flex;align-items:center;justify-content:center"><svg width="13" height="13" style="color:var(--pine)"><use href="#i-drop"/></svg></span><div><b style="font-family:var(--font-kai);font-size:13px;font-weight:900">给小绿浇水</b><span style="display:block;font-size:9px;color:var(--ink2);margin-top:1px">浇水 · 500ml</span></div></div>
+              <span style="font-family:var(--font-mono);font-size:9.5px;color:var(--ink2)">09:12</span>
+            </div>
+            <div style="font-size:10.5px;color:var(--ink2);line-height:1.65;margin-top:8px">屿壤湿度掉到 54%，浇透到底孔渗水——小绿咕咚咕咚喝得可香了 💧</div>
+          </div>
+        </div>
+        <div class="tl-item" style="margin-bottom:0">
+          <div class="tl-node"></div>
+          <div class="pc" style="padding:12px 14px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div style="display:flex;align-items:center;gap:9px"><span style="width:28px;height:28px;border:1px solid var(--amber);border-radius:50%;background:var(--amber-soft);display:flex;align-items:center;justify-content:center"><svg width="13" height="13" style="color:var(--amber)"><use href="#i-leaf"/></svg></span><div><b style="font-family:var(--font-kai);font-size:13px;font-weight:900">施一次薄肥</b><span style="display:block;font-size:9px;color:var(--ink2);margin-top:1px">施肥 · 液肥 1:1000</span></div></div>
+              <span style="font-family:var(--font-mono);font-size:9.5px;color:var(--ink2)">14:05</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P4 我的 · 船长室 -->
+<div data-tpl="p4">
+  <div class="slot-head"><span class="no">PAGE 04 · 日</span><h2>船长室 · 名片夹</h2><p>头像档案卡 + 菜单列表 + 退出登录保留——「我的」是船长室的名片夹，档案卡做成一张烫印名片。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>9:41</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 2px 10px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--pine)"><use href="#i-back"/></svg><span style="font-family:var(--font-kai);font-size:13px;letter-spacing:2px">船长室</span></div>
+        <svg width="16" height="16" style="color:var(--pine);animation:blip 3s infinite"><use href="#i-signal"/></svg>
+      </div>
+      <div class="pc" style="padding:22px 16px;display:flex;flex-direction:column;align-items:center;position:relative;overflow:hidden">
+        <span class="tape" style="top:-9px;left:50%;margin-left:-37px"></span>
+        <div class="postmark" style="right:10px;top:10px;width:54px;height:54px"><b>船长</b><span>CAPT.</span></div>
+        <div style="width:76px;height:76px;border:2px solid var(--pine);border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--pine-soft);color:var(--pine-deep)"><svg width="36" height="36"><use href="#i-anchor"/></svg></div>
+        <div style="font-family:var(--font-kai);font-size:20px;font-weight:900;margin-top:12px;letter-spacing:3px">阿棠</div>
+        <div style="margin-top:8px;font-family:var(--font-kai);font-size:10.5px;color:var(--pine-deep);border:1px solid var(--pine);padding:3px 12px;border-radius:2px;background:var(--pine-soft);letter-spacing:2px">Lv.3 · 植宠新手船长</div>
+        <div style="font-size:10.5px;color:var(--ink2);margin-top:10px">记录你的盆屿宇宙 · 已同行 42 天</div>
+      </div>
+      <div class="pc" style="margin-top:12px;padding:4px 14px">
+        <div style="display:flex;align-items:center;gap:12px;padding:13px 0"><div style="width:36px;height:36px;border:1px solid var(--pine);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--pine);flex:none"><svg width="17" height="17"><use href="#i-isle"/></svg></div><div style="flex:1"><b style="font-family:var(--font-kai);font-size:14px;font-weight:900">群岛海图</b><span style="display:block;font-size:9.5px;color:var(--ink2);margin-top:2px">2 座盆屿 · 植宠画廊</span></div><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+        <div style="border-top:1px dashed var(--line2)"></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:13px 0"><div style="width:36px;height:36px;border:1px solid var(--pine);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--pine);flex:none"><svg width="17" height="17"><use href="#i-log"/></svg></div><div style="flex:1"><b style="font-family:var(--font-kai);font-size:14px;font-weight:900">航海日志</b><span style="display:block;font-size:9.5px;color:var(--ink2);margin-top:2px">成长时间线与记录</span></div><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+        <div style="border-top:1px dashed var(--line2)"></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:13px 0"><div style="width:36px;height:36px;border:1px solid var(--pine);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--pine);flex:none"><svg width="17" height="17"><use href="#i-anchor"/></svg></div><div style="flex:1"><b style="font-family:var(--font-kai);font-size:14px;font-weight:900">入籍登记处</b><span style="display:block;font-size:9.5px;color:var(--ink2);margin-top:2px">迎接、送别与日常对话</span></div><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+        <div style="border-top:1px dashed var(--line2)"></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:13px 0"><div style="width:36px;height:36px;border:1px solid var(--pine);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--pine);flex:none"><svg width="17" height="17"><use href="#i-compass"/></svg></div><div style="flex:1"><b style="font-family:var(--font-kai);font-size:14px;font-weight:900">关于 盆屿群岛</b><span style="display:block;font-size:9.5px;color:var(--ink2);margin-top:2px">版本与船队信息</span></div><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+      </div>
+      <div class="pc" style="margin-top:12px;padding:4px 14px;border-color:rgba(184,80,47,.45)">
+        <div style="display:flex;align-items:center;gap:12px;padding:13px 0"><div style="width:36px;height:36px;border:1.5px solid var(--coral);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--coral);flex:none;font-size:16px;font-weight:900;font-family:var(--font-kai)">!</div><div style="flex:1"><b style="font-family:var(--font-kai);font-size:14px;font-weight:900;color:var(--coral)">弃船离队</b><span style="display:block;font-size:9.5px;color:var(--ink2);margin-top:2px">清除本地登录状态</span></div><svg width="8" height="12" style="color:var(--coral)"><use href="#i-chev-r"/></svg></div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-isle"/></svg>群岛</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-compass"/></svg>电台</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-log"/></svg>图鉴</div>
+      <div class="tab-item on"><svg width="18" height="18"><use href="#i-captain"/></svg>船长</div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P11 资料编辑 · 船长名片 -->
+<div data-tpl="p11">
+  <div class="slot-head"><span class="no">PAGE 11 · 日</span><h2>园丁名片 · 烫印名片</h2><p>头像更换 + 昵称输入 + 签名 + 保存流程不变——编辑页是给盆屿们递一张新名片。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>9:41</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 2px 10px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--pine)"><use href="#i-back"/></svg><span style="font-family:var(--font-kai);font-size:13px;letter-spacing:2px">名片</span></div>
+        <span class="btn soft">存档</span>
+      </div>
+      <div class="pc" style="padding:22px 16px;display:flex;flex-direction:column;align-items:center;position:relative;overflow:hidden">
+        <span class="tape t3" style="top:-9px;left:50%;margin-left:-28px;width:56px"></span>
+        <div style="position:relative;width:80px;height:80px">
+          <div style="width:80px;height:80px;border:2px solid var(--pine);border-radius:50%;display:flex;align-items:center;justify-content:center;background:var(--pine-soft);color:var(--pine-deep)"><svg width="38" height="38"><use href="#i-anchor"/></svg></div>
+          <span style="position:absolute;right:-4px;bottom:-4px;width:26px;height:26px;border-radius:50%;background:var(--stamp);color:var(--paper);display:flex;align-items:center;justify-content:center;border:2px solid var(--paper)"><svg width="11" height="11"><use href="#i-plus"/></svg></span>
+        </div>
+        <div style="font-size:10.5px;color:var(--ink2);margin-top:12px">点击更换船长徽记</div>
+      </div>
+      <div class="pc" style="margin-top:12px;padding:4px 14px">
+        <div style="padding:11px 0"><div style="font-size:10px;color:var(--ink2);margin-bottom:6px">船长名</div><div class="frow" style="background:var(--paper)"><span class="val">阿棠</span></div></div>
+        <div style="border-top:1px dashed var(--line2)"></div>
+        <div style="padding:11px 0"><div style="font-size:10px;color:var(--ink2);margin-bottom:6px">座右铭</div><div class="frow" style="background:var(--paper)"><span>和植宠一起慢慢长大…</span></div></div>
+      </div>
+      <button class="btn" style="width:100%;margin-top:16px">递 出 名 片</button>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P13 关于 · 航海局公文 -->
+<div data-tpl="p13">
+  <div class="slot-head"><span class="no">PAGE 13 · 日</span><h2>关于 · 航海局公文</h2><p>品牌、版本号与协议链接结构不变——关于页是群岛航海局的一纸公文。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>9:41</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:2px 2px 10px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--pine)"><use href="#i-back"/></svg><span style="font-family:var(--font-kai);font-size:13px;letter-spacing:2px">公文</span></div>
+        <span style="width:20px"></span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;padding:18px 0 4px;position:relative">
+        <div class="compass" style="width:48px;height:48px;margin-bottom:14px"></div>
+        <svg width="66" height="66" style="animation:float 5s ease-in-out infinite;filter:drop-shadow(0 10px 16px rgba(27,107,90,.3))"><use href="#pet-pothos"/></svg>
+        <div style="font-family:var(--font-kai);font-size:20px;font-weight:900;margin-top:14px;letter-spacing:4px">盆屿群岛</div>
+        <div style="font-size:11px;color:var(--ink2);margin-top:6px;letter-spacing:2px">让每一株植物都被温柔照顾</div>
+        <div class="postmark" style="position:relative;margin-top:16px;width:64px;height:64px;transform:rotate(8deg)"><b>群岛</b><span>航海局</span><span>盖章</span></div>
+        <div style="font-family:var(--font-mono);font-size:10px;color:var(--ink2);margin-top:8px;letter-spacing:1px">v1.4.2 · Build 20260826</div>
+      </div>
+      <div class="pc" style="margin-top:18px;padding:4px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 0;font-size:13px"><span style="font-family:var(--font-kai)">航行条例</span><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+        <div style="border-top:1px dashed var(--line2)"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 0;font-size:13px"><span style="font-family:var(--font-kai)">隐私海图</span><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+        <div style="border-top:1px dashed var(--line2)"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 0;font-size:13px"><span style="font-family:var(--font-kai)">开源致谢</span><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+        <div style="border-top:1px dashed var(--line2)"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:13px 0;font-size:13px"><span style="font-family:var(--font-kai)">联系信鸽</span><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+      </div>
+      <div style="text-align:center;font-size:10px;color:var(--ink2);margin-top:22px;line-height:1.9;font-family:var(--font-kai)">TRT 灵枢智能 · 植愈星球<br>Made with 💚 for plants &amp; their people</div>
+    </div>
+  </div></div></div>
+</div>
+
+</div><!-- /tpls -->
+
+<!-- ================= 深色模板库（夜航仪器） ================= -->
+<div id="tpls-dark" hidden>
+
+<!-- P10 登录 · 雷达启动 -->
+<div data-tpl="p10">
+  <div class="slot-head"><span class="no">PAGE 10 · 夜</span><h2>登录 · 雷达启动</h2><p>微信一键登录与开发体验入口不变——深夜驾驶舱，雷达正在自检，锁定主屿信号。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>21:15</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="logline">航行日志 · 21:15 起锚，雷达自检中</div>
+    <div class="ppad" style="min-height:620px;display:flex;flex-direction:column">
+      <div class="in brk" style="margin-top:8px;overflow:hidden">
+        <div class="phead">RADAR · SELF-TEST<b>PASS</b></div>
+        <div class="drow"><span class="dk">SYS</span><span class="dv mono">TRT NOVA v1.4.2</span><span class="pr" style="color:var(--radar);font-family:var(--font-mono);font-size:9px">● OK</span></div>
+        <div class="drow"><span class="dk">ISLES</span><span class="dv mono">2 座盆屿已入册</span><span style="color:var(--beam);font-family:var(--font-mono);font-size:9px">● 1 离线</span></div>
+        <div class="drow"><span class="dk">PET</span><span class="dv mono">小绿 · 等待信号</span><span style="color:var(--radar);font-family:var(--font-mono);font-size:9px;animation:blip 2s infinite">● LOCK</span></div>
+        <div class="scope" style="height:200px;margin:12px">
+          <div class="stars"></div>
+          <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+          <div class="cross"></div><div class="cross h"></div>
+          <div class="beam"></div>
+          <div class="blip" style="left:30%;top:26%"></div>
+          <div class="blip" style="right:26%;bottom:32%;animation-delay:1.2s"></div>
+          <svg class="pet" viewBox="0 0 200 200" style="width:110px;height:110px"><use href="#pet-pothos"/></svg>
+          <div class="pet-label">「 门没锁，进来吧 」</div>
+        </div>
+      </div>
+      <div style="text-align:center;margin-top:16px">
+        <div style="font-family:var(--font-mono);font-size:20px;font-weight:800;letter-spacing:4px;color:var(--ink)">盆屿群岛 · 夜航</div>
+        <div style="font-family:var(--font-mono);font-size:9.5px;color:var(--ink2);margin-top:6px;letter-spacing:2px">BOTANICAL ISLES · NIGHT INSTRUMENT</div>
+      </div>
+      <div style="margin-top:auto">
+        <button class="btn" style="width:100%">微信一键登航</button>
+        <div style="text-align:center;font-size:10px;color:var(--ink2);margin-top:12px;font-family:var(--font-mono)">登录后即可夜巡你的植物群岛 · <span style="text-decoration:underline;text-underline-offset:3px">开发体验登航</span></div>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P1 首页 · 雷达主屏 -->
+<div data-tpl="p1">
+  <div class="slot-head"><span class="no">PAGE 01 · 夜</span><h2>首页 · 主屿雷达屏</h2><p>问候、植宠切换、舞台、四传感器、AI 电台、任务与风扇开关一个不少——首页是驾驶舱的主雷达：屏幕上是熟睡的主屿，仪表带是四路读数。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>23:47</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="logline">航行日志 · 23:47 第一巡，岛屿都在信号内</div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+        <div>
+          <div style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:2px;color:var(--ink2)">NIGHT CRUISE · 夜巡中</div>
+          <div style="font-size:15px;font-weight:800;margin-top:3px">主屿 · 小绿 <span style="font-size:10px;color:var(--ink2);font-weight:500">客厅 · 已同行 42 天</span></div>
+        </div>
+        <div class="in" style="width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:10px"><svg width="17" height="17" style="color:var(--radar);animation:blip 3s infinite"><use href="#i-signal"/></svg></div>
+      </div>
+      <!-- 雷达屏 -->
+      <div class="in brk" style="margin-top:12px">
+        <div class="phead">MAIN SCOPE · 主屿瞭望<b>REC 23:47</b></div>
+        <div class="scope">
+          <div class="stars"></div>
+          <div class="ring r1"></div><div class="ring r2"></div><div class="ring r3"></div>
+          <div class="cross"></div><div class="cross h"></div>
+          <div class="beam"></div>
+          <div class="blip" style="left:28%;top:24%"></div>
+          <div class="blip" style="right:24%;bottom:30%;animation-delay:1.4s"></div>
+          <div class="sonarring"></div>
+          <svg class="pet" viewBox="0 0 200 200"><use href="#pet-pothos"/></svg>
+          <div class="pet-label">嘘～小绿睡得很熟 · 心情 98 · 好感 86</div>
+        </div>
+      </div>
+      <!-- 仪表带 -->
+      <div class="gauges" style="margin-top:12px">
+        <div class="gauge hot"><div class="gk">TEMP 屿温<span class="led"></span></div><div class="gv">24.5<span class="gu">℃</span></div><div class="gb"><i style="width:62%"></i></div></div>
+        <div class="gauge"><div class="gk">LIGHT 日照<span class="led"></span></div><div class="gv">12.8<span class="gu">k</span></div><div class="gb"><i style="width:48%"></i></div></div>
+        <div class="gauge"><div class="gk">HUMI 海雾<span class="led"></span></div><div class="gv">62<span class="gu">%</span></div><div class="gb"><i style="width:62%"></i></div></div>
+        <div class="gauge"><div class="gk">SOIL 屿壤<span class="led"></span></div><div class="gv">58<span class="gu">%</span></div><div class="gb"><i style="width:58%"></i></div></div>
+      </div>
+      <!-- 电台 -->
+      <div class="in" style="margin-top:12px;padding:12px 14px">
+        <div style="display:flex;align-items:center;gap:9px">
+          <span style="width:5px;height:5px;border-radius:50%;background:var(--radar);box-shadow:0 0 8px var(--radar);animation:blip 2.4s infinite"></span>
+          <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:2px;color:var(--radar)">RADIO · NOVA 频道</span>
+          <div class="sonar" style="flex:1"><i style="height:5px"></i><i style="height:9px"></i><i style="height:13px"></i><i style="height:7px"></i><i style="height:11px"></i><i style="height:6px"></i><i style="height:12px"></i><i style="height:9px"></i></div>
+        </div>
+        <div style="font-size:12px;line-height:1.8;margin-top:8px">夜里的叶子也在慢慢呼吸～传感器都正常，安心睡吧，有我守着 🌙</div>
+      </div>
+      <!-- 夜巡任务 -->
+      <div class="phead" style="padding:14px 4px 4px">NIGHT TASKS · 夜巡清单<b>1/2</b></div>
+      <div class="dtask">
+        <div class="tag">已办</div>
+        <div class="task-check done"><svg width="13" height="13"><use href="#i-check"/></svg></div>
+        <div style="flex:1"><b style="font-size:13px">给小绿擦擦叶子</b><div style="font-size:10px;color:var(--ink2);margin-top:3px">隔着玻璃罩擦完亮晶晶，它会超开心 ✨</div></div>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--radar);border:1px solid var(--radar);padding:3px 8px;border-radius:4px">+2 💚</span>
+      </div>
+      <div class="dtask">
+        <div class="tag warn">待办</div>
+        <div class="task-check"></div>
+        <div style="flex:1"><b style="font-size:13px">施一次薄肥</b><div style="font-size:10px;color:var(--beam);margin-top:3px">距上次 21 天 · 小绿有点饿了 😋</div></div>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--beam);border:1px solid var(--beam);padding:3px 8px;border-radius:4px">今日截止</span>
+      </div>
+      <!-- 群岛航点 -->
+      <div class="phead" style="padding:14px 4px 4px">FLEET · 群岛航点<b>1/2 ONLINE</b></div>
+      <div class="gauges">
+        <div class="gauge" style="min-width:150px"><div class="gk">主屿 · 客厅<span class="led"></span></div><div style="font-size:12.5px;font-weight:800;margin-top:7px">绿萝 · 在线</div><div style="font-family:var(--font-mono);font-size:9px;color:var(--radar);margin-top:4px">数据上报 · 14:32</div></div>
+        <div class="gauge" style="min-width:150px"><div class="gk" style="color:var(--beam)">礁屿 · 阳台<span class="led" style="background:var(--beam);box-shadow:0 0 6px var(--beam)"></span></div><div style="font-size:12.5px;font-weight:800;margin-top:7px">多肉 · 离线</div><div style="font-family:var(--font-mono);font-size:9px;color:var(--beam);margin-top:4px">睡了 2 天</div></div>
+        <div class="gauge" style="min-width:80px;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" style="color:var(--radar)"><use href="#i-plus"/></svg></div>
+      </div>
+      <!-- 终端 -->
+      <div class="in" style="margin-top:12px;background:#050D12;font-family:var(--font-mono);padding:12px 14px">
+        <div class="phead" style="padding:0 0 8px">RAW FEED · TRT-0117<b>ON</b></div>
+        <div style="font-size:11px;color:var(--ink2);line-height:2">
+          <div><span style="color:var(--radar)">&gt;</span> UID · A3F8···92C4</div>
+          <div><span style="color:var(--radar)">&gt;</span> DS18B20 · 24.2 ℃</div>
+          <div><span style="color:var(--radar)">&gt;</span> SOUL · 安然</div>
+          <div><span style="color:var(--radar)">&gt;</span> UPTIME · 14:32:08 <span style="animation:blip 1s steps(2) infinite">▌</span></div>
+        </div>
+      </div>
+      <!-- 风扇 -->
+      <div class="phead" style="padding:14px 4px 4px">CONTROL · 设备控制<b>fan.on / fan.off</b></div>
+      <div class="in fan-card" style="padding:14px;display:flex;align-items:center;gap:13px">
+        <div style="width:50px;height:50px;border:1px solid var(--radar);border-radius:12px;background:rgba(63,224,192,.08);display:flex;align-items:center;justify-content:center;flex:none"><svg width="25" height="25" style="color:var(--radar);animation:sweep 3.5s linear infinite"><use href="#i-fan"/></svg></div>
+        <div style="flex:1">
+          <b style="font-size:15px;font-weight:800">通风风扇 🍃</b>
+          <div class="fan-state" style="font-size:11px;color:var(--radar);margin-top:4px;font-weight:600">呼呼转着呢 · 已开 2 小时 14 分</div>
+          <div class="fan-hint" style="font-size:9.5px;color:var(--ink2);margin-top:3px">微风吹着叶子，小绿在深呼吸</div>
+        </div>
+        <label class="fan-toggle"><input type="checkbox" checked><span class="knob">ON</span></label>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab-item on"><svg width="18" height="18"><use href="#i-isle"/></svg>群岛</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-compass"/></svg>电台</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-log"/></svg>图鉴</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-captain"/></svg>船长</div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P2 AI 助手 · 深夜电台 -->
+<div data-tpl="p2">
+  <div class="slot-head"><span class="no">PAGE 02 · 夜</span><h2>AI 助手 · 深夜电台</h2><p>设备上下文、快捷提问、对话流与输入面板完整保留——电台频道卡：频闪条 + 调频刻度 + 居中消息流。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>00:30</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="logline">航行日志 · 00:30 电台在放慢歌，只剩你和小绿在听</div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px">
+        <div>
+          <div style="font-size:16px;font-weight:800">NOVA 电台</div>
+          <div style="font-family:var(--font-mono);font-size:9.5px;color:var(--ink2);margin-top:3px;letter-spacing:1px">FM 42.0 · 植宠夜话，陪你到天亮</div>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:9px;color:var(--beam);border:1px solid var(--beam);border-radius:5px;padding:5px 10px;font-weight:800;letter-spacing:2px;animation:blip 2s infinite">ON AIR</div>
+      </div>
+      <div class="freq"><i style="height:6px"></i><i style="height:11px"></i><i style="height:15px"></i><i style="height:9px"></i><i style="height:13px"></i><i style="height:7px"></i><i style="height:12px"></i><i style="height:15px"></i><i style="height:8px"></i><i style="height:11px"></i><i style="height:14px"></i><i style="height:6px"></i></div>
+      <div style="position:relative;height:22px;margin-top:10px;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2)">
+        <i style="position:absolute;top:6px;bottom:6px;left:8%;width:1px;background:var(--line2)"></i><i style="position:absolute;top:6px;bottom:6px;left:24%;width:1px;background:var(--line2)"></i><i style="position:absolute;top:3px;bottom:3px;left:42%;width:1px;background:var(--ink2)"></i><i style="position:absolute;top:6px;bottom:6px;left:60%;width:1px;background:var(--line2)"></i><i style="position:absolute;top:3px;bottom:3px;left:78%;width:1px;background:var(--ink2)"></i><i style="position:absolute;top:6px;bottom:6px;left:92%;width:1px;background:var(--line2)"></i>
+        <span style="position:absolute;top:-5px;left:42%;transform:translateX(-50%);font-family:var(--font-mono);font-size:8px;font-weight:800;color:var(--beam)">▼42.0</span>
+      </div>
+      <div class="in" style="margin-top:12px;padding:11px 14px;display:flex;align-items:center;gap:9px">
+        <span style="width:7px;height:7px;border-radius:50%;background:var(--radar);box-shadow:0 0 8px var(--radar);animation:blip 2.4s infinite"></span>
+        <div style="flex:1;font-size:12px;font-weight:600">正在连线：主屿 · 小绿</div>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--radar);border:1px solid var(--radar);padding:2px 8px;border-radius:4px;background:rgba(63,224,192,.08)">在线</span>
+        <svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px;overflow-x:auto;scrollbar-width:none">
+        <span style="white-space:nowrap;font-family:var(--font-mono);font-size:10.5px;color:var(--ink2);border:1px solid var(--line);background:var(--panel);padding:5px 11px;border-radius:8px">🪴 小绿还好吗</span>
+        <span style="white-space:nowrap;font-family:var(--font-mono);font-size:10.5px;color:var(--ink2);border:1px solid var(--line);background:var(--panel);padding:5px 11px;border-radius:8px">💧 今天要浇水吗</span>
+        <span style="white-space:nowrap;font-family:var(--font-mono);font-size:10.5px;color:var(--ink2);border:1px solid var(--line);background:var(--panel);padding:5px 11px;border-radius:8px">📈 湿度怎么样</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
+        <div class="msg">
+          <div class="mw"><svg width="11" height="11"><use href="#i-leaf"/></svg>NOVA · 14:30</div>
+          我瞅了一眼主屿的传感器：温度 24.5℃、屿壤湿度 58%，都在舒适区间，今天不用浇水！倒是日照有点猛，拉层纱帘会更舒服～
+        </div>
+        <div class="msg me">
+          <div class="mw">我 · 14:31</div>
+          好嘞！那这周用施肥吗？
+        </div>
+        <div class="msg">
+          <div class="mw"><svg width="11" height="11"><use href="#i-leaf"/></svg>NOVA · 14:31</div>
+          距上次施肥 21 天啦，该安排一顿薄肥了。我已经偷偷把「施一次薄肥」塞进今天的夜巡清单咯 😉
+          <div style="display:flex;gap:6px;margin-top:9px"><span style="font-family:var(--font-mono);font-size:10px;color:var(--radar);border:1px dashed var(--radar);padding:4px 10px;border-radius:6px">肥料怎么选？</span><span style="font-family:var(--font-mono);font-size:10px;color:var(--radar);border:1px dashed var(--radar);padding:4px 10px;border-radius:6px">查看施肥攻略</span></div>
+        </div>
+      </div>
+      <div class="chatin">
+        <div class="ph">深夜点播：随便问，比如「小绿今天渴不渴？」</div>
+        <div class="sendbtn"><svg width="17" height="17"><use href="#i-send"/></svg></div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-isle"/></svg>群岛</div>
+      <div class="tab-item on"><svg width="18" height="18"><use href="#i-compass"/></svg>电台</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-log"/></svg>图鉴</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-captain"/></svg>船长</div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P3 知识库 · 数据库终端 -->
+<div data-tpl="p3">
+  <div class="slot-head"><span class="no">PAGE 03 · 夜</span><h2>知识库 · 数据库终端</h2><p>双模式、搜索与分类保留——夜读书库是一座数据库终端，检索即查询。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>01:20</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="logline">航行日志 · 01:20 翻两页数据库，夜还很长</div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;padding:4px 0 10px">
+        <div><div style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:2px;color:var(--ink2)">ARCHIVE · 知识库</div><div style="font-size:20px;font-weight:800;margin-top:4px">夜读书库</div></div>
+        <span style="font-family:var(--font-mono);font-size:9.5px;color:var(--beam);border:1px solid var(--beam);padding:3px 10px;border-radius:6px">128 卷</span>
+      </div>
+      <div class="in" style="padding:10px 14px;display:flex;align-items:center;gap:9px;font-family:var(--font-mono)">
+        <svg width="14" height="14" style="color:var(--ink2)"><use href="#i-search"/></svg>
+        <span style="font-size:11.5px;color:var(--ink2)">QUERY: 检索书名、植物、养护词…</span>
+        <span style="margin-left:auto;color:var(--radar);animation:blip 1s steps(2) infinite">▌</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <div style="flex:1;padding:10px 12px;border:1px solid var(--radar);background:rgba(63,224,192,.08);border-radius:10px"><div style="font-size:12.5px;font-weight:800;color:var(--radar)">养护文库</div><div style="font-size:9px;color:var(--ink2);margin-top:2px">养护、字段、规则</div></div>
+        <div style="flex:1;padding:10px 12px;border:1px solid var(--line);background:var(--panel);border-radius:10px"><div style="font-size:12.5px;font-weight:800">植物图谱</div><div style="font-size:9px;color:var(--ink2);margin-top:2px">资料、参数、问答</div></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--radar-ink);background:var(--radar);padding:4px 10px;border-radius:5px;font-weight:700">全部</span>
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--ink2);border:1px solid var(--line);padding:4px 10px;border-radius:5px">养护技巧</span>
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--ink2);border:1px solid var(--line);padding:4px 10px;border-radius:5px">设备字段</span>
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--ink2);border:1px solid var(--line);padding:4px 10px;border-radius:5px">系统规则</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+        <div class="in" style="padding:13px 14px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-mono);font-size:9px;color:var(--radar);letter-spacing:1.5px">01 · 养护技巧</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--beam)">READ ›</span></div>
+          <div style="font-size:13.5px;font-weight:800;margin-top:7px;line-height:1.5">绿萝养护全指南：浇水、光照与换盆时机</div>
+          <div style="font-size:10.5px;color:var(--ink2);line-height:1.7;margin-top:5px">从浇水频率到光照位置，一次讲清绿萝的日常养护节奏，新手也能养出油亮叶片。</div>
+        </div>
+        <div class="in" style="padding:13px 14px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-mono);font-size:9px;color:var(--radar);letter-spacing:1.5px">02 · 设备字段</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--beam)">READ ›</span></div>
+          <div style="font-size:13.5px;font-weight:800;margin-top:7px;line-height:1.5">好感度与灵魂状态：植宠养成系统字段说明</div>
+          <div style="font-size:10.5px;color:var(--ink2);line-height:1.7;margin-top:5px">好感度如何随养护行为变化，灵魂状态又代表什么，这里给出完整数据口径。</div>
+        </div>
+        <div class="in" style="padding:13px 14px">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-mono);font-size:9px;color:var(--radar);letter-spacing:1.5px">03 · 系统规则</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--beam)">READ ›</span></div>
+          <div style="font-size:13.5px;font-weight:800;margin-top:7px;line-height:1.5">设备命令与权限：fan.on / fan.off 的下发链路</div>
+          <div style="font-size:10.5px;color:var(--ink2);line-height:1.7;margin-top:5px">从小程序到设备执行的完整命令链路，以及为什么只允许逻辑动作。</div>
+        </div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-isle"/></svg>群岛</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-compass"/></svg>电台</div>
+      <div class="tab-item on"><svg width="18" height="18"><use href="#i-log"/></svg>图鉴</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-captain"/></svg>船长</div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P12 文章 · 夜读屏 -->
+<div data-tpl="p12">
+  <div class="slot-head"><span class="no">PAGE 12 · 夜</span><h2>文章 · 夜读屏</h2><p>阅读进度、衬线正文、小贴士与相关推荐一个不少——夜读是仪器上的一块暖光屏。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>02:05</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="logline">航行日志 · 02:05 萤光停在字里行间</div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 10px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--radar)"><use href="#i-back"/></svg><span style="font-family:var(--font-mono);font-size:12px;letter-spacing:2px">READ</span></div>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink2)">128 字/分</span>
+      </div>
+      <div style="height:3px;background:var(--panel2);border-radius:3px;overflow:hidden"><i style="display:block;height:100%;width:38%;background:linear-gradient(90deg,var(--radar),var(--beam));border-radius:3px"></i></div>
+      <div style="margin-top:14px;display:flex;align-items:center;gap:9px">
+        <span style="font-family:var(--font-mono);font-size:9.5px;color:var(--beam);border:1px solid var(--beam);padding:2px 9px;border-radius:5px">养护技巧</span>
+        <span style="font-family:var(--font-mono);font-size:9.5px;color:var(--ink2)">已读 38%</span>
+      </div>
+      <div style="font-family:var(--font-song);font-size:22px;font-weight:700;line-height:1.5;margin-top:12px">绿萝养护全指南：浇水、光照与换盆时机</div>
+      <div style="display:flex;align-items:center;gap:9px;margin-top:12px">
+        <span style="width:24px;height:24px;border-radius:50%;background:var(--panel2);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center"><svg width="12" height="12" style="color:var(--radar)"><use href="#i-leaf"/></svg></span>
+        <span style="font-size:10.5px;color:var(--ink2);font-family:var(--font-mono)">NOVA 书库 · 2026-08-20 · 阅读 1.2k</span>
+      </div>
+      <div class="in" style="margin-top:14px;padding:16px 16px 14px;background:linear-gradient(165deg,rgba(255,196,107,.05),var(--panel) 45%)">
+        <div style="font-family:var(--font-song);font-size:13px;line-height:2.1">
+          <p>绿萝是最适合新手的观叶植物之一，但「养不死」不等于「养不好」。想让叶片油亮、藤蔓疯长，关键就三件事：<b style="background:linear-gradient(transparent 68%,rgba(255,196,107,.22) 68%)">浇对水、给对光、换对盆</b>。</p>
+          <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;display:flex;align-items:center;gap:8px;margin:14px 0 8px;color:var(--beam)">01<span style="color:var(--ink)">浇水 · 见干见湿</span><span style="flex:1;border-top:1px dashed var(--line2)"></span></div>
+          <p>浇水的黄金法则是<b style="background:linear-gradient(transparent 68%,rgba(255,196,107,.22) 68%)">「见干见湿」</b>：表土 2 厘米干了再浇，浇就浇透。冬季拉长到 10 天以上，夏季蒸发快时可以缩短到 4 天左右。</p>
+          <div style="margin:12px 0;padding:11px 13px;border:1px dashed var(--radar);background:rgba(63,224,192,.06);border-radius:8px;display:flex;gap:8px">
+            <svg width="14" height="14" style="color:var(--radar);flex:none;margin-top:3px"><use href="#i-leaf"/></svg>
+            <p style="font-size:11px;line-height:1.8">小技巧：绑定盆屿后，屿壤湿度低于 55% 时夜巡清单会自动出现浇水待办，不用自己记日子。</p>
+          </div>
+          <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;display:flex;align-items:center;gap:8px;margin:14px 0 8px;color:var(--beam)">02<span style="color:var(--ink)">光照 · 明亮散射</span><span style="flex:1;border-top:1px dashed var(--line2)"></span></div>
+          <p>绿萝喜欢明亮的散射光。正午直射容易灼伤叶片，太暗则会让<b style="background:linear-gradient(transparent 68%,rgba(255,196,107,.22) 68%)">斑纹变淡、节间拉长</b>。放在离南窗 1-2 米的位置最合适。</p>
+          <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;display:flex;align-items:center;gap:8px;margin:14px 0 8px;color:var(--beam)">03<span style="color:var(--ink)">换盆 · 两年一次</span><span style="flex:1;border-top:1px dashed var(--line2)"></span></div>
+          <p>根系从盆底钻出来、浇水后水渗得特别快，就是它在提醒你该换盆了。<b style="background:linear-gradient(transparent 68%,rgba(255,196,107,.22) 68%)">新盆直径只比旧盆大 3-5 厘米</b>——贪大容易闷根。</p>
+        </div>
+      </div>
+      <div class="phead" style="padding:14px 4px 4px">NEXT · 读完这本</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+        <div class="in" style="padding:12px 14px;display:flex;justify-content:space-between;align-items:center"><div><b style="font-size:13px">多肉植物度夏指南</b><span style="display:block;font-size:9.5px;color:var(--ink2);margin-top:3px">养护技巧 · 5 分钟阅读</span></div><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+        <div class="in" style="padding:12px 14px;display:flex;justify-content:space-between;align-items:center"><div><b style="font-size:13px">换盆的正确姿势与时机</b><span style="display:block;font-size:9.5px;color:var(--ink2);margin-top:3px">养护技巧 · 8 分钟阅读</span></div><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P5 设备管理 · 坐标锁定 -->
+<div data-tpl="p5">
+  <div class="slot-head"><span class="no">PAGE 05 · 夜</span><h2>设备管理 · 坐标锁定</h2><p>绑定四字段、立即绑定、JSON 命令发送与解绑全部保留——夜班是给新岛屿锁定坐标入册。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>02:48</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="logline">航行日志 · 02:48 夜班勘测，给一座新屿定位</div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--radar)"><use href="#i-back"/></svg><span style="font-family:var(--font-mono);font-size:12px;letter-spacing:2px">BIND</span></div>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink2)">SYS v1</span>
+      </div>
+      <div class="in" style="margin-top:8px;background:#050D12;font-family:var(--font-mono);padding:12px 14px">
+        <div class="phead" style="padding:0 0 8px">ENROLL · 新屿入册<b>Setup</b></div>
+        <div style="font-size:11px;color:var(--ink2);line-height:2.2">
+          <div><span style="color:var(--radar)">&gt;</span> 设备唯一编码 <span style="animation:blip 1s steps(2) infinite">▌</span></div>
+          <div><span style="color:var(--radar)">&gt;</span> 设备名称（用户别名）</div>
+          <div><span style="color:var(--radar)">&gt;</span> 种植地点（例如：客厅）</div>
+          <div><span style="color:var(--radar)">&gt;</span> 植物类型 · 绿萝 ▾</div>
+        </div>
+        <button class="btn" style="width:100%;margin-top:10px;height:42px;font-family:var(--font);font-size:14px">立即入册</button>
+      </div>
+      <div class="phead" style="padding:14px 4px 4px">FLEET · 群岛航点<b>1/2 ONLINE</b></div>
+      <div class="in" style="margin-top:6px;padding:14px;border-color:var(--radar)">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="width:44px;height:44px;border:1px solid var(--radar);border-radius:12px;background:rgba(63,224,192,.08);display:flex;align-items:center;justify-content:center;flex:none"><svg width="24" height="24" style="color:var(--radar)"><use href="#i-anchor"/></svg></div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:800">主屿 · 客厅花盆</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--radar);border:1px solid var(--radar);padding:2px 8px;border-radius:4px;background:rgba(63,224,192,.08)">● 在线</span></div>
+            <div style="font-size:10px;color:var(--ink2);margin-top:4px;font-family:var(--font-mono)">客厅 · 绿萝 · TRT-0117</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;background:var(--panel2);border:1px solid var(--line);padding:9px 11px;margin-top:11px;border-radius:8px">
+          <div><div style="font-size:9px;color:var(--ink2);font-family:var(--font-mono);letter-spacing:1px">PING · 平安信标</div><div style="font-size:11.5px;font-weight:700;margin-top:2px">刚刚报过平安</div></div>
+          <span style="font-family:var(--font-mono);font-size:10px;color:var(--ink2)">14:32</span>
+        </div>
+        <div style="margin-top:11px;background:#050D12;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-family:var(--font-mono);font-size:11px;color:var(--ink2)"><span style="color:var(--radar)">&gt;</span> 输入 JSON 命令… <span style="animation:blip 1s steps(2) infinite">▌</span></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn soft" style="flex:1;height:40px;font-family:var(--font)">发送命令</button>
+          <button class="btn danger" style="flex:1;height:40px;font-family:var(--font)">解绑设备</button>
+        </div>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P6 设备详情 · 监控大屏 -->
+<div data-tpl="p6">
+  <div class="slot-head"><span class="no">PAGE 06 · 夜</span><h2>设备详情 · 监控大屏</h2><p>四指标改为「巨号主表 + 侧列切换」，趋势图、MIN/AVG/MAX、时间范围、生命面板全部保留。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>03:15</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="logline">航行日志 · 03:15 巡到主屿，绿萝的呼吸很平稳</div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--radar)"><use href="#i-back"/></svg><span style="font-family:var(--font-mono);font-size:12px;letter-spacing:2px">SURVEY</span></div>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--radar)">● REC · ONLINE</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+        <div>
+          <div style="font-size:16px;font-weight:800">主屿 · 客厅花盆</div>
+          <div style="font-size:10px;color:var(--ink2);margin-top:4px;font-family:var(--font-mono)">客厅 · 绿萝 · TRT-0117</div>
+        </div>
+        <div style="display:flex;gap:6px"><span style="font-family:var(--font-mono);font-size:9.5px;color:var(--ink2);border:1px solid var(--line2);padding:4px 10px;border-radius:6px">LOG</span><span style="font-family:var(--font-mono);font-size:9.5px;color:var(--radar);border:1px solid var(--radar);background:rgba(63,224,192,.08);padding:4px 10px;border-radius:6px">CFG</span></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:12px">
+        <div class="in brk" style="flex:2.3;padding:14px;border-color:var(--radar);background:linear-gradient(160deg,rgba(63,224,192,.1),var(--panel) 55%);display:flex;flex-direction:column;justify-content:space-between;min-height:150px;overflow:hidden">
+          <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:2px;color:var(--ink2)">SOIL · 屿壤湿度</span><span style="width:6px;height:6px;border-radius:50%;background:var(--radar);box-shadow:0 0 8px var(--radar)"></span></div>
+          <div style="font-family:var(--font-mono);font-size:48px;font-weight:800;color:var(--radar);line-height:1;text-shadow:0 0 24px rgba(63,224,192,.35)">58<span style="font-size:14px;color:var(--ink2)"> %</span></div>
+          <div style="font-size:10px;color:var(--radar)">喝饱水啦 · 2 分钟前更新</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:7px">
+          <div class="in" style="flex:1;padding:8px 11px;display:flex;flex-direction:column;justify-content:center"><span style="font-family:var(--font-mono);font-size:8px;color:var(--ink2);letter-spacing:1px">TEMP</span><span style="font-family:var(--font-mono);font-size:14px;font-weight:800;margin-top:2px">24.5℃</span></div>
+          <div class="in" style="flex:1;padding:8px 11px;display:flex;flex-direction:column;justify-content:center"><span style="font-family:var(--font-mono);font-size:8px;color:var(--ink2);letter-spacing:1px">LIGHT</span><span style="font-family:var(--font-mono);font-size:14px;font-weight:800;margin-top:2px">12.8k</span></div>
+          <div class="in" style="flex:1;padding:8px 11px;display:flex;flex-direction:column;justify-content:center;border-color:var(--radar);background:rgba(63,224,192,.07)"><span style="font-family:var(--font-mono);font-size:8px;color:var(--radar);letter-spacing:1px">HUMI</span><span style="font-family:var(--font-mono);font-size:14px;font-weight:800;margin-top:2px;color:var(--radar)">62%</span></div>
+          <div class="in" style="flex:1;padding:8px 11px;display:flex;flex-direction:column;justify-content:center"><span style="font-family:var(--font-mono);font-size:8px;color:var(--ink2);letter-spacing:1px">SOIL</span><span style="font-family:var(--font-mono);font-size:14px;font-weight:800;margin-top:2px">58%</span></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <div class="in" style="flex:1;justify-content:center;padding:8px;font-family:var(--font-mono);font-size:10.5px;text-align:center"><span style="color:var(--ink2)">好感</span> <b style="color:var(--beam)">86</b></div>
+        <div class="in" style="flex:1;justify-content:center;padding:8px;font-family:var(--font-mono);font-size:10.5px;text-align:center"><span style="color:var(--ink2)">灵魂</span> <b>安然</b></div>
+        <div class="in" style="flex:1;justify-content:center;padding:8px;font-family:var(--font-mono);font-size:10.5px;text-align:center"><span style="color:var(--ink2)">BIO</span> <b>活泼</b></div>
+      </div>
+      <div class="in" style="margin-top:10px;padding:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:2px;color:var(--radar)">TREND · 本周成长</div>
+            <div style="font-size:10.5px;color:var(--ink2);margin-top:3px">屿壤湿度 · 最近 24 小时</div>
+          </div>
+          <div style="display:flex;gap:5px">
+            <span style="font-family:var(--font-mono);font-size:9.5px;color:var(--radar-ink);background:var(--radar);padding:3px 9px;border-radius:5px;font-weight:700">24时</span>
+            <span style="font-family:var(--font-mono);font-size:9.5px;color:var(--ink2);border:1px solid var(--line2);padding:3px 9px;border-radius:5px">7天</span>
+            <span style="font-family:var(--font-mono);font-size:9.5px;color:var(--ink2);border:1px solid var(--line2);padding:3px 9px;border-radius:5px">30天</span>
+          </div>
+        </div>
+        <div class="chartwrap" style="margin-top:12px">
+          <svg viewBox="0 0 320 110" style="width:100%;display:block">
+            <g stroke="var(--line)" stroke-width="1"><line x1="0" y1="28" x2="320" y2="28"/><line x1="0" y1="58" x2="320" y2="58"/><line x1="0" y1="88" x2="320" y2="88"/></g>
+            <path d="M0 62 L27 55 L54 60 L80 48 L107 52 L134 40 L160 46 L187 36 L214 44 L240 33 L267 38 L294 30 L320 36 L320 110 L0 110 Z" fill="url(#tgrad)"/>
+            <path d="M0 62 L27 55 L54 60 L80 48 L107 52 L134 40 L160 46 L187 36 L214 44 L240 33 L267 38 L294 30 L320 36" fill="none" stroke="var(--radar)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="240" cy="33" r="3.5" fill="var(--beam)"/><circle cx="240" cy="33" r="7" fill="none" stroke="var(--beam)" stroke-width="1" opacity=".5"/>
+          </svg>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:10px;text-align:center;font-family:var(--font-mono)">
+          <div><div style="font-size:14px;font-weight:800">52%</div><div style="font-size:8px;color:var(--ink2);letter-spacing:1px">MIN</div></div>
+          <div><div style="font-size:14px;font-weight:800;color:var(--radar)">58%</div><div style="font-size:8px;color:var(--ink2);letter-spacing:1px">AVG</div></div>
+          <div><div style="font-size:14px;font-weight:800">64%</div><div style="font-size:8px;color:var(--ink2);letter-spacing:1px">MAX</div></div>
+        </div>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P7 设备设置 · 仪器配置台 -->
+<div data-tpl="p7">
+  <div class="slot-head"><span class="no">PAGE 07 · 夜</span><h2>设备设置 · 仪器配置台</h2><p>档案表单、配网地址、危险区解绑与保存全部保留，分区标题是终端注释风。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>03:52</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="logline">航行日志 · 03:52 把夜灯调暗一格，别惊动多肉</div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--radar)"><use href="#i-back"/></svg><span style="font-family:var(--font-mono);font-size:12px;letter-spacing:2px">CONFIG</span></div>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--radar);border:1px solid var(--radar);padding:2px 8px;border-radius:4px;background:rgba(63,224,192,.08)">● READY</span>
+      </div>
+      <div class="in" style="margin-top:6px;background:#050D12;font-family:var(--font-mono);padding:11px 14px">
+        <div class="phead" style="padding:0 0 6px">TRT-0117 · ONLINE<b>主屿</b></div>
+        <div style="font-size:11px;color:var(--ink2)"><span style="color:var(--radar)">&gt;</span> 绿萝 · Monstera Friendly · 客厅窗台</div>
+      </div>
+      <div class="phead" style="padding:12px 4px 4px">// DEVICE · 岛屿档案</div>
+      <div class="in" style="padding:4px 14px">
+        <div style="padding:11px 0"><div style="font-family:var(--font-mono);font-size:9px;color:var(--ink2);letter-spacing:1px;margin-bottom:6px">NAME · 岛屿别名</div><div style="font-size:13px;font-weight:600">客厅花盆</div></div>
+        <div style="border-top:1px solid rgba(30,58,70,.6)"></div>
+        <div style="padding:11px 0"><div style="font-family:var(--font-mono);font-size:9px;color:var(--ink2);letter-spacing:1px;margin-bottom:6px">SPECIES · 植物种类</div><div style="display:flex;justify-content:space-between;align-items:center"><span style="display:flex;align-items:center;gap:9px"><span style="width:30px;height:30px;border:1px solid var(--line2);border-radius:8px;display:flex;align-items:center;justify-content:center"><svg width="24" height="24"><use href="#pet-pothos"/></svg></span><span><b style="display:block;font-size:12.5px">绿萝</b><span style="display:block;font-size:9px;color:var(--ink2)">天南星科</span></span></span><svg width="10" height="7" style="color:var(--radar)"><use href="#i-chev"/></svg></div></div>
+        <div style="border-top:1px solid rgba(30,58,70,.6)"></div>
+        <div style="padding:11px 0"><div style="font-family:var(--font-mono);font-size:9px;color:var(--ink2);letter-spacing:1px;margin-bottom:6px">MOOR · 锚泊位置</div><div style="font-size:13px;font-weight:600">客厅窗台</div></div>
+      </div>
+      <div class="phead" style="padding:12px 4px 4px">// NET · 设备配网</div>
+      <div class="in" style="padding:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:800">配网信标</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink2)">Browser Setup</span></div>
+        <div style="font-size:11px;color:var(--ink2);line-height:1.75;margin-top:7px">如果岛屿还没连上家里的 Wi-Fi，请先连接设备热点，再用浏览器打开下面地址完成配网。</div>
+        <div style="margin-top:10px;padding:10px 12px;border:1px dashed var(--radar);background:rgba(63,224,192,.06);font-family:var(--font-mono);font-size:12px;color:var(--radar);border-radius:8px">http://192.168.4.1</div>
+        <div style="display:flex;gap:8px;margin-top:10px"><span class="btn ghost" style="flex:1">查看说明</span><span class="btn soft" style="flex:1">复制地址</span></div>
+      </div>
+      <div class="phead" style="padding:12px 4px 4px;color:var(--coral)">// DANGER · 危险区</div>
+      <div class="in" style="padding:13px 14px;display:flex;align-items:center;gap:12px;border-color:rgba(255,142,122,.4)">
+        <div style="width:36px;height:36px;border:1px solid var(--coral);border-radius:10px;display:flex;align-items:center;justify-content:center;flex:none;color:var(--coral);font-size:18px;font-weight:900;font-family:var(--font-mono)">!</div>
+        <div style="flex:1">
+          <div style="font-size:13.5px;font-weight:800;color:var(--coral)">解除绑定</div>
+          <div style="font-size:10px;color:var(--ink2);line-height:1.6;margin-top:3px">解绑后岛屿将移出你的群岛，原有信息保留方便重新入册。</div>
+        </div>
+        <span style="font-family:var(--font-mono);font-size:9.5px;font-weight:800;color:var(--coral);letter-spacing:1px">UNBIND</span>
+      </div>
+      <button class="btn" style="width:100%;margin-top:14px">保存设置</button>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P8 花园 · 群岛航点图 -->
+<div data-tpl="p8">
+  <div class="slot-head"><span class="no">PAGE 08 · 夜</span><h2>我的花园 · 群岛航点</h2><p>设备画廊、状态与详情入口保留——夜晚的海图上，每座盆屿是一个航点信号。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>04:26</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="logline">航行日志 · 04:26 巡到第二排，睡着的都盖好了叶子</div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--radar)"><use href="#i-back"/></svg><span style="font-family:var(--font-mono);font-size:12px;letter-spacing:2px">CHART</span></div>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink2)">NIGHT GALLERY</span>
+      </div>
+      <div class="in brk" style="padding:14px;position:relative;overflow:hidden;border-color:var(--radar)">
+        <div class="stars"></div>
+        <div style="display:flex;gap:12px;align-items:center;position:relative;z-index:2">
+          <div style="width:60px;height:60px;border:1px solid var(--radar);border-radius:50%;background:rgba(63,224,192,.08);display:flex;align-items:center;justify-content:center;flex:none;position:relative"><svg width="48" height="48" style="animation:sway 5s ease-in-out infinite"><use href="#pet-pothos"/></svg><span style="position:absolute;inset:-5px;border:1px dashed rgba(63,224,192,.4);border-radius:50%;animation:sweep 22s linear infinite"></span></div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14.5px;font-weight:800">主屿 · 客厅花盆</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--radar);border:1px solid var(--radar);padding:2px 8px;border-radius:4px;background:rgba(63,224,192,.08)">● 在线</span></div>
+            <div style="font-size:10px;color:var(--ink2);margin-top:4px;font-family:var(--font-mono)">客厅窗台 · 智能花盆 · 绿萝</div>
+            <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10.5px"><span style="color:var(--radar);font-weight:600">状态良好 · 心情美美的 😊</span><span style="color:var(--ink2)">勘测 ›</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="in" style="margin-top:10px;padding:14px;position:relative;overflow:hidden">
+        <div class="stars"></div>
+        <div style="display:flex;gap:12px;align-items:center;position:relative;z-index:2">
+          <div style="width:60px;height:60px;border:1px solid var(--line2);border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;flex:none;position:relative"><svg width="48" height="48" style="opacity:.8"><use href="#pet-succulent"/></svg><span style="position:absolute;top:0;right:2px;font-family:var(--font-mono);font-size:8px;color:var(--beam)">z z</span></div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:14.5px;font-weight:800">礁屿 · 阳台花盆</span><span style="font-family:var(--font-mono);font-size:9px;color:var(--beam);border:1px solid var(--beam);padding:2px 8px;border-radius:4px;background:rgba(255,196,107,.08)">● 离线</span></div>
+            <div style="font-size:10px;color:var(--ink2);margin-top:4px;font-family:var(--font-mono)">阳台 · 智能花盆 · 多肉</div>
+            <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10.5px"><span style="color:var(--beam);font-weight:600">睡了 2 天 · 叫醒它？（查供电）</span><span style="color:var(--ink2)">勘测 ›</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="in" style="margin-top:10px;padding:14px;display:flex;align-items:center;justify-content:center;gap:9px;border:1px dashed var(--line2);cursor:pointer">
+        <svg width="13" height="13" style="color:var(--radar)"><use href="#i-plus"/></svg><span style="font-family:var(--font-mono);font-size:12px;letter-spacing:2px;color:var(--ink2)">并入一座新屿</span>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P9 日记 · 航迹记录仪 -->
+<div data-tpl="p9">
+  <div class="slot-head"><span class="no">PAGE 09 · 夜</span><h2>植物成长日记 · 航迹仪</h2><p>成长日历、当日时间线、设备切换与记录入口保留——有记录的日子挂一颗会眨的星。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>04:51</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="logline">航行日志 · 04:51 记下今晚的航迹和心事</div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--radar)"><use href="#i-back"/></svg><span style="font-family:var(--font-mono);font-size:12px;letter-spacing:2px">LOG</span></div>
+        <span style="font-family:var(--font-mono);font-size:9px;color:var(--ink2)">STAR JOURNAL</span>
+      </div>
+      <div class="in" style="padding:12px 14px;display:flex;align-items:center;gap:11px">
+        <div style="width:38px;height:38px;border:1px solid var(--radar);border-radius:10px;background:rgba(63,224,192,.08);display:flex;align-items:center;justify-content:center;flex:none"><svg width="19" height="19" style="color:var(--radar)"><use href="#i-leaf"/></svg></div>
+        <div style="flex:1"><b style="font-size:14px">主屿 · 小绿</b><div style="font-size:10px;color:var(--ink2);margin-top:2px">点击切换盆屿，日志同步到当前植宠</div></div>
+        <span class="btn soft">切换 ›</span>
+      </div>
+      <div class="in" style="margin-top:10px;padding:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:2px;color:var(--radar)">STAR CAL · 星点日历</div><div style="font-size:15px;font-weight:800;margin-top:3px">2026 年 8 月</div></div>
+          <div style="display:flex;gap:6px"><span class="btn ghost" style="width:30px;height:30px;padding:0;justify-content:center">‹</span><span class="btn ghost" style="width:30px;height:30px;padding:0;justify-content:center">›</span></div>
+        </div>
+        <div class="calgrid" style="margin-top:12px">
+          <span class="calw">日</span><span class="calw">一</span><span class="calw">二</span><span class="calw">三</span><span class="calw">四</span><span class="calw">五</span><span class="calw">六</span>
+          <span class="cald dim">26</span><span class="cald dim">27</span><span class="cald dim">28</span><span class="cald dim">29</span><span class="cald dim">30</span><span class="cald dim">31</span><span class="cald">1</span>
+          <span class="cald">2</span><span class="cald">3</span><span class="cald">4</span><span class="cald">5</span><span class="cald">6</span><span class="cald">7</span><span class="cald">8</span>
+          <span class="cald">9</span><span class="cald rec">10</span><span class="cald rec">11</span><span class="cald rec">12</span><span class="cald">13</span><span class="cald">14</span><span class="cald">15</span>
+          <span class="cald">16</span><span class="cald">17</span><span class="cald">18</span><span class="cald">19</span><span class="cald">20</span><span class="cald">21</span><span class="cald">22</span>
+          <span class="cald">23</span><span class="cald">24</span><span class="cald">25</span><span class="cald today">26</span><span class="cald">27</span><span class="cald">28</span><span class="cald">29</span>
+          <span class="cald">30</span><span class="cald">31</span><span class="cald dim">1</span><span class="cald dim">2</span><span class="cald dim">3</span><span class="cald dim">4</span><span class="cald dim">5</span>
+        </div>
+      </div>
+      <div class="in" style="margin-top:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div><div style="font-size:13.5px;font-weight:800">8 月 26 日 · 周三</div><div style="font-size:10px;color:var(--ink2);margin-top:3px">浇水、施肥、修剪与照片都记录在这里</div></div>
+        <div style="display:flex;gap:6px"><span class="btn ghost">趋势</span><span class="btn soft">+ 记录</span></div>
+      </div>
+      <div class="phead" style="padding:12px 4px 4px">TRAIL · 今日航迹<b>2 条</b></div>
+      <div class="tl">
+        <div class="tl-item">
+          <div class="tl-node"></div>
+          <div class="in" style="padding:12px 14px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div style="display:flex;align-items:center;gap:9px"><span style="width:28px;height:28px;border:1px solid var(--radar);border-radius:8px;background:rgba(63,224,192,.08);display:flex;align-items:center;justify-content:center"><svg width="13" height="13" style="color:var(--radar)"><use href="#i-drop"/></svg></span><div><b style="font-size:13px">给小绿浇水</b><span style="display:block;font-size:9px;color:var(--ink2);margin-top:1px">浇水 · 500ml</span></div></div>
+              <span style="font-family:var(--font-mono);font-size:9.5px;color:var(--ink2)">09:12</span>
+            </div>
+            <div style="font-size:10.5px;color:var(--ink2);line-height:1.65;margin-top:8px">屿壤湿度掉到 54%，浇透到底孔渗水——小绿咕咚咕咚喝得可香了 💧</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-node"></div>
+          <div class="in" style="padding:12px 14px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div style="display:flex;align-items:center;gap:9px"><span style="width:28px;height:28px;border:1px solid var(--beam);border-radius:8px;background:rgba(255,196,107,.08);display:flex;align-items:center;justify-content:center"><svg width="13" height="13" style="color:var(--beam)"><use href="#i-leaf"/></svg></span><div><b style="font-size:13px">施一次薄肥</b><span style="display:block;font-size:9px;color:var(--ink2);margin-top:1px">施肥 · 液肥 1:1000</span></div></div>
+              <span style="font-family:var(--font-mono);font-size:9.5px;color:var(--ink2)">14:05</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P4 我的 · 船长档案仪 -->
+<div data-tpl="p4">
+  <div class="slot-head"><span class="no">PAGE 04 · 夜</span><h2>我的 · 船长档案仪</h2><p>头像档案 + 菜单 + 退出登录保留——左列是驾驶舱的船长徽章，右列是功能数据行。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>05:18</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="logline">航行日志 · 05:18 天边有点亮了，先整理档案</div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--radar)"><use href="#i-back"/></svg><span style="font-family:var(--font-mono);font-size:12px;letter-spacing:2px">CAPTAIN</span></div>
+        <svg width="16" height="16" style="color:var(--radar);animation:blip 3s infinite"><use href="#i-signal"/></svg>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:6px">
+        <div class="in brk" style="width:106px;padding:16px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px">
+          <div style="width:56px;height:56px;border:1.5px solid var(--radar);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--radar);background:rgba(63,224,192,.07)"><svg width="26" height="26"><use href="#i-anchor"/></svg></div>
+          <div style="font-size:14px;font-weight:800">阿棠</div>
+          <span style="font-family:var(--font-mono);font-size:9px;color:var(--radar);border:1px solid var(--radar);padding:2px 8px;border-radius:4px;background:rgba(63,224,192,.08)">Lv.3</span>
+          <span style="font-size:8.5px;color:var(--ink2);text-align:center;line-height:1.6;font-family:var(--font-mono)">植宠新手<br>同行 42 天</span>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:7px">
+          <div class="in" style="padding:10px 12px;display:flex;align-items:center;gap:9px;flex:1"><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink2);letter-spacing:1px;min-width:50px">CHART</span><span style="flex:1;font-size:11.5px;font-weight:600">群岛海图 · 2 座盆屿</span><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+          <div class="in" style="padding:10px 12px;display:flex;align-items:center;gap:9px;flex:1"><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink2);letter-spacing:1px;min-width:50px">LOG</span><span style="flex:1;font-size:11.5px;font-weight:600">航海日志 · 时间线</span><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+          <div class="in" style="padding:10px 12px;display:flex;align-items:center;gap:9px;flex:1"><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink2);letter-spacing:1px;min-width:50px">BIND</span><span style="flex:1;font-size:11.5px;font-weight:600">设备管理 · 入册</span><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+          <div class="in" style="padding:10px 12px;display:flex;align-items:center;gap:9px;flex:1"><span style="font-family:var(--font-mono);font-size:9px;color:var(--ink2);letter-spacing:1px;min-width:50px">INFO</span><span style="flex:1;font-size:11.5px;font-weight:600">关于 · 版本与船队</span><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+          <div class="in" style="padding:10px 12px;display:flex;align-items:center;gap:9px;flex:1;border-color:rgba(255,142,122,.4)"><span style="font-family:var(--font-mono);font-size:9px;color:var(--coral);letter-spacing:1px;min-width:50px">EXIT</span><span style="flex:1;font-size:11.5px;color:var(--coral);font-weight:600">退出登录</span><svg width="8" height="12" style="color:var(--coral)"><use href="#i-chev-r"/></svg></div>
+        </div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-isle"/></svg>群岛</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-compass"/></svg>电台</div>
+      <div class="tab-item"><svg width="18" height="18"><use href="#i-log"/></svg>图鉴</div>
+      <div class="tab-item on"><svg width="18" height="18"><use href="#i-captain"/></svg>船长</div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P11 资料编辑 · 身份卡 -->
+<div data-tpl="p11">
+  <div class="slot-head"><span class="no">PAGE 11 · 夜</span><h2>资料编辑 · 身份卡</h2><p>头像更换、昵称与签名编辑、保存流程不变——深夜里安静地改一张船员身份卡。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>05:36</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="logline">航行日志 · 05:36 改一句签名，等太阳出来</div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--radar)"><use href="#i-back"/></svg><span style="font-family:var(--font-mono);font-size:12px;letter-spacing:2px">ID CARD</span></div>
+        <span class="btn soft">保存</span>
+      </div>
+      <div class="in brk" style="padding:20px 16px;display:flex;flex-direction:column;align-items:center">
+        <div style="position:relative;width:82px;height:82px">
+          <div style="width:82px;height:82px;border:1.5px solid var(--radar);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--radar);background:rgba(63,224,192,.07)"><svg width="38" height="38"><use href="#i-anchor"/></svg></div>
+          <span style="position:absolute;right:-4px;bottom:-4px;width:26px;height:26px;border-radius:50%;background:var(--radar);color:var(--radar-ink);display:flex;align-items:center;justify-content:center;border:2px solid var(--panel)"><svg width="11" height="11"><use href="#i-plus"/></svg></span>
+        </div>
+        <div style="font-size:10.5px;color:var(--ink2);margin-top:12px">点击更换船长徽记</div>
+      </div>
+      <div class="in" style="margin-top:10px;padding:4px 14px">
+        <div style="padding:11px 0"><div style="font-family:var(--font-mono);font-size:9px;color:var(--ink2);letter-spacing:1px;margin-bottom:6px">NAME · 船长名</div><div style="font-size:13px;font-weight:600">阿棠</div></div>
+        <div style="border-top:1px solid rgba(30,58,70,.6)"></div>
+        <div style="padding:11px 0"><div style="font-family:var(--font-mono);font-size:9px;color:var(--ink2);letter-spacing:1px;margin-bottom:6px">MOTTO · 座右铭</div><div style="font-size:13px;color:var(--ink2)">和植宠一起慢慢长大…</div></div>
+      </div>
+      <button class="btn" style="width:100%;margin-top:14px">保存名片</button>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- P13 关于 · 任务控制档案 -->
+<div data-tpl="p13">
+  <div class="slot-head"><span class="no">PAGE 13 · 夜</span><h2>关于 · 靠岸档案</h2><p>品牌、版本、协议与联系入口保留——夜航的最后一页，灯塔亮起，档案封存。</p></div>
+  <div class="phone"><div class="screen"><div class="pbody">
+    <div class="island"></div>
+    <div class="pstatus"><span>05:58</span><svg width="58" height="12"><use href="#st-icons"/></svg></div>
+    <div class="logline">航行日志 · 05:58 守到天亮，该说早安了</div>
+    <div style="position:absolute;left:0;right:0;top:0;height:110px;background:linear-gradient(180deg,rgba(255,196,107,.14),transparent);pointer-events:none;z-index:3"></div>
+    <div class="ppad">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0 8px">
+        <div style="display:flex;align-items:center;gap:8px"><svg width="16" height="16" style="color:var(--radar)"><use href="#i-back"/></svg><span style="font-family:var(--font-mono);font-size:12px;letter-spacing:2px">DOSSIER</span></div>
+        <span style="width:20px"></span>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;padding:14px 0 4px;position:relative">
+        <div style="position:relative">
+          <svg width="66" height="66" style="animation:float 5s ease-in-out infinite;filter:drop-shadow(0 10px 18px rgba(63,224,192,.3))"><use href="#pet-pothos"/></svg>
+          <span style="position:absolute;top:-6px;right:-14px;width:14px;height:14px;border-radius:50%;background:var(--beam);box-shadow:0 0 16px 5px rgba(255,196,107,.5);animation:blip 3s infinite"></span>
+        </div>
+        <div style="font-family:var(--font-mono);font-size:18px;font-weight:800;margin-top:14px;letter-spacing:3px">盆屿群岛</div>
+        <div style="font-size:11px;color:var(--ink2);margin-top:6px">让每一株植物都被温柔照顾</div>
+        <span style="font-family:var(--font-mono);font-size:9.5px;color:var(--beam);border:1px solid var(--beam);padding:3px 10px;border-radius:5px;margin-top:10px">v1.4.2 · Build 20260826</span>
+      </div>
+      <div class="in" style="margin-top:16px;padding:4px 14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;font-size:13px"><span>航行条例</span><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+        <div style="border-top:1px solid rgba(30,58,70,.6)"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;font-size:13px"><span>隐私海图</span><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+        <div style="border-top:1px solid rgba(30,58,70,.6)"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;font-size:13px"><span>开源致谢</span><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+        <div style="border-top:1px solid rgba(30,58,70,.6)"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;font-size:13px"><span>联系信鸽</span><svg width="8" height="12" style="color:var(--ink2)"><use href="#i-chev-r"/></svg></div>
+      </div>
+      <div style="text-align:center;font-size:10px;color:var(--ink2);margin-top:20px;line-height:1.9;font-family:var(--font-mono)">TRT 灵枢智能 · 植愈星球<br>Made with 💚 for plants &amp; their people</div>
+    </div>
+  </div></div></div>
+</div>
+
+</div><!-- /tpls-dark -->
+
+<script>
+(function(){
+  // 模板注入：深色画板用「夜航仪器」模板，浅色画板用「日航手帐」模板
+  document.querySelectorAll('.slot[data-tpl]').forEach(function(slot){
+    var inDark=!!slot.closest('.board-dark');
+    var tpl=inDark?document.querySelector('#tpls-dark [data-tpl="'+slot.dataset.tpl+'"]'):null;
+    if(!tpl)tpl=document.querySelector('#tpls [data-tpl="'+slot.dataset.tpl+'"]');
+    if(tpl){slot.innerHTML=tpl.innerHTML;}
+  });
+  // 主题切换
+  var bL=document.getElementById('btnLight'),bD=document.getElementById('btnDark');
+  function setTheme(t){
+    document.body.className='theme-'+t;
+    bL.classList.toggle('on',t==='light');
+    bD.classList.toggle('on',t==='dark');
+  }
+  bL.addEventListener('click',function(){setTheme('light')});
+  bD.addEventListener('click',function(){setTheme('dark')});
+  // 折叠面板 / 任务打卡（事件委托）
+  document.addEventListener('click',function(e){
+    var fs=e.target.closest('.fold-summary');
+    if(fs){fs.closest('.sec-fold').classList.toggle('open');return;}
+    var tc=e.target.closest('.task-check');
+    if(tc){
+      if(tc.classList.contains('done')){tc.classList.remove('done');tc.innerHTML='';}
+      else{tc.classList.add('done');tc.innerHTML='<svg width="13" height="13"><use href="#i-check"/></svg>';}
+    }
+  });
+  // 风扇开关：fan.on / fan.off
+  document.addEventListener('change',function(e){
+    var inp=e.target;
+    if(!inp.matches('.fan-toggle input'))return;
+    var card=inp.closest('.fan-card')||inp.closest('.in');
+    if(card){
+      var ico=card.querySelector('svg[style*="animation"]')||card.querySelector('.fan-ico svg');
+      if(ico){ico.style.animationPlayState=inp.checked?'running':'paused';ico.style.opacity=inp.checked?'1':'.5';}
+    }
+    var st=inp.closest('.fan-card')?inp.closest('.fan-card').querySelector('.fan-state'):null;
+    var hint=inp.closest('.fan-card')?inp.closest('.fan-card').querySelector('.fan-hint'):null;
+    if(st)st.textContent=inp.checked?'呼呼转着呢 · 已开 2 小时 14 分':'风扇已关 · 叶子在静息';
+    if(hint)hint.textContent=inp.checked?'微风吹着叶子，小绿在深呼吸':'打开让小绿呼吸点新鲜空气吧';
+    var knob=inp.parentElement.querySelector('.knob');
+    if(knob)knob.textContent=inp.checked?'ON':'OFF';
+  });
+})();
+</script>
+</body>
+</html>

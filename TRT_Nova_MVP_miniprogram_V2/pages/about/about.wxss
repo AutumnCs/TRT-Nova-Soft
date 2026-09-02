@@ -1,0 +1,247 @@
+/* ================= 关于页 · 双主题 ================= */
+/* 浅色 · 元气日光 · 说明书封底（刊头 / 感谢语 / 条码 / 铭牌） */
+/* 深色 · 萤火温室 · 黎明将至（守夜手记 / 晨光 / 萤火 / 品牌铭牌） */
+/* 共享 CSS 变量见 app.wxss（page 默认浅色，.theme-dark 覆盖深色） */
+
+/* ---------- 容器 ---------- */
+.about-page {
+  position: relative;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-color: var(--bg);
+  background-image: radial-gradient(rgba(47, 162, 102, 0.045) 2rpx, transparent 2rpx);
+  background-size: 56rpx 56rpx;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  font-size: 28rpx;
+  color: var(--text);
+}
+.about-page.theme-dark {
+  background-image: radial-gradient(rgba(127, 224, 168, 0.05) 2rpx, transparent 2rpx);
+}
+.ppad { padding: 12rpx 32rpx 0; }
+
+/* ---------- 主题切换按钮 ---------- */
+.theme-btn {
+  width: 64rpx; height: 64rpx; border-radius: 20rpx;
+  background: var(--jelly2); border: 2rpx solid var(--line2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32rpx;
+}
+.theme-dark .theme-btn { border-color: rgba(245, 217, 139, 0.35); background: rgba(245, 217, 139, 0.08); }
+
+/* ---------- 刊头导航（浅色为基础，深色覆盖） ---------- */
+.pg-top { display: flex; align-items: center; justify-content: space-between; padding: 4rpx 0 28rpx; }
+.pg-back {
+  width: 72rpx; height: 72rpx; border-radius: 28rpx;
+  background: var(--jelly2); color: var(--text);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s;
+}
+.pg-back:active { transform: scale(0.9); opacity: 0.7; }
+.pg-back-ico { font-size: 34rpx; font-weight: 700; }
+.pg-mid { flex: 1; text-align: center; }
+.pg-t { font-family: 'Yuanti SC', 'YouYuan', '幼圆', -apple-system, 'PingFang SC', sans-serif; font-size: 29rpx; font-weight: 800; color: var(--text); }
+.pg-act { min-width: 72rpx; display: flex; justify-content: flex-end; align-items: center; gap: 12rpx; }
+.theme-dark .pg-back { width: 68rpx; height: 68rpx; border-radius: 24rpx; background: var(--surface2); }
+.theme-dark .pg-t { font-family: -apple-system, 'PingFang SC', sans-serif; font-size: 27rpx; font-weight: 700; }
+
+/* ---------- 通用分隔线（浅色 var(--line) / 深色 var(--border) 自动切换） ---------- */
+.divider { height: 2rpx; background: var(--line); margin: 4rpx 0; }
+
+/* ================= 浅色 · 元气日光 · 说明书封底 ================= */
+
+/* 说明书卡：双线描边 + 纸感投影 */
+.manual {
+  position: relative; margin-top: 20rpx;
+  background: var(--paper); border: 2rpx solid var(--line); border-radius: 6rpx;
+  padding: 36rpx 32rpx;
+  box-shadow: 0 10rpx 28rpx rgba(52, 66, 58, 0.09);
+}
+.manual::after {
+  content: ''; position: absolute; inset: -8rpx;
+  border: 2rpx solid var(--line); border-radius: 12rpx;
+  pointer-events: none;
+}
+
+/* 刊头 */
+.mn-head {
+  font-family: var(--font-serif);
+  font-size: 34rpx; font-weight: 700; letter-spacing: 16rpx; text-align: center;
+  padding-bottom: 20rpx; border-bottom: 3rpx solid var(--line);
+  text-indent: 16rpx;
+}
+.mn-sub {
+  text-align: center; margin-top: 10rpx;
+  font-family: var(--font-serif);
+  font-size: 20rpx; color: var(--text2); letter-spacing: 6rpx;
+}
+
+/* 悬浮植宠 */
+.mn-plant { display: flex; justify-content: center; padding: 36rpx 0 16rpx; }
+.mn-plant-ico {
+  font-size: 136rpx; line-height: 1;
+  animation: floaty 5s ease-in-out infinite;
+  filter: drop-shadow(0 20rpx 28rpx rgba(47, 162, 102, 0.3));
+}
+
+/* 感谢语 */
+.mn-thanks {
+  display: flex; flex-direction: column; align-items: center; gap: 6rpx;
+  text-align: center; font-size: 22rpx; color: var(--text2); line-height: 1.9;
+  padding: 0 12rpx;
+}
+.mn-thanks-brand { font-weight: 600; }
+
+/* 规格列表（核心功能） */
+.mn-specs { display: flex; flex-direction: column; gap: 14rpx; margin: 28rpx 8rpx 0; }
+.mn-spec { display: flex; align-items: center; gap: 16rpx; }
+.mn-spec-check {
+  width: 30rpx; height: 30rpx; border-radius: 8rpx; flex: none;
+  border: 2rpx solid var(--line); background: var(--bg);
+  color: var(--matcha-deep); font-size: 19rpx; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.mn-spec-txt { font-size: 22rpx; color: var(--text2); line-height: 1.5; }
+
+/* 条码 */
+.barcode {
+  height: 64rpx; margin: 32rpx 40rpx 0; border-radius: 2rpx; opacity: 0.85;
+  background: repeating-linear-gradient(90deg, #23282F 0 4rpx, transparent 4rpx 10rpx, #23282F 10rpx 12rpx, transparent 12rpx 22rpx);
+}
+
+/* 序列号 + 铭牌 */
+.mn-serial {
+  text-align: center; margin-top: 8rpx;
+  font-family: 'SF Pro Rounded', 'DIN Alternate', 'Bahnschrift', sans-serif;
+  font-size: 17rpx; color: var(--text2); letter-spacing: 4rpx;
+}
+.mn-plate {
+  display: flex; justify-content: space-between;
+  margin-top: 12rpx; padding: 0 40rpx;
+  font-family: 'SF Pro Rounded', 'DIN Alternate', 'Bahnschrift', sans-serif;
+  font-size: 18rpx; color: var(--text2); letter-spacing: 2rpx;
+}
+
+/* 附录卡 */
+.dd {
+  position: relative; margin-top: 32rpx; padding: 8rpx 28rpx 4rpx;
+  background: var(--paper); border: 2rpx solid var(--line); border-radius: 12rpx;
+  box-shadow: 0 6rpx 20rpx rgba(52, 66, 58, 0.07);
+}
+.dd-tag {
+  position: absolute; top: -18rpx; left: 28rpx; z-index: 3;
+  background: var(--line); color: #F3F1E8;
+  font-family: var(--font-serif);
+  font-size: 19rpx; font-weight: 700; letter-spacing: 4rpx;
+  padding: 6rpx 20rpx; border-radius: 6rpx;
+}
+.dd-row { display: flex; justify-content: space-between; align-items: center; padding: 26rpx 0; }
+.dd-row:active { opacity: 0.6; }
+.dd-row-t {
+  font-family: 'Yuanti SC', 'YouYuan', '幼圆', -apple-system, 'PingFang SC', sans-serif;
+  font-size: 26rpx; font-weight: 600; color: var(--text);
+}
+.dd-chev { font-size: 26rpx; color: var(--text2); }
+.dd-row-v { font-size: 23rpx; color: var(--text2); text-align: right; }
+
+/* 浅色页脚 */
+.l-foot {
+  display: flex; flex-direction: column; align-items: center; gap: 4rpx;
+  margin-top: 44rpx; text-align: center; line-height: 1.9;
+  font-family: 'Yuanti SC', 'YouYuan', '幼圆', -apple-system, 'PingFang SC', sans-serif;
+  font-size: 20rpx; color: var(--text2);
+}
+.l-foot-cr { margin-top: 8rpx; font-size: 19rpx; opacity: 0.75; }
+
+/* ================= 深色 · 萤火温室 · 黎明将至 ================= */
+
+/* 守夜手记 */
+.nw {
+  text-align: center; font-size: 17rpx; letter-spacing: 4rpx;
+  color: rgba(245, 217, 139, 0.45); padding: 0 12rpx 10rpx;
+  font-weight: 600; position: relative; z-index: 2;
+}
+
+/* 黎明之光：页面顶部第一缕晨光 */
+.dawn {
+  position: absolute; left: 0; right: 0; top: 0; height: 240rpx;
+  background: linear-gradient(180deg, rgba(245, 217, 139, 0.16), transparent);
+  pointer-events: none; z-index: 1;
+}
+
+/* 萤火虫 */
+.ff {
+  position: absolute; width: 10rpx; height: 10rpx; border-radius: 50%;
+  background: var(--gold); box-shadow: 0 0 18rpx 4rpx rgba(245, 217, 139, 0.6);
+  z-index: 4; pointer-events: none;
+  animation: fly 9s ease-in-out infinite;
+}
+.ff.f1 { left: 14%; top: 24%; }
+.ff.f2 { right: 11%; top: 38%; animation-delay: 3.5s; animation-duration: 11s; }
+
+/* 品牌铭牌区 */
+.about-body { position: relative; display: flex; flex-direction: column; align-items: center; padding: 44rpx 0 12rpx; }
+.about-body .halo {
+  position: absolute; top: -20rpx; width: 500rpx; height: 360rpx; border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-soft), transparent 70%);
+  pointer-events: none;
+}
+.ff.ab-ff { left: 30%; top: 18%; animation-duration: 9s; }
+.ab-plant {
+  position: relative; font-size: 120rpx; line-height: 1;
+  animation: float 5s ease-in-out infinite;
+  filter: drop-shadow(0 24rpx 40rpx rgba(61, 220, 151, 0.28));
+}
+.ab-brand { position: relative; margin-top: 36rpx; font-size: 40rpx; font-weight: 800; color: var(--text); }
+.ab-sub { position: relative; margin-top: 14rpx; font-size: 23rpx; color: var(--text2); }
+.ab-sub2 { position: relative; margin-top: 6rpx; font-size: 22rpx; color: var(--text2); line-height: 1.7; max-width: 520rpx; text-align: center; }
+.ver-chip {
+  position: relative; margin-top: 24rpx;
+  display: inline-flex; align-items: center; height: 48rpx; padding: 0 24rpx;
+  border-radius: 999rpx; background: var(--surface2);
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 20rpx; color: var(--text2); white-space: nowrap;
+}
+
+/* 章节横排小标 */
+.d-sec { display: flex; align-items: center; gap: 16rpx; margin: 36rpx 0 18rpx; }
+.d-sec .ln { flex: 1; height: 2rpx; background: var(--border); }
+.d-sec text { font-size: 19rpx; letter-spacing: 5rpx; color: var(--text2); font-weight: 700; }
+
+/* 深色卡片 */
+.card {
+  background: linear-gradient(180deg, rgba(127, 224, 168, 0.035), rgba(127, 224, 168, 0) 42%), var(--surface);
+  border: 2rpx solid var(--border); border-radius: 48rpx;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 核心功能卡 */
+.spec-card { padding: 12rpx 32rpx; }
+.spec-row { display: flex; align-items: center; gap: 20rpx; padding: 20rpx 0; }
+.spec-check {
+  width: 44rpx; height: 44rpx; border-radius: 22rpx; flex: none;
+  background: var(--accent-soft); color: var(--accent);
+  font-size: 22rpx; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.spec-txt { font-size: 25rpx; color: var(--text); line-height: 1.5; }
+
+/* 协议链接卡 */
+.link-card { padding: 8rpx 32rpx; }
+.link-row { display: flex; justify-content: space-between; align-items: center; padding: 28rpx 0; font-size: 27rpx; color: var(--text); }
+.link-row:active { opacity: 0.6; }
+.link-chev { font-size: 26rpx; color: var(--text2); }
+.link-v { font-size: 23rpx; color: var(--text2); text-align: right; }
+
+/* 深色页脚 */
+.about-foot {
+  display: flex; flex-direction: column; align-items: center; gap: 4rpx;
+  margin-top: 52rpx; text-align: center; line-height: 1.9;
+  font-size: 21rpx; color: var(--text2);
+}
+.about-foot-cr { margin-top: 8rpx; font-size: 19rpx; opacity: 0.75; }
+
+/* ================= 动画 ================= */
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-16rpx); } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-16rpx); } }
+@keyframes fly { 0%, 100% { transform: translate(0, 0); opacity: 0.1; } 30% { opacity: 0.85; } 55% { transform: translate(32rpx, -44rpx); opacity: 0.45; } 80% { opacity: 0.9; } }

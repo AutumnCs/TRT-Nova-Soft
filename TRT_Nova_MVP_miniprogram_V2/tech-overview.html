@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRT 小程序 · 技术全景课</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2330; --border:#2b3340;
+    --txt:#e6edf3; --sub:#9aa7b4; --blue:#58a6ff; --teal:#39d0d8;
+    --amber:#f0a020; --green:#3fb950; --purple:#bc8cff; --red:#ff6b6b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--txt);font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;line-height:1.7;font-size:15px}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 20px 80px}
+  header{text-align:center;padding:24px 0 8px}
+  header h1{font-size:26px;font-weight:600;letter-spacing:1px}
+  header h1 .accent{color:var(--teal)}
+  header p{color:var(--sub);margin-top:8px;font-size:14px}
+  section{margin-top:46px}
+  .sec-title{font-size:19px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+  .sec-title .dot{width:10px;height:10px;border-radius:50%;background:var(--amber)}
+  .sec-sub{color:var(--sub);font-size:14px;margin-bottom:20px}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:22px 24px;margin-top:16px}
+  .card h3{font-size:16px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .card p{color:var(--sub);font-size:14px}
+  .card .tag{font-size:12px;padding:2px 10px;border-radius:20px;font-weight:500}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  @media(max-width:720px){.grid2,.grid3{grid-template-columns:1fr}}
+  .role{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;position:relative;overflow:hidden}
+  .role .ic{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+  .role h4{font-size:15px;font-weight:600;margin-bottom:4px}
+  .role .en{color:var(--sub);font-size:12px;margin-bottom:10px}
+  .role p{color:var(--sub);font-size:13px}
+  .blue{background:rgba(88,166,255,.14)} .blue-b{color:var(--blue)}
+  .teal{background:rgba(57,208,216,.14)} .teal-b{color:var(--teal)}
+  .amber{background:rgba(240,160,32,.14)} .amber-b{color:var(--amber)}
+  .green{background:rgba(63,185,80,.14)} .green-b{color:var(--green)}
+  .purple{background:rgba(188,140,255,.14)} .purple-b{color:var(--purple)}
+  .compare{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+  @media(max-width:720px){.compare{grid-template-columns:1fr}}
+  .vs-col{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px}
+  .vs-col h4{font-size:15px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .vs-col ul{list-style:none}
+  .vs-col li{font-size:13px;color:var(--sub);padding:7px 0 7px 20px;position:relative;border-top:1px solid var(--border)}
+  .vs-col li:first-child{border-top:none}
+  .vs-col li:before{content:"";position:absolute;left:2px;top:14px;width:7px;height:7px;border-radius:50%;background:var(--blue)}
+  .step{display:flex;gap:14px;margin-top:14px;align-items:flex-start}
+  .step .n{flex:0 0 30px;height:30px;border-radius:50%;background:var(--amber);color:#0d1117;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px}
+  .step .body{flex:1}
+  .step .body h4{font-size:14px;font-weight:600;margin-bottom:3px}
+  .step .body p{color:var(--sub);font-size:13px}
+  code{background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:1px 7px;font-size:12.5px;color:var(--teal);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .filetree{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-top:16px;line-height:2}
+  .filetree .dir{color:var(--blue);font-weight:600}
+  .filetree .front{color:var(--green)}
+  .filetree .back{color:var(--amber)}
+  .filetree .arch{color:var(--sub)}
+  .filetree .cmt{color:#6b7785;font-style:italic}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;font-size:12px;color:var(--sub)}
+  .legend span{display:flex;align-items:center;gap:6px}
+  .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+  .note{background:rgba(240,160,32,.08);border:1px solid rgba(240,160,32,.3);border-radius:12px;padding:16px 18px;margin-top:18px;font-size:14px;color:#f0c98a}
+  .note b{color:var(--amber)}
+  svg{display:block;width:100%;height:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>TRT 小程序 · <span class="accent">技术全景课</span></h1>
+  <p>初学也不慌，一张图看懂“前端 / 后端 / 云平台”怎么配合</p>
+</header>
+
+<!-- ============ 全景架构 ============ -->
+<section>
+  <div class="sec-title"><span class="dot"></span>一、全景架构：谁在和谁说话</div>
+  <div class="sec-sub">你的小程序跑起来，其实是下面这几块在互相通信。先记住一句话：<b>前端管“看得见的操作”，后端管“数据的存和查”</b>。</div>
+
+  <div class="card">
+    <svg viewBox="0 0 680 380" role="img" aria-label="系统架构图">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="#8b949e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- 设备侧 -->
+      <rect x="24" y="34" width="150" height="58" rx="10" fill="#11271a" stroke="#3fb950" stroke-width="1"/>
+      <text x="99" y="58" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600">植物养护硬件</text>
+      <text x="99" y="78" text-anchor="middle" fill="#9aa7b4" font-size="11">ESP32 等真实设备</text>
+
+      <rect x="234" y="34" width="150" height="58" rx="10" fill="#0f2628" stroke="#39d0d8" stroke-width="1"/>
+      <text x="309" y="58" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600">OneNet 平台</text>
+      <text x="309" y="78" text-anchor="middle" fill="#9aa7b4" font-size="11">物联网数据入口</text>
+
+      <!-- 用户侧 -->
+      <rect x="24" y="288" width="150" height="58" rx="10" fill="#161b22" stroke="#58a6ff" stroke-width="1"/>
+      <text x="99" y="312" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600">你的手机微信</text>
+      <text x="99" y="332" text-anchor="middle" fill="#9aa7b4" font-size="11">或开发者工具</text>
+
+      <rect x="234" y="288" width="150" height="58" rx="10" fill="#0e1f33" stroke="#58a6ff" stroke-width="1"/>
+      <text x="309" y="312" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600">微信小程序前端</text>
+      <text x="309" y="332" text-anchor="middle" fill="#9aa7b4" font-size="11">pages/ services/</text>
+
+      <!-- 后端 -->
+      <rect x="430" y="150" width="226" height="120" rx="12" fill="#241c0c" stroke="#f0a020" stroke-width="1.5"/>
+      <text x="543" y="178" text-anchor="middle" fill="#f0a020" font-size="13" font-weight="600">腾讯云 SCF 后端</text>
+      <text x="543" y="200" text-anchor="middle" fill="#e6edf3" font-size="11">dist/scf/api-scf 等</text>
+      <text x="543" y="218" text-anchor="middle" fill="#9aa7b4" font-size="11">绑定 / 存数据 / 查数据</text>
+      <text x="543" y="238" text-anchor="middle" fill="#9aa7b4" font-size="11">这次改的就是这里</text>
+
+      <!-- 数据库 -->
+      <rect x="430" y="296" width="226" height="54" rx="10" fill="#1a1030" stroke="#bc8cff" stroke-width="1"/>
+      <text x="543" y="318" text-anchor="middle" fill="#e6edf3" font-size="13" font-weight="600">MySQL 数据库</text>
+      <text x="543" y="338" text-anchor="middle" fill="#9aa7b4" font-size="11">devices 表等</text>
+
+      <!-- 连线 -->
+      <path d="M174 63 H234" stroke="#8b949e" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+      <text x="204" y="54" text-anchor="middle" fill="#9aa7b4" font-size="10">上报数据</text>
+
+      <path d="M384 63 C420 63 420 150 430 175" stroke="#8b949e" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+      <text x="408" y="110" text-anchor="middle" fill="#9aa7b4" font-size="10">推送</text>
+
+      <path d="M174 317 H234" stroke="#8b949e" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+      <text x="204" y="308" text-anchor="middle" fill="#9aa7b4" font-size="10">运行</text>
+
+      <path d="M384 317 C420 317 420 250 430 240" stroke="#8b949e" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+      <text x="408" y="290" text-anchor="middle" fill="#9aa7b4" font-size="10">API调用</text>
+
+      <path d="M543 270 V296" stroke="#8b949e" stroke-width="1.5" fill="none" marker-end="url(#ar)"/>
+      <text x="560" y="288" text-anchor="middle" fill="#9aa7b4" font-size="10">读写</text>
+    </svg>
+    <div class="legend">
+      <span><i style="background:#3fb950"></i>硬件设备</span>
+      <span><i style="background:#39d0d8"></i>OneNet 物联网</span>
+      <span><i style="background:#58a6ff"></i>小程序前端</span>
+      <span><i style="background:#f0a020"></i>腾讯云 SCF 后端</span>
+      <span><i style="background:#bc8cff"></i>数据库</span>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>重点理解：</b>你刚才在小程序里“绑定设备失败”，是因为<b>前端把你输入的设备码发给后端，后端去数据库查，但查的名字对不上</b>。我们改的是右边那个橙色“腾讯云 SCF 后端”里的查询逻辑——前端、数据库一行都没动。
+  </div>
+</section>
+
+<!-- ============ 四个角色 ============ -->
+<section>
+  <div class="sec-title"><span class="dot"></span>二、四个角色分别是干嘛的</div>
+  <div class="sec-sub">把下面四块当成四个“岗位”，各管一摊。</div>
+
+  <div class="grid2">
+    <div class="role">
+      <div class="ic blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="1.6"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+      <h4>微信开发者工具</h4>
+      <div class="en">写代码 + 预览 + 上传</div>
+      <p>装在你电脑上的软件。你在这里写小程序、点“预览”看效果、点“上传”把前端代码发到微信服务器。<b>它本身不是后端</b>，只是前端的“编辑器+模拟器”。</p>
+    </div>
+    <div class="role">
+      <div class="ic blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="1.6"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 21v-3h6v3M8 8h8M8 12h6"/></svg></div>
+      <h4>微信小程序前端</h4>
+      <div class="en">pages/ · services/ · app.*</div>
+      <p>最终跑在用户手机微信里的界面和逻辑。你看到的页面、点的按钮都是前端。它自己不存数据，要“问”后端要。</p>
+    </div>
+    <div class="role">
+      <div class="ic amber"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f0a020" stroke-width="1.6"><path d="M6 18a6 6 0 010-12 6 6 0 014 10M18 6a6 6 0 010 12 6 6 0 01-4-10"/><path d="M9 15l6-6"/></svg></div>
+      <h4>腾讯云 SCF 后端</h4>
+      <div class="en">dist/scf/ 下的云函数</div>
+      <p>跑在腾讯云服务器上的程序（不是你电脑）。处理绑定、存数据、查数据。你之前部署的就是它。它叫“云函数”，按请求才运行，不用自己买服务器。</p>
+    </div>
+    <div class="role">
+      <div class="ic purple"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bc8cff" stroke-width="1.6"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"/></svg></div>
+      <h4>OneNet + 数据库</h4>
+      <div class="en">物联网平台 · MySQL</div>
+      <p>硬件把温湿度等数据发到 OneNet；SCF 后端把设备和用户关系存进 MySQL 数据库。两者配合，小程序才能“知道”你的设备存在。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 上传 vs 部署 ============ -->
+<section>
+  <div class="sec-title"><span class="dot"></span>三、“上传”和“部署”是两码事</div>
+  <div class="sec-sub">这是新手最容易混的。一句话：<b>上传是给“前端”用的，部署是给“后端”用的</b>。</div>
+
+  <div class="compare">
+    <div class="vs-col">
+      <h4><span class="blue-b">●</span> 微信开发者工具里的“上传”</h4>
+      <ul>
+        <li>上传的是<b>前端代码</b>（pages/、services/ 那些）</li>
+        <li>传到微信自己的服务器，变成“开发版 / 体验版”</li>
+        <li>目的是：让别人也能扫码测、或者提交审核上线</li>
+        <li><b>本次你没改前端，所以不用上传也能用</b></li>
+      </ul>
+    </div>
+    <div class="vs-col">
+      <h4><span class="amber-b">●</span> 腾讯云 SCF 上的“部署”</h4>
+      <ul>
+        <li>部署的是<b>后端代码</b>（dist/scf/ 里的函数）</li>
+        <li>传到腾讯云服务器，替换掉旧的后端逻辑</li>
+        <li>目的是：让后端的新代码生效</li>
+        <li><b>我们刚才做的就是这个</b>——把改好的 api-scf 部署上去了</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>所以回到你的问题：</b>这次只在“后端”动了刀，前端没碰。你在开发者工具里直接预览 / 真机调试就能测绑定，<b>不用点上传</b>。只有想让别人测、或正式发布，才需要上传前端。
+  </div>
+</section>
+
+<!-- ============ 文件夹地图 ============ -->
+<section>
+  <div class="sec-title"><span class="dot"></span>四、你从 GitHub 克隆下来的，前端后端都有</div>
+  <div class="sec-sub">这个仓库是一个“全家桶”：既有前端、也有后端，还混了几个历史/其他项目。下面标了颜色，<b>绿色是当前前端、橙色是当前后端、灰色是先别看的归档</b>。</div>
+
+  <div class="filetree">
+    <div class="dir">TRT小程序/</div>
+    &nbsp;&nbsp;<span class="front">pages/</span> <span class="cmt">← 前端：每个小页面一个文件夹</span><br>
+    &nbsp;&nbsp;<span class="front">services/</span> <span class="cmt">← 前端：负责“调后端”的桥</span><br>
+    &nbsp;&nbsp;<span class="front">app.js / app.json / app.wxss</span> <span class="cmt">← 前端：小程序总入口</span><br>
+    &nbsp;&nbsp;<span class="front">custom-tab-bar/</span> <span class="cmt">← 前端：底部导航栏</span><br>
+    &nbsp;&nbsp;<span class="back">dist/scf/</span> <span class="cmt">← 后端：api-scf / ingest-scf / auth-scf / admin-scf</span><br>
+    &nbsp;&nbsp;<span class="front">admin-web/</span> <span class="cmt">← 前端：网页版管理后台</span><br>
+    &nbsp;&nbsp;<span class="arch">legacy/</span> <span class="cmt">← 旧代码归档（别动）</span><br>
+    &nbsp;&nbsp;<span class="arch">emotional_chat_fullsrc/</span> <span class="cmt">← 另一个 Python 项目（别动）</span><br>
+    &nbsp;&nbsp;<span class="arch">flutter_app/</span> <span class="cmt">← 另一套跨端代码（别动）</span><br>
+    &nbsp;&nbsp;<span class="arch">docs/ · scripts/ · reference/</span> <span class="cmt">← 文档和工具脚本</span>
+  </div>
+
+  <div class="note">
+    <b>结论：</b>克隆下来的东西是<b>前端 + 后端都有</b>。但真正在跑的是：前端 = 根目录的 <code>pages/ services/ app.*</code>，后端 = <code>dist/scf/</code>。<code>legacy/</code>、<code>emotional_chat_fullsrc/</code>、<code>flutter_app/</code> 是别的工程混进来的，<b>初学先完全忽略它们</b>，否则会被绕晕。
+  </div>
+</section>
+
+<!-- ============ 怎么看代码 ============ -->
+<section>
+  <div class="sec-title"><span class="dot"></span>五、怎么“看代码”：从入口顺藤摸瓜</div>
+  <div class="sec-sub">别一上来就全局搜索。按下面顺序，从“看得见的地方”摸到“背后的逻辑”。</div>
+
+  <div class="step">
+    <div class="n">1</div>
+    <div class="body">
+      <h4>看 app.json —— 知道有哪些页面</h4>
+      <p>这是小程序的“目录”。里面有个 <code>pages</code> 数组，列出了所有页面路径，比如 <code>pages/device/device</code>。想看哪个功能，先在这里找名字。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="n">2</div>
+    <div class="body">
+      <h4>进 pages/ 看每个页面 —— 四件套</h4>
+      <p>每个页面文件夹里有 4 个文件：<code>.wxml</code>(长什么样) · <code>.wxss</code>(好不好看) · <code>.js</code>(点按钮干啥) · <code>.json</code>(页面配置)。你关心的“绑定”在 <code>pages/device/device.js</code>。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="n">3</div>
+    <div class="body">
+      <h4>看 services/ —— 前端怎么“喊”后端</h4>
+      <p>前端自己不连数据库，它通过 <code>services/</code> 里的适配器（如 ScfApiAdapter）发网络请求给后端。这里就是前端和后端的“交接处”。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="n">4</div>
+    <div class="body">
+      <h4>看 dist/scf/api-scf/index.js —— 后端逻辑</h4>
+      <p>后端的“大脑”。里面用路由区分功能，比如 <code>/device/bind</code> 就是绑定设备。我们之前改的设备名兼容逻辑，就在这个文件里。</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="n">5</div>
+    <div class="body">
+      <h4>数据库是终点 —— 后端查的就是它</h4>
+      <p>后端执行 SQL（如 <code>SELECT * FROM devices</code>）去 MySQL 里找记录。绑定成功，本质是“数据库里有了你和设备的关联”。</p>
+    </div>
+  </div>
+
+  <div class="note">
+    <b>学习心法：</b>从一个你看得见的动作出发（比如“点绑定”）→ 翻 <code>pages/device/device.js</code> 看它调了哪个接口 → 翻 <code>services/</code> 看发给谁 → 翻 <code>dist/scf/api-scf/index.js</code> 看后端怎么处理 → 最后落在数据库。这样顺藤摸瓜，任何功能都能看懂。
+  </div>
+</section>
+
+<footer style="text-align:center;color:var(--sub);font-size:12px;margin-top:50px">
+  用浏览器打开本页即可随时回看 · TRT 小程序技术全景
+</footer>
+
+</div>
+</body>
+</html>

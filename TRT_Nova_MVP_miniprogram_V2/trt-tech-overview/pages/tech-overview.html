@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html class="dark" lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRT Nova 技术架构概览</title>
+    <style id="theme-vars">
+/* TRT Nova Tech Overview - Brand CSS */
+
+/* ============ Root Variables (Light Mode Default) ============ */
+:root {
+  --trt-primary-50: #ecfdf5;
+  --trt-primary-100: #d1fae5;
+  --trt-primary-200: #a7f3d0;
+  --trt-primary-300: #6ee7b7;
+  --trt-primary-400: #34d399;
+  --trt-primary-500: #10b981;
+  --trt-primary-600: #059669;
+  --trt-primary-700: #047857;
+  --trt-primary-800: #065f46;
+  --trt-primary-900: #064e3b;
+  --trt-primary-950: #022c22;
+
+  --trt-neutral-50: #f8fafc;
+  --trt-neutral-100: #f1f5f9;
+  --trt-neutral-200: #e2e8f0;
+  --trt-neutral-300: #cbd5e1;
+  --trt-neutral-400: #94a3b8;
+  --trt-neutral-500: #64748b;
+  --trt-neutral-600: #475569;
+  --trt-neutral-700: #334155;
+  --trt-neutral-800: #1e293b;
+  --trt-neutral-900: #0f172a;
+  --trt-neutral-950: #020617;
+
+  --state-success: #22c55e;
+  --state-warning: #f59e0b;
+  --state-error: #ef4444;
+  --state-info: #3b82f6;
+
+  --trt-background: var(--trt-neutral-50);
+  --trt-foreground: var(--trt-neutral-900);
+  --trt-card: #ffffff;
+  --trt-card-foreground: var(--trt-neutral-900);
+  --trt-popover: #ffffff;
+  --trt-popover-foreground: var(--trt-neutral-900);
+  --trt-primary: var(--trt-primary-600);
+  --trt-primary-foreground: #ffffff;
+  --trt-muted: var(--trt-neutral-100);
+  --trt-muted-foreground: var(--trt-neutral-500);
+  --trt-border: var(--trt-neutral-200);
+  --trt-input: var(--trt-neutral-200);
+  --trt-ring: var(--trt-primary-500);
+
+  --trt-radius-sm: 4px;
+  --trt-radius-md: 8px;
+  --trt-radius-lg: 12px;
+  --trt-radius-small: 4px;
+  --trt-radius-medium: 8px;
+  --trt-radius-large: 12px;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+}
+
+/* ============ Light Mode Class ============ */
+.light {
+  --trt-background: var(--trt-neutral-50);
+  --trt-foreground: var(--trt-neutral-900);
+  --trt-card: #ffffff;
+  --trt-card-foreground: var(--trt-neutral-900);
+  --trt-popover: #ffffff;
+  --trt-popover-foreground: var(--trt-neutral-900);
+  --trt-primary: var(--trt-primary-600);
+  --trt-primary-foreground: #ffffff;
+  --trt-muted: var(--trt-neutral-100);
+  --trt-muted-foreground: var(--trt-neutral-500);
+  --trt-border: var(--trt-neutral-200);
+  --trt-input: var(--trt-neutral-200);
+  --trt-ring: var(--trt-primary-500);
+}
+
+/* ============ Dark Mode ============ */
+.dark {
+  --trt-background: var(--trt-neutral-950);
+  --trt-foreground: var(--trt-neutral-100);
+  --trt-card: var(--trt-neutral-900);
+  --trt-card-foreground: var(--trt-neutral-100);
+  --trt-popover: var(--trt-neutral-800);
+  --trt-popover-foreground: var(--trt-neutral-100);
+  --trt-primary: var(--trt-primary-500);
+  --trt-primary-foreground: var(--trt-neutral-950);
+  --trt-muted: var(--trt-neutral-800);
+  --trt-muted-foreground: var(--trt-neutral-400);
+  --trt-border: var(--trt-neutral-800);
+  --trt-input: var(--trt-neutral-700);
+  --trt-ring: var(--trt-primary-500);
+}
+
+/* ============ Tailwind @theme inline ============ */
+@theme inline {
+  --color-background: var(--trt-background);
+  --color-foreground: var(--trt-foreground);
+  --color-card: var(--trt-card);
+  --color-card-foreground: var(--trt-card-foreground);
+  --color-popover: var(--trt-popover);
+  --color-popover-foreground: var(--trt-popover-foreground);
+  --color-primary: var(--trt-primary);
+  --color-primary-foreground: var(--trt-primary-foreground);
+  --color-muted: var(--trt-muted);
+  --color-muted-foreground: var(--trt-muted-foreground);
+  --color-border: var(--trt-border);
+  --color-input: var(--trt-input);
+  --color-ring: var(--trt-ring);
+  --color-primary-50: var(--trt-primary-50);
+  --color-primary-100: var(--trt-primary-100);
+  --color-primary-200: var(--trt-primary-200);
+  --color-primary-300: var(--trt-primary-300);
+  --color-primary-400: var(--trt-primary-400);
+  --color-primary-500: var(--trt-primary-500);
+  --color-primary-600: var(--trt-primary-600);
+  --color-primary-700: var(--trt-primary-700);
+  --color-primary-800: var(--trt-primary-800);
+  --color-primary-900: var(--trt-primary-900);
+  --color-primary-950: var(--trt-primary-950);
+  --color-neutral-50: var(--trt-neutral-50);
+  --color-neutral-100: var(--trt-neutral-100);
+  --color-neutral-200: var(--trt-neutral-200);
+  --color-neutral-300: var(--trt-neutral-300);
+  --color-neutral-400: var(--trt-neutral-400);
+  --color-neutral-500: var(--trt-neutral-500);
+  --color-neutral-600: var(--trt-neutral-600);
+  --color-neutral-700: var(--trt-neutral-700);
+  --color-neutral-800: var(--trt-neutral-800);
+  --color-neutral-900: var(--trt-neutral-900);
+  --color-neutral-950: var(--trt-neutral-950);
+  --color-success: var(--state-success);
+  --color-warning: var(--state-warning);
+  --color-error: var(--state-error);
+  --color-info: var(--state-info);
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+}
+
+/* ============ Semantic Token Fallback ============ */
+#semantic-token-fallback {
+  --background: var(--trt-background);
+  --foreground: var(--trt-foreground);
+  --card: var(--trt-card);
+  --card-foreground: var(--trt-card-foreground);
+  --popover: var(--trt-popover);
+  --popover-foreground: var(--trt-popover-foreground);
+  --primary: var(--trt-primary);
+  --primary-foreground: var(--trt-primary-foreground);
+  --muted: var(--trt-muted);
+  --muted-foreground: var(--trt-muted-foreground);
+  --border: var(--trt-border);
+  --input: var(--trt-input);
+  --ring: var(--trt-ring);
+}
+
+/* ============ Typography ============ */
+.trt-display {
+  font-family: "Noto Sans SC", "Inter", system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+.trt-heading {
+  font-family: "Noto Sans SC", "Inter", system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+.trt-body {
+  font-family: "Noto Sans SC", "Inter", system-ui, sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+}
+.trt-mono {
+  font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
+  font-weight: 400;
+  line-height: 1.5;
+}
+.trt-caption {
+  font-family: "Noto Sans SC", "Inter", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
+
+/* ============ Base Reset ============ */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--trt-background);
+  color: var(--trt-foreground);
+  font-family: "Noto Sans SC", "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <style type="text/tailwindcss">
+  @theme inline {
+    --color-background: var(--trt-background);
+    --color-foreground: var(--trt-foreground);
+    --color-card: var(--trt-card);
+    --color-card-foreground: var(--trt-card-foreground);
+    --color-popover: var(--trt-popover);
+    --color-popover-foreground: var(--trt-popover-foreground);
+    --color-primary: var(--trt-primary);
+    --color-primary-foreground: var(--trt-primary-foreground);
+    --color-muted: var(--trt-muted);
+    --color-muted-foreground: var(--trt-muted-foreground);
+    --color-border: var(--trt-border);
+    --color-input: var(--trt-input);
+    --color-ring: var(--trt-ring);
+    --color-primary-50: var(--trt-primary-50);
+    --color-primary-100: var(--trt-primary-100);
+    --color-primary-200: var(--trt-primary-200);
+    --color-primary-300: var(--trt-primary-300);
+    --color-primary-400: var(--trt-primary-400);
+    --color-primary-500: var(--trt-primary-500);
+    --color-primary-600: var(--trt-primary-600);
+    --color-primary-700: var(--trt-primary-700);
+    --color-primary-800: var(--trt-primary-800);
+    --color-primary-900: var(--trt-primary-900);
+    --color-primary-950: var(--trt-primary-950);
+    --color-neutral-50: var(--trt-neutral-50);
+    --color-neutral-100: var(--trt-neutral-100);
+    --color-neutral-200: var(--trt-neutral-200);
+    --color-neutral-300: var(--trt-neutral-300);
+    --color-neutral-400: var(--trt-neutral-400);
+    --color-neutral-500: var(--trt-neutral-500);
+    --color-neutral-600: var(--trt-neutral-600);
+    --color-neutral-700: var(--trt-neutral-700);
+    --color-neutral-800: var(--trt-neutral-800);
+    --color-neutral-900: var(--trt-neutral-900);
+    --color-neutral-950: var(--trt-neutral-950);
+    --color-success: var(--state-success);
+    --color-warning: var(--state-warning);
+    --color-error: var(--state-error);
+    --color-info: var(--state-info);
+    --radius-sm: var(--trt-radius-sm);
+    --radius-md: var(--trt-radius-md);
+    --radius-lg: var(--trt-radius-lg);
+  }
+  @layer base {
+    body { background: var(--trt-background); color: var(--trt-foreground); }
+    td, th { @apply break-words; word-break: break-all; word-break: auto-phrase; }
+    th { @apply whitespace-nowrap; }
+  }
+    </style>
+    <style id="semantic-token-fallback">
+      .bg-background { background-color: var(--trt-background); }
+      .text-background { color: var(--trt-background); }
+      .border-background { border-color: var(--trt-background); }
+      .ring-background { --tw-ring-color: var(--trt-background); }
+      .bg-foreground { background-color: var(--trt-foreground); }
+      .text-foreground { color: var(--trt-foreground); }
+      .border-foreground { border-color: var(--trt-foreground); }
+      .ring-foreground { --tw-ring-color: var(--trt-foreground); }
+      .bg-card { background-color: var(--trt-card); }
+      .text-card { color: var(--trt-card); }
+      .border-card { border-color: var(--trt-card); }
+      .ring-card { --tw-ring-color: var(--trt-card); }
+      .bg-card-foreground { background-color: var(--trt-card-foreground); }
+      .text-card-foreground { color: var(--trt-card-foreground); }
+      .border-card-foreground { border-color: var(--trt-card-foreground); }
+      .ring-card-foreground { --tw-ring-color: var(--trt-card-foreground); }
+      .bg-popover { background-color: var(--trt-popover); }
+      .text-popover { color: var(--trt-popover); }
+      .border-popover { border-color: var(--trt-popover); }
+      .ring-popover { --tw-ring-color: var(--trt-popover); }
+      .bg-popover-foreground { background-color: var(--trt-popover-foreground); }
+      .text-popover-foreground { color: var(--trt-popover-foreground); }
+      .border-popover-foreground { border-color: var(--trt-popover-foreground); }
+      .ring-popover-foreground { --tw-ring-color: var(--trt-popover-foreground); }
+      .bg-primary { background-color: var(--trt-primary); }
+      .text-primary { color: var(--trt-primary); }
+      .border-primary { border-color: var(--trt-primary); }
+      .ring-primary { --tw-ring-color: var(--trt-primary); }
+      .bg-primary-foreground { background-color: var(--trt-primary-foreground); }
+      .text-primary-foreground { color: var(--trt-primary-foreground); }
+      .border-primary-foreground { border-color: var(--trt-primary-foreground); }
+      .ring-primary-foreground { --tw-ring-color: var(--trt-primary-foreground); }
+      .bg-muted { background-color: var(--trt-muted); }
+      .text-muted { color: var(--trt-muted); }
+      .border-muted { border-color: var(--trt-muted); }
+      .ring-muted { --tw-ring-color: var(--trt-muted); }
+      .bg-muted-foreground { background-color: var(--trt-muted-foreground); }
+      .text-muted-foreground { color: var(--trt-muted-foreground); }
+      .border-muted-foreground { border-color: var(--trt-muted-foreground); }
+      .ring-muted-foreground { --tw-ring-color: var(--trt-muted-foreground); }
+      .bg-border { background-color: var(--trt-border); }
+      .text-border { color: var(--trt-border); }
+      .border-border { border-color: var(--trt-border); }
+      .ring-border { --tw-ring-color: var(--trt-border); }
+      .bg-input { background-color: var(--trt-input); }
+      .text-input { color: var(--trt-input); }
+      .border-input { border-color: var(--trt-input); }
+      .ring-input { --tw-ring-color: var(--trt-input); }
+      .bg-ring { background-color: var(--trt-ring); }
+      .text-ring { color: var(--trt-ring); }
+      .border-ring { border-color: var(--trt-ring); }
+      .ring-ring { --tw-ring-color: var(--trt-ring); }
+      .bg-primary-50 { background-color: var(--trt-primary-50); }
+      .text-primary-50 { color: var(--trt-primary-50); }
+      .border-primary-50 { border-color: var(--trt-primary-50); }
+      .ring-primary-50 { --tw-ring-color: var(--trt-primary-50); }
+      .bg-primary-100 { background-color: var(--trt-primary-100); }
+      .text-primary-100 { color: var(--trt-primary-100); }
+      .border-primary-100 { border-color: var(--trt-primary-100); }
+      .ring-primary-100 { --tw-ring-color: var(--trt-primary-100); }
+      .bg-primary-200 { background-color: var(--trt-primary-200); }
+      .text-primary-200 { color: var(--trt-primary-200); }
+      .border-primary-200 { border-color: var(--trt-primary-200); }
+      .ring-primary-200 { --tw-ring-color: var(--trt-primary-200); }
+      .bg-primary-300 { background-color: var(--trt-primary-300); }
+      .text-primary-300 { color: var(--trt-primary-300); }
+      .border-primary-300 { border-color: var(--trt-primary-300); }
+      .ring-primary-300 { --tw-ring-color: var(--trt-primary-300); }
+      .bg-primary-400 { background-color: var(--trt-primary-400); }
+      .text-primary-400 { color: var(--trt-primary-400); }
+      .border-primary-400 { border-color: var(--trt-primary-400); }
+      .ring-primary-400 { --tw-ring-color: var(--trt-primary-400); }
+      .bg-primary-500 { background-color: var(--trt-primary-500); }
+      .text-primary-500 { color: var(--trt-primary-500); }
+      .border-primary-500 { border-color: var(--trt-primary-500); }
+      .ring-primary-500 { --tw-ring-color: var(--trt-primary-500); }
+      .bg-primary-600 { background-color: var(--trt-primary-600); }
+      .text-primary-600 { color: var(--trt-primary-600); }
+      .border-primary-600 { border-color: var(--trt-primary-600); }
+      .ring-primary-600 { --tw-ring-color: var(--trt-primary-600); }
+      .bg-primary-700 { background-color: var(--trt-primary-700); }
+      .text-primary-700 { color: var(--trt-primary-700); }
+      .border-primary-700 { border-color: var(--trt-primary-700); }
+      .ring-primary-700 { --tw-ring-color: var(--trt-primary-700); }
+      .bg-primary-800 { background-color: var(--trt-primary-800); }
+      .text-primary-800 { color: var(--trt-primary-800); }
+      .border-primary-800 { border-color: var(--trt-primary-800); }
+      .ring-primary-800 { --tw-ring-color: var(--trt-primary-800); }
+      .bg-primary-900 { background-color: var(--trt-primary-900); }
+      .text-primary-900 { color: var(--trt-primary-900); }
+      .border-primary-900 { border-color: var(--trt-primary-900); }
+      .ring-primary-900 { --tw-ring-color: var(--trt-primary-900); }
+      .bg-primary-950 { background-color: var(--trt-primary-950); }
+      .text-primary-950 { color: var(--trt-primary-950); }
+      .border-primary-950 { border-color: var(--trt-primary-950); }
+      .ring-primary-950 { --tw-ring-color: var(--trt-primary-950); }
+      .bg-neutral-50 { background-color: var(--trt-neutral-50); }
+      .text-neutral-50 { color: var(--trt-neutral-50); }
+      .border-neutral-50 { border-color: var(--trt-neutral-50); }
+      .ring-neutral-50 { --tw-ring-color: var(--trt-neutral-50); }
+      .bg-neutral-100 { background-color: var(--trt-neutral-100); }
+      .text-neutral-100 { color: var(--trt-neutral-100); }
+      .border-neutral-100 { border-color: var(--trt-neutral-100); }
+      .ring-neutral-100 { --tw-ring-color: var(--trt-neutral-100); }
+      .bg-neutral-200 { background-color: var(--trt-neutral-200); }
+      .text-neutral-200 { color: var(--trt-neutral-200); }
+      .border-neutral-200 { border-color: var(--trt-neutral-200); }
+      .ring-neutral-200 { --tw-ring-color: var(--trt-neutral-200); }
+      .bg-neutral-300 { background-color: var(--trt-neutral-300); }
+      .text-neutral-300 { color: var(--trt-neutral-300); }
+      .border-neutral-300 { border-color: var(--trt-neutral-300); }
+      .ring-neutral-300 { --tw-ring-color: var(--trt-neutral-300); }
+      .bg-neutral-400 { background-color: var(--trt-neutral-400); }
+      .text-neutral-400 { color: var(--trt-neutral-400); }
+      .border-neutral-400 { border-color: var(--trt-neutral-400); }
+      .ring-neutral-400 { --tw-ring-color: var(--trt-neutral-400); }
+      .bg-neutral-500 { background-color: var(--trt-neutral-500); }
+      .text-neutral-500 { color: var(--trt-neutral-500); }
+      .border-neutral-500 { border-color: var(--trt-neutral-500); }
+      .ring-neutral-500 { --tw-ring-color: var(--trt-neutral-500); }
+      .bg-neutral-600 { background-color: var(--trt-neutral-600); }
+      .text-neutral-600 { color: var(--trt-neutral-600); }
+      .border-neutral-600 { border-color: var(--trt-neutral-600); }
+      .ring-neutral-600 { --tw-ring-color: var(--trt-neutral-600); }
+      .bg-neutral-700 { background-color: var(--trt-neutral-700); }
+      .text-neutral-700 { color: var(--trt-neutral-700); }
+      .border-neutral-700 { border-color: var(--trt-neutral-700); }
+      .ring-neutral-700 { --tw-ring-color: var(--trt-neutral-700); }
+      .bg-neutral-800 { background-color: var(--trt-neutral-800); }
+      .text-neutral-800 { color: var(--trt-neutral-800); }
+      .border-neutral-800 { border-color: var(--trt-neutral-800); }
+      .ring-neutral-800 { --tw-ring-color: var(--trt-neutral-800); }
+      .bg-neutral-900 { background-color: var(--trt-neutral-900); }
+      .text-neutral-900 { color: var(--trt-neutral-900); }
+      .border-neutral-900 { border-color: var(--trt-neutral-900); }
+      .ring-neutral-900 { --tw-ring-color: var(--trt-neutral-900); }
+      .bg-neutral-950 { background-color: var(--trt-neutral-950); }
+      .text-neutral-950 { color: var(--trt-neutral-950); }
+      .border-neutral-950 { border-color: var(--trt-neutral-950); }
+      .ring-neutral-950 { --tw-ring-color: var(--trt-neutral-950); }
+      .bg-success { background-color: var(--state-success); }
+      .text-success { color: var(--state-success); }
+      .border-success { border-color: var(--state-success); }
+      .ring-success { --tw-ring-color: var(--state-success); }
+      .bg-warning { background-color: var(--state-warning); }
+      .text-warning { color: var(--state-warning); }
+      .border-warning { border-color: var(--state-warning); }
+      .ring-warning { --tw-ring-color: var(--state-warning); }
+      .bg-error { background-color: var(--state-error); }
+      .text-error { color: var(--state-error); }
+      .border-error { border-color: var(--state-error); }
+      .ring-error { --tw-ring-color: var(--state-error); }
+      .bg-info { background-color: var(--state-info); }
+      .text-info { color: var(--state-info); }
+      .border-info { border-color: var(--state-info); }
+      .ring-info { --tw-ring-color: var(--state-info); }
+    </style>
+    <style>
+      .no-scrollbar::-webkit-scrollbar { display: none; }
+      .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      [data-icon] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        -webkit-mask-size: contain;
+        mask-size: contain;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        -webkit-mask-position: center;
+        mask-position: center;
+        background-color: currentColor;
+      }
+    </style>
+</head>
+<body>
+<style id="critical-layout">
+  :root {
+    --toc-width: 240px;
+    --header-height: 56px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+  body {
+    background: var(--trt-background);
+    color: var(--trt-foreground);
+    font-family: "Noto Sans SC", "Inter", system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    height: var(--header-height);
+    display: flex;
+    align-items: center;
+    padding: 0 32px;
+    background: var(--trt-background);
+    border-bottom: 1px solid var(--trt-border);
+  }
+  .site-header::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, var(--trt-primary), transparent 40%);
+  }
+  .site-header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--trt-foreground);
+    letter-spacing: -0.01em;
+  }
+  .header-accent {
+    display: inline-block;
+    width: 3px;
+    height: 18px;
+    background: var(--trt-primary);
+    margin-right: 12px;
+    border-radius: 2px;
+  }
+  .header-meta {
+    margin-left: auto;
+    font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--trt-muted-foreground);
+  }
+
+  .layout-wrapper {
+    display: flex;
+    align-items: flex-start;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 32px;
+    gap: 32px;
+  }
+
+  .sidebar-toc {
+    position: sticky;
+    top: 80px;
+    width: var(--toc-width);
+    flex-shrink: 0;
+    max-height: calc(100vh - 104px);
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+  .toc-label {
+    font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--trt-muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0 12px 8px;
+  }
+  .sidebar-toc nav { display: flex; flex-direction: column; }
+  .sidebar-toc a {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 12px;
+    text-decoration: none;
+    color: var(--trt-muted-foreground);
+    font-size: 13px;
+    border-radius: 4px;
+    border-left: 2px solid transparent;
+    transition: color 0.15s, background 0.15s, border-color 0.15s;
+  }
+  .sidebar-toc a:hover {
+    color: var(--trt-foreground);
+    background: var(--trt-muted);
+    border-left-color: var(--trt-primary);
+  }
+  .toc-num {
+    font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--trt-primary);
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+
+  .main-content {
+    flex: 1;
+    min-width: 0;
+    padding: 24px 0 80px;
+  }
+
+  .section-block {
+    margin-bottom: 64px;
+    scroll-margin-top: 80px;
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .section-number {
+    font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--trt-primary);
+    font-weight: 500;
+  }
+  .section-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--trt-foreground);
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+  }
+
+  .card {
+    background: var(--trt-card);
+    border: 1px solid var(--trt-border);
+    border-radius: 8px;
+    padding: 24px;
+  }
+  .card + .card { margin-top: 16px; }
+
+  .mono {
+    font-family: "JetBrains Mono", "Fira Code", "Cascadia Code", ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--trt-primary-300);
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--trt-card);
+    border: 1px solid var(--trt-border);
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 14px;
+  }
+  .data-table thead th {
+    background: var(--trt-muted);
+    color: var(--trt-foreground);
+    font-weight: 600;
+    font-size: 13px;
+    text-align: left;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--trt-border);
+    white-space: nowrap;
+  }
+  .th-accent { border-top: 2px solid var(--trt-primary); }
+  .data-table tbody td {
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--trt-border);
+    color: var(--trt-foreground);
+    vertical-align: top;
+  }
+  .data-table tbody tr:last-child td { border-bottom: none; }
+  .data-table tbody tr:hover td { background: rgba(16, 185, 129, 0.03); }
+  .td-mono {
+    font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--trt-primary-300);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    line-height: 1.5;
+  }
+  .badge-success { background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(34,197,94,.25); }
+  .badge-info { background: rgba(59,130,246,.12); color: #60a5fa; border: 1px solid rgba(59,130,246,.25); }
+  .badge-warning { background: rgba(245,158,11,.12); color: #fbbf24; border: 1px solid rgba(245,158,11,.25); }
+  .badge-error { background: rgba(239,68,68,.12); color: #f87171; border: 1px solid rgba(239,68,68,.25); }
+  .badge-gray { background: rgba(100,116,139,.12); color: #94a3b8; border: 1px solid rgba(100,116,139,.25); }
+
+  .arch-flow {
+    background: var(--trt-card);
+    border: 1px solid var(--trt-border);
+    border-radius: 8px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .arch-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0;
+    flex-wrap: wrap;
+  }
+  .arch-node {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--trt-border);
+    background: var(--trt-muted);
+    color: var(--trt-foreground);
+    white-space: nowrap;
+    min-width: 80px;
+    text-align: center;
+  }
+  .arch-node.accent { border-color: var(--trt-primary); background: rgba(16,185,129,.08); color: var(--trt-primary-300); }
+  .arch-node.iot { border-color: #60a5fa; background: rgba(59,130,246,.08); color: #60a5fa; }
+  .arch-node.db { border-color: var(--trt-primary); background: rgba(16,185,129,.06); color: var(--trt-primary-300); }
+  .arch-node.client { border-color: var(--trt-neutral-600); background: var(--trt-neutral-800); }
+  .arch-arrow {
+    color: var(--trt-muted-foreground);
+    font-size: 18px;
+    padding: 0 8px;
+    font-family: "JetBrains Mono", monospace;
+  }
+  .arch-group-label {
+    font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--trt-muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-top: 1px dashed var(--trt-border);
+    margin-top: 4px;
+    padding-top: 12px;
+  }
+  .arch-group-label:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+
+  .scf-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .scf-card {
+    background: var(--trt-card);
+    border: 1px solid var(--trt-border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .scf-name {
+    font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--trt-primary);
+    margin-bottom: 8px;
+  }
+  .scf-desc { font-size: 13px; color: var(--trt-foreground); line-height: 1.5; margin-bottom: 8px; }
+  .scf-entry {
+    font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--trt-muted-foreground);
+    word-break: break-all;
+  }
+
+  .roadmap-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  .roadmap-card {
+    background: var(--trt-card);
+    border: 1px solid var(--trt-border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .rm-letter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: rgba(16,185,129,.12);
+    color: var(--trt-primary);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    font-weight: 600;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+  .rm-title { font-size: 14px; font-weight: 600; color: var(--trt-foreground); }
+  .rm-desc { font-size: 13px; color: var(--trt-muted-foreground); line-height: 1.5; margin-top: 8px; }
+
+  .hero-section {
+    margin-bottom: 64px;
+    padding: 48px 0 40px;
+    border-bottom: 1px solid var(--trt-border);
+  }
+  .hero-tagline {
+    font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+    font-size: 14px;
+    color: var(--trt-primary);
+    margin: 16px 0;
+  }
+  .hero-desc {
+    font-size: 16px;
+    color: var(--trt-muted-foreground);
+    max-width: 720px;
+    line-height: 1.7;
+  }
+
+  .entity-list { display: flex; flex-direction: column; gap: 0; }
+  .entity-item {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--trt-border);
+  }
+  .entity-item:last-child { border-bottom: none; }
+  .entity-name {
+    font-family: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+    font-size: 13px;
+    color: var(--trt-primary-300);
+    flex-shrink: 0;
+    min-width: 180px;
+  }
+  .entity-desc { font-size: 14px; color: var(--trt-foreground); }
+
+  .decision-list { display: flex; flex-direction: column; gap: 12px; }
+  .decision-item {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    padding: 12px 16px;
+    background: var(--trt-card);
+    border: 1px solid var(--trt-border);
+    border-radius: 4px;
+    border-left: 3px solid var(--trt-primary);
+  }
+  .decision-num {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    color: var(--trt-primary);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .decision-text { font-size: 14px; color: var(--trt-foreground); line-height: 1.5; }
+
+  .flow-list { display: flex; flex-direction: column; gap: 8px; }
+  .flow-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--trt-muted);
+    border-radius: 4px;
+    font-size: 13px;
+    color: var(--trt-foreground);
+    flex-wrap: wrap;
+  }
+
+  .callout {
+    background: rgba(245,158,11,.06);
+    border: 1px solid rgba(245,158,11,.2);
+    border-left: 3px solid var(--state-warning);
+    border-radius: 4px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--trt-foreground);
+    margin-top: 16px;
+  }
+
+  .table-scroll { overflow-x: auto; }
+
+  @media (max-width: 900px) {
+    .layout-wrapper { flex-direction: column; padding: 0 16px; }
+    .sidebar-toc {
+      position: static;
+      width: 100%;
+      max-height: none;
+      border-bottom: 1px solid var(--trt-border);
+      padding-bottom: 16px;
+    }
+    .scf-grid, .roadmap-grid { grid-template-columns: 1fr; }
+    .site-header { padding: 0 16px; }
+  }
+</style>
+
+<header class="site-header">
+  <span class="header-accent"></span>
+  <h1>TRT Nova 技术架构概览</h1>
+  <span class="header-meta">tech-overview</span>
+</header>
+
+<div class="layout-wrapper">
+
+  <aside class="sidebar-toc">
+    <div class="toc-label">目录导航</div>
+    <nav>
+      <a href="#hero-title"><span class="toc-num">00</span>概览</a>
+      <a href="#system-overview"><span class="toc-num">01</span>系统概览</a>
+      <a href="#architecture"><span class="toc-num">02</span>架构总览</a>
+      <a href="#tech-stack"><span class="toc-num">03</span>技术栈</a>
+      <a href="#scf-backends"><span class="toc-num">04</span>SCF 后端</a>
+      <a href="#data-model"><span class="toc-num">05</span>数据模型</a>
+      <a href="#module-maturity"><span class="toc-num">06</span>模块成熟度</a>
+      <a href="#architecture-decisions"><span class="toc-num">07</span>关键决策</a>
+      <a href="#improvement-roadmap"><span class="toc-num">08</span>改进路线</a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+
+    <section id="hero-title" class="hero-section">
+      <div class="section-header">
+        <span class="section-number">00</span>
+        <h2 class="section-title" style="text-wrap: balance; word-break: keep-all; overflow-wrap: break-word;">TRT Nova 植宠系统技术概览</h2>
+      </div>
+      <p class="hero-tagline">微信小程序 + SCF + MySQL + OneNET</p>
+      <p class="hero-desc">一个植宠养护小程序，前端使用微信小程序原生页面，后端由多个 SCF 云函数承载，MySQL 作为主业务数据存储，OneNET/EMQX 负责设备接入与命令下发。</p>
+    </section>
+
+    <section id="system-overview" class="section-block">
+      <div class="section-header">
+        <span class="section-number">01</span>
+        <h2 class="section-title" style="text-wrap: balance; word-break: keep-all;">系统概览</h2>
+      </div>
+      <div class="card">
+        <p style="font-size: 15px; line-height: 1.7; color: var(--trt-foreground); margin-bottom: 20px;">TRT Nova 系统是一个植宠养护小程序，包含以下核心组成部分：</p>
+        <div class="entity-list">
+          <div class="entity-item"><span class="entity-name">前端</span><span class="entity-desc">微信小程序原生页面</span></div>
+          <div class="entity-item"><span class="entity-name">SCF 后端</span><span class="entity-desc">auth-scf、api-scf、ingest-scf、agent-scf、admin-scf、history-cleanup-scf</span></div>
+          <div class="entity-item"><span class="entity-name">主数据库</span><span class="entity-desc">MySQL，承载核心业务数据</span></div>
+          <div class="entity-item"><span class="entity-name">设备基础设施</span><span class="entity-desc">OneNET/EMQX，负责设备接入与命令下发</span></div>
+          <div class="entity-item"><span class="entity-name">未来基础设施</span><span class="entity-desc">Redis 缓存层（已规划，T1 阶段启用）</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <p style="font-size: 14px; font-weight: 600; color: var(--trt-foreground); margin-bottom: 12px;">当前生产流程</p>
+        <div class="flow-list">
+          <div class="flow-item"><span class="mono">设备遥测</span><span class="arch-arrow">&rarr;</span><span class="mono">ingest-scf</span><span class="arch-arrow">&rarr;</span><span class="mono">MySQL</span></div>
+          <div class="flow-item"><span class="mono">小程序认证</span><span class="arch-arrow">&rarr;</span><span class="mono">auth-scf</span><span class="arch-arrow">&rarr;</span><span class="mono">JWT</span></div>
+          <div class="flow-item"><span class="mono">小程序 API</span><span class="arch-arrow">&rarr;</span><span class="mono">api-scf</span><span class="arch-arrow">&rarr;</span><span class="mono">MySQL / OneNET</span></div>
+          <div class="flow-item"><span class="mono">管理后台</span><span class="arch-arrow">&rarr;</span><span class="mono">admin-scf</span><span class="arch-arrow">&rarr;</span><span class="mono">MySQL / 运营数据</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="architecture" class="section-block">
+      <div class="section-header">
+        <span class="section-number">02</span>
+        <h2 class="section-title" style="text-wrap: balance; word-break: keep-all;">架构总览</h2>
+      </div>
+      <div class="arch-flow">
+        <div class="arch-group-label">设备遥测上行</div>
+        <div class="arch-row">
+          <span class="arch-node">实体设备</span><span class="arch-arrow">&rarr;</span>
+          <span class="arch-node iot">OneNET</span><span class="arch-arrow">&rarr;</span>
+          <span class="arch-node accent">ingest-scf</span><span class="arch-arrow">&rarr;</span>
+          <span class="arch-node db">MySQL</span>
+        </div>
+        <div class="arch-group-label">小程序业务交互</div>
+        <div class="arch-row">
+          <span class="arch-node client">微信小程序</span><span class="arch-arrow">&rarr;</span>
+          <span class="arch-node accent">auth-scf</span><span class="arch-arrow">&rarr;</span>
+          <span class="arch-node db">MySQL</span>
+        </div>
+        <div class="arch-row">
+          <span class="arch-node client">微信小程序</span><span class="arch-arrow">&rarr;</span>
+          <span class="arch-node accent">api-scf</span><span class="arch-arrow">&rarr;</span>
+          <span class="arch-node db">MySQL</span><span class="arch-arrow">,</span>
+          <span class="arch-node iot">OneNET</span>
+        </div>
+        <div class="arch-row">
+          <span class="arch-node client">微信小程序</span><span class="arch-arrow">&rarr;</span>
+          <span class="arch-node accent">agent-scf</span><span class="arch-arrow">&rarr;</span>
+          <span class="arch-node db">MySQL</span>
+        </div>
+        <div class="arch-group-label">管理后台</div>
+        <div class="arch-row">
+          <span class="arch-node client">Admin Web</span><span class="arch-arrow">&rarr;</span>
+          <span class="arch-node accent">admin-scf</span><span class="arch-arrow">&rarr;</span>
+          <span class="arch-node db">MySQL</span>
+        </div>
+      </div>
+      <div class="card">
+        <p style="font-size: 14px; font-weight: 600; color: var(--trt-foreground); margin-bottom: 12px;">控制流与回声</p>
+        <div class="flow-list">
+          <div class="flow-item">
+            <span style="font-size: 12px; color: var(--trt-primary); font-weight: 600; min-width: 48px;">控制</span>
+            <span class="mono">小程序</span><span class="arch-arrow">&rarr;</span>
+            <span class="mono">api-scf /device/cmd</span><span class="arch-arrow">&rarr;</span>
+            <span class="mono">OneNET</span><span class="arch-arrow">&rarr;</span>
+            <span class="mono">设备</span>
+          </div>
+          <div class="flow-item">
+            <span style="font-size: 12px; color: var(--trt-primary); font-weight: 600; min-width: 48px;">回声</span>
+            <span class="mono">设备重新上报</span><span class="arch-arrow">&rarr;</span>
+            <span class="mono">ingest-scf</span><span class="arch-arrow">&rarr;</span>
+            <span class="mono">device_latest</span><span class="arch-arrow">&rarr;</span>
+            <span class="mono">小程序</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tech-stack" class="section-block">
+      <div class="section-header">
+        <span class="section-number">03</span>
+        <h2 class="section-title" style="text-wrap: balance; word-break: keep-all;">技术栈</h2>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="th-accent" style="min-width: 100px;">层级</th>
+              <th class="th-accent" style="min-width: 200px;">确认技术</th>
+              <th class="th-accent" style="min-width: 140px;">用途</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>微信端</td><td class="td-mono">原生微信小程序 + TypeScript</td><td>当前主客户端</td></tr>
+            <tr><td>管理后台</td><td class="td-mono">React + TypeScript + Vite</td><td>运营后台</td></tr>
+            <tr><td>移动 App</td><td class="td-mono">Flutter + Dart</td><td>T2 启动正式 App</td></tr>
+            <tr><td>业务后端</td><td class="td-mono">Node.js Active LTS + TypeScript strict</td><td>用户、植宠、养护、设备主业务</td></tr>
+            <tr><td>后端框架</td><td class="td-mono">NestJS + Fastify Adapter</td><td>模块、依赖注入、鉴权</td></tr>
+            <tr><td>数据校验</td><td class="td-mono">Zod</td><td>API、事件、配置 Schema</td></tr>
+            <tr><td>数据访问</td><td class="td-mono">Drizzle ORM + mysql2</td><td>类型化查询、Schema migration</td></tr>
+            <tr><td>事务数据库</td><td class="td-mono">腾讯云 TDSQL-C MySQL 8</td><td>权威业务数据</td></tr>
+            <tr><td>IoT 平台</td><td class="td-mono">OneNET + Provider Adapter</td><td>设备连接、上报和命令下发</td></tr>
+            <tr><td>缓存</td><td class="td-mono">腾讯云 Redis</td><td>T1 后启用，不作为主数据库</td></tr>
+            <tr><td>异步消息</td><td class="td-mono">MySQL Outbox 起步，T2 升级 CKafka</td><td>可靠任务、遥测流</td></tr>
+            <tr><td>遥测与分析</td><td class="td-mono">MySQL 聚合起步，T2 升级 TCHouse-C</td><td>大规模遥测历史</td></tr>
+            <tr><td>文件与媒体</td><td class="td-mono">腾讯云 COS + CDN</td><td>图片、音频、视频</td></tr>
+            <tr><td>搜索与向量</td><td class="td-mono">腾讯云 Elasticsearch</td><td>T2 统一承载</td></tr>
+            <tr><td>Agent</td><td class="td-mono">TypeScript 状态机 + OpenAI-compatible Provider</td><td>对话、工具调用、记忆编排</td></tr>
+            <tr><td>AI 数据处理</td><td class="td-mono">Python + FastAPI</td><td>知识处理、离线评估</td></tr>
+            <tr><td>实时通信</td><td class="td-mono">WSS WebSocket + ASR/TTS</td><td>流式互动</td></tr>
+            <tr><td>当前计算平台</td><td class="td-mono">腾讯云 SCF</td><td>API、webhook、定时任务</td></tr>
+            <tr><td>后续计算平台</td><td class="td-mono">Docker + TKE Serverless</td><td>T2 常驻服务</td></tr>
+            <tr><td>API 契约</td><td class="td-mono">OpenAPI 3.1 + AsyncAPI</td><td>协作边界</td></tr>
+            <tr><td>可观测性</td><td class="td-mono">OpenTelemetry + CLS/云监控</td><td>日志、指标、Trace</td></tr>
+            <tr><td>基础设施</td><td class="td-mono">Terraform</td><td>可重复部署</td></tr>
+            <tr><td>CI/CD</td><td class="td-mono">GitHub Actions</td><td>检查、测试、构建、发布</td></tr>
+            <tr><td>测试</td><td class="td-mono">Vitest + Supertest + Testcontainers + k6</td><td>单元、API、E2E、压测</td></tr>
+            <tr><td>Monorepo</td><td class="td-mono">pnpm workspaces</td><td>多包管理</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="scf-backends" class="section-block">
+      <div class="section-header">
+        <span class="section-number">04</span>
+        <h2 class="section-title" style="text-wrap: balance; word-break: keep-all;">SCF 后端服务</h2>
+      </div>
+      <div class="scf-grid">
+        <div class="scf-card"><div class="scf-name">auth-scf</div><p class="scf-desc">微信登录、用户落库、JWT 签发。</p><p class="scf-entry">入口: dist/scf/auth-scf/index.js</p></div>
+        <div class="scf-card"><div class="scf-name">api-scf</div><p class="scf-desc">设备、待办、日记、植物库、用户资料与下行控制。</p><p class="scf-entry">入口: dist/scf/api-scf/index.js</p></div>
+        <div class="scf-card"><div class="scf-name">ingest-scf</div><p class="scf-desc">OneNET/EMQX 数据接入、归一化和历史写入。</p><p class="scf-entry">入口: dist/scf/ingest-scf/index.js</p></div>
+        <div class="scf-card"><div class="scf-name">agent-scf</div><p class="scf-desc">只读植物助手、规则、轻量知识检索和可选 LLM。</p><p class="scf-entry">入口: dist/scf/agent-scf/index.js</p></div>
+        <div class="scf-card"><div class="scf-name">admin-scf</div><p class="scf-desc">管理后台 API、用户管理、知识管理、设备服务、日志。</p><p class="scf-entry">入口: dist/scf/admin-scf/index.js</p></div>
+        <div class="scf-card"><div class="scf-name">history-cleanup-scf</div><p class="scf-desc">历史数据定期清理。</p><p class="scf-entry">入口: dist/scf/history-cleanup-scf/index.js</p></div>
+      </div>
+    </section>
+
+    <section id="data-model" class="section-block">
+      <div class="section-header">
+        <span class="section-number">05</span>
+        <h2 class="section-title" style="text-wrap: balance; word-break: keep-all;">数据模型</h2>
+      </div>
+      <div class="card">
+        <p style="font-size: 14px; color: var(--trt-muted-foreground); margin-bottom: 16px;">主要实体及其职责：</p>
+        <div class="entity-list">
+          <div class="entity-item"><span class="entity-name">users</span><span class="entity-desc">用户身份与资料</span></div>
+          <div class="entity-item"><span class="entity-name">devices</span><span class="entity-desc">设备主数据和 IoT 身份</span></div>
+          <div class="entity-item"><span class="entity-name">device_acl</span><span class="entity-desc">用户与设备关系，别名、位置、植物类型</span></div>
+          <div class="entity-item"><span class="entity-name">device_latest</span><span class="entity-desc">设备最新状态（首页读模型）</span></div>
+          <div class="entity-item"><span class="entity-name">device_history_raw</span><span class="entity-desc">原始历史数据</span></div>
+          <div class="entity-item"><span class="entity-name">device_history_agg</span><span class="entity-desc">聚合趋势数据</span></div>
+          <div class="entity-item"><span class="entity-name">todos</span><span class="entity-desc">养护待办</span></div>
+          <div class="entity-item"><span class="entity-name">plant_library</span><span class="entity-desc">植物知识主数据</span></div>
+          <div class="entity-item"><span class="entity-name">user_plant_favorites</span><span class="entity-desc">用户植物收藏</span></div>
+          <div class="entity-item"><span class="entity-name">植物日记相关</span><span class="entity-desc">月/日查询与记录数据</span></div>
+        </div>
+      </div>
+      <div class="callout">
+        <strong style="color: #fbbf24;">关键模型缺口：</strong>缺少独立 PlantPet 实体。植物个体通过 device_acl 表达，造成更换设备时历史难以延续。
+      </div>
+    </section>
+
+    <section id="module-maturity" class="section-block">
+      <div class="section-header">
+        <span class="section-number">06</span>
+        <h2 class="section-title" style="text-wrap: balance; word-break: keep-all;">模块成熟度</h2>
+      </div>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th class="th-accent" style="min-width: 120px;">系统部分</th>
+              <th class="th-accent" style="min-width: 100px;">当前状态</th>
+              <th class="th-accent" style="min-width: 200px;">当前已有</th>
+              <th class="th-accent" style="min-width: 160px;">主要缺口</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>微信小程序</td><td><span class="badge badge-warning">局部实现</span></td><td>主要页面、SCF 服务层、真实设备展示</td><td>模块化、统一状态语义、E2E</td></tr>
+            <tr><td>Flutter</td><td><span class="badge badge-warning">局部实现</span></td><td>页面与 mock 交互</td><td>认证、真实 API、状态管理</td></tr>
+            <tr><td>身份认证</td><td><span class="badge badge-error">存在风险</span></td><td>微信 code、JWT、用户入库</td><td>核对生产开关、凭证轮换</td></tr>
+            <tr><td>设备权限</td><td><span class="badge badge-warning">局部实现</span></td><td>device_acl、绑定/解绑</td><td>家庭角色、设备转移、审计</td></tr>
+            <tr><td>OneNET 接入</td><td><span class="badge badge-success">已验证</span></td><td>webhook 验签/解密、latest/raw/agg 入库</td><td>幂等证据、异常数据治理</td></tr>
+            <tr><td>EMQX 兼容</td><td><span class="badge badge-info">已实现待验证</span></td><td>接入和下行代码路径</td><td>真实环境联调</td></tr>
+            <tr><td>设备当前状态</td><td><span class="badge badge-success">已验证</span></td><td>device_latest 读模型</td><td>完整影子、状态机</td></tr>
+            <tr><td>设备历史</td><td><span class="badge badge-warning">局部实现</span></td><td>raw/agg、趋势查询</td><td>聚合正确性、降采样</td></tr>
+            <tr><td>设备控制</td><td><span class="badge badge-warning">局部实现</span></td><td>ACL、fan.on/fan.off 白名单</td><td>幂等、限流、状态机、审计</td></tr>
+            <tr><td>养护规则</td><td><span class="badge badge-warning">局部实现</span></td><td>客户端阈值、Agent 诊断规则</td><td>服务端统一、品种化</td></tr>
+            <tr><td>todo</td><td><span class="badge badge-warning">局部实现</span></td><td>列表、新增、完成</td><td>周期任务、提醒调度</td></tr>
+            <tr><td>植物日记</td><td><span class="badge badge-warning">局部实现</span></td><td>月/日查询与记录</td><td>媒体、统一时间线</td></tr>
+            <tr><td>植物知识</td><td><span class="badge badge-warning">局部实现</span></td><td>plant_library、本地数据</td><td>权威来源、审核、版本</td></tr>
+            <tr><td>Agent</td><td><span class="badge badge-warning">局部实现</span></td><td>只读工具、规则、知识、可选 LLM</td><td>引用、会话、评估、记忆</td></tr>
+            <tr><td>天气</td><td><span class="badge badge-warning">局部实现</span></td><td>客户端服务框架</td><td>正式配置、服务端代理</td></tr>
+            <tr><td>通知</td><td><span class="badge badge-warning">局部实现</span></td><td>离线判断、订阅接口</td><td>后端调度、模板、去重</td></tr>
+            <tr><td>历史清理</td><td><span class="badge badge-info">已实现待验证</span></td><td>清理 SCF 和保留参数</td><td>定时部署、指标验证</td></tr>
+            <tr><td>运营后台</td><td><span class="badge badge-gray">未建设</span></td><td>主要靠控制台和数据库</td><td>内容、设备、客服管理</td></tr>
+            <tr><td>数据分析</td><td><span class="badge badge-gray">未建设</span></td><td>无统一口径</td><td>埋点、业务指标、成本分析</td></tr>
+            <tr><td>可观测性</td><td><span class="badge badge-gray">未系统建设</span></td><td>云函数日志</td><td>指标、追踪、告警、看板</td></tr>
+            <tr><td>自动化测试</td><td><span class="badge badge-warning">局部实现</span></td><td>首页状态、JWT、设备动作测试</td><td>遥测契约、集成、E2E</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="architecture-decisions" class="section-block">
+      <div class="section-header">
+        <span class="section-number">07</span>
+        <h2 class="section-title" style="text-wrap: balance; word-break: keep-all;">关键架构决策</h2>
+      </div>
+      <div class="decision-list">
+        <div class="decision-item"><span class="decision-num">01</span><span class="decision-text">客户端不直接访问 OneNET 和数据库</span></div>
+        <div class="decision-item"><span class="decision-num">02</span><span class="decision-text">OneNET/IoT 平台负责设备接入，业务后端负责用户和领域逻辑</span></div>
+        <div class="decision-item"><span class="decision-num">03</span><span class="decision-text">productId + deviceName 形成设备逻辑标识</span></div>
+        <div class="decision-item"><span class="decision-num">04</span><span class="decision-text">devices 与 device_acl 分离</span></div>
+        <div class="decision-item"><span class="decision-num">05</span><span class="decision-text">device_latest 作为首页和详情的当前状态读模型</span></div>
+        <div class="decision-item"><span class="decision-num">06</span><span class="decision-text">控制意图与设备真实状态分离</span></div>
+        <div class="decision-item"><span class="decision-num">07</span><span class="decision-text">Agent 当前保持只读，动作能力后续通过独立确认接口开放</span></div>
+        <div class="decision-item"><span class="decision-num">08</span><span class="decision-text">植物知识优先结构化，规则、知识和 LLM 分工</span></div>
+        <div class="decision-item"><span class="decision-num">09</span><span class="decision-text">先使用 SCF + MySQL 验证闭环，再根据证据引入更重基础设施</span></div>
+      </div>
+    </section>
+
+    <section id="improvement-roadmap" class="section-block">
+      <div class="section-header">
+        <span class="section-number">08</span>
+        <h2 class="section-title" style="text-wrap: balance; word-break: keep-all;">改进路线</h2>
+      </div>
+      <div class="roadmap-grid">
+        <div class="roadmap-card"><span class="rm-letter">A</span><span class="rm-title">安全收口</span><p class="rm-desc">凭证轮换、身份 fail-closed、Demo 登录隔离、设备动作白名单、日志脱敏</p></div>
+        <div class="roadmap-card"><span class="rm-letter">B</span><span class="rm-title">单一发布基线</span><p class="rm-desc">主线选择、目录合并、环境矩阵、部署清单、版本标签</p></div>
+        <div class="roadmap-card"><span class="rm-letter">C</span><span class="rm-title">关键链路可靠化</span><p class="rm-desc">契约测试、E2E、幂等、数据新鲜度、命令状态机、监控告警</p></div>
+        <div class="roadmap-card"><span class="rm-letter">D</span><span class="rm-title">植宠领域独立</span><p class="rm-desc">plant_pets、pet_device_bindings、迁移脚本、兼容 API</p></div>
+        <div class="roadmap-card"><span class="rm-letter">E</span><span class="rm-title">养护闭环</span><p class="rm-desc">统一 Assessment、Recommendation、CareTask、CareAction、TimelineEvent</p></div>
+        <div class="roadmap-card"><span class="rm-letter">F</span><span class="rm-title">Agent 质量化</span><p class="rm-desc">事实来源、会话、评估集、知识版本、用户反馈、工具调用审计</p></div>
+        <div class="roadmap-card"><span class="rm-letter">G</span><span class="rm-title">运营与可观测性</span><p class="rm-desc">指标、告警、运行手册、设备诊断、内容发布、功能开关</p></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>

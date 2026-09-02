@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "我的植物伙伴",
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
+  "backgroundColor": "#F7F5EE",
+  "usingComponents": {}
+}

@@ -1,0 +1,128 @@
+<page-meta background-color="{{theme === 'dark' ? '#0C1410' : '#F7F5EE'}}" page-style="{{theme === 'dark' ? 'background: #0C1410' : 'background: #F7F5EE'}}" />
+<view class="page {{theme === 'dark' ? 'theme-dark' : 'theme-light'}}" wx:if="{{ready}}">
+
+  <!-- ================= 浅色 · 元气日光 ================= -->
+  <block wx:if="{{theme !== 'dark'}}">
+    <view class="ppad">
+      <!-- 顶栏：返回 + 标题 + 记录状态 -->
+      <view class="pg-top" style="padding-top: {{statusBarHeight}}px;">
+        <view class="back" bindtap="goBack"><text class="back-ico">‹</text></view>
+        <view class="mid"><text class="k">GROWING UP</text><text class="t">成长手记</text></view>
+        <view class="act"><view class="chip"><view class="dot on"></view><text class="chip-t">记录</text></view></view>
+      </view>
+
+      <!-- 当前植宠切换卡 -->
+      <view wx:if="{{devices.length > 0}}" class="card switch-card" bindtap="onChooseDevice">
+        <view class="sw-ico"><view class="sw-ico-t ico ico-leaf"></view></view>
+        <view class="sw-body"><text class="sw-name">{{selectedDeviceLabel}}</text><text class="sw-sub">点击切换设备，记录同步到当前植宠</text></view>
+        <view class="btn-soft"><text class="btn-soft-t">切换 ›</text></view>
+      </view>
+      <view wx:else class="card switch-card">
+        <view class="sw-ico"><view class="sw-ico-t ico ico-leaf"></view></view>
+        <view class="sw-body"><text class="sw-name">还没有绑定设备</text><text class="sw-sub">先去设备管理绑定一台设备，再来记录成长之路。</text></view>
+      </view>
+
+      <!-- 成长日历（含记录标记点） -->
+      <view class="card cal-card">
+        <view class="cal-head">
+          <view class="cal-head-l"><text class="cal-k">成长日历</text><text class="cal-title">{{monthLabel}}</text></view>
+          <view class="cal-nav"><view class="cal-nav-btn" bindtap="onPrevMonth">‹</view><view class="cal-nav-btn" bindtap="onNextMonth">›</view></view>
+        </view>
+        <view class="cal-grid">
+          <text wx:for="{{['日','一','二','三','四','五','六']}}" wx:key="*this" class="cal-wk">{{item}}</text>
+          <view wx:for="{{calendarDays}}" wx:key="key" class="cal-day {{item.empty ? 'blank' : ''}} {{item.today ? 'today' : ''}} {{item.active ? 'sel' : ''}}" bindtap="onSelectDay" data-date="{{item.date}}"><text wx:if="{{!item.empty}}" class="cal-day-t">{{item.today ? '今天' : item.day}}</text><view wx:if="{{item.marked && !item.empty}}" class="cal-mark"></view></view>
+        </view>
+      </view>
+
+      <!-- 当日卡 + 新增记录入口 -->
+      <view class="card today-card">
+        <view class="today-copy"><text class="today-t">{{selectedDate}}</text><text class="today-d">浇水、施肥、修剪和照片备注都会显示在这里</text></view>
+        <view class="today-acts"><view class="btn-ghost" bindtap="goTrend"><text class="btn-ghost-t">查看趋势</text></view><view class="btn-soft" bindtap="showComposer"><text class="btn-soft-t">+ 记录</text></view></view>
+      </view>
+
+      <!-- 圆点藤蔓时间线 -->
+      <view wx:if="{{dayRecords.length > 0}}" class="tl">
+        <view wx:for="{{dayRecords}}" wx:key="id" class="tl-item">
+          <view class="tl-node"></view>
+          <view class="card tl-card">
+            <view class="tl-top">
+              <view class="tl-act"><view class="ico {{item.eventType === 'fertilizing' ? 'warn' : ''}}"><text class="ico-t">{{item.icon}}</text></view><view class="tl-act-txt"><text class="tl-title">{{item.title}}</text><text class="tl-type">{{item.typeLabel}}</text></view></view>
+              <text class="tl-time">{{item.createdAt}}</text>
+            </view>
+            <text wx:if="{{item.content}}" class="tl-desc">{{item.content}}</text>
+          </view>
+        </view>
+      </view>
+      <view wx:else class="card empty-card"><text class="empty-t">今天还没有成长记录</text><text class="empty-d">点击右上角“记录”，写下下一次浇水、施肥或观察。</text></view>
+
+      <view style="padding-bottom: 120rpx;"></view>
+    </view>
+  </block>
+
+  <!-- ================= 深色 · 萤火温室 · 夜记本 ================= -->
+  <block wx:else>
+    <view class="ppad">
+      <!-- 顶栏 -->
+      <view class="pg-top" style="padding-top: {{statusBarHeight}}px;">
+        <view class="back" bindtap="goBack"><text class="back-ico">‹</text></view>
+        <view class="mid"><text class="k">GROWING UP</text><text class="t">成长手记</text></view>
+        <view class="act"><view class="chip"><view class="dot on"></view><text class="chip-t">记录</text></view></view>
+      </view>
+
+      <!-- 当前记录对象 -->
+      <view wx:if="{{devices.length > 0}}" class="dd" bindtap="onChooseDevice">
+        <text class="dd-tag">当前记录</text>
+        <view class="dd-ava"><view class="dd-ava-t ico ico-leaf"></view></view>
+        <view class="dd-body"><text class="dd-name">{{selectedDeviceLabel}}</text><text class="dd-sub">切换设备后记录同步</text></view>
+        <view class="btn-soft"><text class="btn-soft-t">切换 ›</text></view>
+      </view>
+      <view wx:else class="dd dd-empty">
+        <text class="dd-tag">当前记录</text>
+        <text class="dd-name">还没有绑定设备</text>
+        <text class="dd-sub">先去设备管理绑定一台设备，再来记录成长之路。</text>
+      </view>
+
+      <!-- 记录本：左页日历 + 右页今日 -->
+      <view class="journal">
+        <view class="j-washi"></view><view class="j-washi w2"></view>
+        <view class="j-pages">
+          <view class="j-left">
+            <view class="j-month">
+              <text class="j-month-t">{{monthLabel}}</text>
+              <view class="j-month-nav"><view class="cal-nav" bindtap="onPrevMonth">‹</view><view class="cal-nav" bindtap="onNextMonth">›</view></view>
+            </view>
+            <view class="calgrid">
+              <text wx:for="{{['日','一','二','三','四','五','六']}}" wx:key="*this" class="calw">{{item}}</text>
+              <view wx:for="{{calendarDays}}" wx:key="key" class="cald {{item.empty ? 'blank' : ''}} {{item.marked && !item.empty ? 'rec' : ''}} {{item.today ? 'today' : ''}} {{item.active ? 'sel' : ''}}" bindtap="onSelectDay" data-date="{{item.date}}"><text wx:if="{{!item.empty}}" class="cald-t">{{item.day}}</text></view>
+            </view>
+          </view>
+          <view class="j-right">
+            <text class="j-date">{{selectedDate}}</text>
+            <view class="jr-today">
+              <text class="jr-today-d">浇水、施肥、修剪与照片，均记录于当日。</text>
+              <view class="jr-btns"><view class="jr-btn" bindtap="goTrend"><text class="jr-btn-t">趋势</text></view><view class="jr-btn go" bindtap="showComposer"><text class="jr-btn-t">+ 记录</text></view></view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 当日记录 -->
+      <view class="j-sec"><text class="j-sec-t">当日记录</text><view class="j-sec-ln"></view><text class="j-sec-n">{{dayRecords.length}} 条</text></view>
+      <view wx:if="{{dayRecords.length > 0}}" class="jt-list">
+        <view wx:for="{{dayRecords}}" wx:key="id" class="jt-item">
+          <view class="jt-top">
+            <view class="jt-act"><view class="jr-ico {{item.eventType === 'fertilizing' ? 'warn' : ''}}"><text class="jr-ico-t">{{item.icon}}</text></view><view class="jt-act-txt"><text class="jt-title">{{item.title}}</text><text class="jt-type">{{item.typeLabel}}</text></view></view>
+            <text class="jt-time">{{item.createdAt}}</text>
+          </view>
+          <text wx:if="{{item.content}}" class="jt-desc">{{item.content}}</text>
+        </view>
+      </view>
+      <view wx:else class="jt-item jt-empty"><text class="jt-title">今天还没有成长记录</text><text class="jt-desc">点击右上角“记录”，写下下一次浇水、施肥或观察。</text></view>
+
+      <view style="padding-bottom: 120rpx;"></view>
+    </view>
+  </block>
+
+  <!-- 新增记录弹层（双主题共用） -->
+  <view wx:if="{{showComposer}}" class="composer-mask" bindtap="hideComposer"><view class="composer" catchtap="noop"><view class="composer-top"><view><text class="composer-kicker">NEW ENTRY</text><text class="composer-title">新增记录</text></view><view class="composer-close" bindtap="hideComposer"><text class="composer-close-t">×</text></view></view><picker class="composer-field" mode="selector" range="{{eventTypeOptions}}" range-key="label" value="{{eventTypeIndex}}" bindchange="onTypeChange"><view class="composer-picker"><view><text class="composer-field-label">记录类型</text><text class="composer-picker-text">{{eventTypeOptions[eventTypeIndex].label}}</text></view><text class="composer-picker-arrow">›</text></view></picker><view class="composer-field composer-input-wrap"><view class="composer-field-label">标题</view><input class="composer-input" placeholder="例如：今天浇水了" placeholder-class="composer-placeholder" value="{{draftTitle}}" bindinput="onTitleInput" /></view><view class="composer-field composer-textarea-wrap"><view class="composer-field-label">备注</view><textarea class="composer-textarea" placeholder="补充一点观察（可选）" placeholder-class="composer-placeholder" value="{{draftContent}}" bindinput="onContentInput"></textarea></view><view class="composer-actions"><view class="composer-btn secondary" bindtap="hideComposer">取消</view><view class="composer-btn primary" bindtap="submitRecord">保存</view></view></view></view>
+</view>

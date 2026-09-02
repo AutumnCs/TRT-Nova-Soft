@@ -1,0 +1,558 @@
+/* ================= 设备详情 · 双主题 ================= */
+/* 浅色 · 元气日光 · 植宠体检报告（纸质体检单 / 逐项判定 / 体检合格盖章 / 记录墙成长曲线） */
+/* 深色 · 萤火温室 · 监控大屏（巨号主仪表 / 四盏台灯读数 / 多色成长曲线 / MIN·AVG·MAX） */
+/* 共享 CSS 变量见 app.wxss（page 默认浅色，.theme-dark 覆盖深色）；设计稿 px × 2 = rpx */
+
+/* ---------- 页面骨架 ---------- */
+.page {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
+  background-color: var(--bg);
+  background-image: radial-gradient(rgba(47, 162, 102, 0.045) 2rpx, transparent 2rpx);
+  background-size: 56rpx 56rpx;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  font-size: 28rpx;
+  color: var(--text);
+}
+.page.theme-dark {
+  background-image: radial-gradient(rgba(127, 224, 168, 0.05) 2rpx, transparent 2rpx);
+}
+.content {
+  flex: 1;
+  min-height: 0;
+  padding: 20rpx 32rpx 0;
+  box-sizing: border-box;
+}
+
+/* ---------- 共用：主题切换按钮 / 状态点 / 加载条 ---------- */
+.theme-btn {
+  width: 72rpx;
+  height: 72rpx;
+  border-radius: 20rpx;
+  background: var(--jelly2);
+  border: 2rpx solid var(--line2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32rpx;
+  flex: none;
+}
+.theme-dark .theme-btn { border-color: rgba(245, 217, 139, 0.35); background: rgba(245, 217, 139, 0.08); }
+
+.dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: var(--text2); flex: none; display: inline-block; }
+.dot.on { background: var(--matcha); box-shadow: 0 0 12rpx rgba(47, 162, 102, 0.6); }
+.theme-dark .dot.on { background: var(--gold); box-shadow: 0 0 12rpx rgba(245, 217, 139, 0.6); }
+.dot.off { background: var(--warn); }
+
+.loading-mask {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 20rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 16rpx;
+  background: var(--paper);
+  border: 2rpx solid var(--line2);
+}
+.loading-dot {
+  width: 16rpx;
+  height: 16rpx;
+  border-radius: 50%;
+  background: var(--matcha);
+  box-shadow: 0 0 14rpx rgba(47, 162, 102, 0.8);
+  animation: blink 1.2s steps(2) infinite;
+}
+.loading-text { color: var(--text2); font-size: 21rpx; letter-spacing: 2rpx; }
+.loading-mask.dark { background: var(--surface); border-color: var(--border); }
+.loading-mask.dark .loading-dot { background: var(--accent); box-shadow: 0 0 14rpx rgba(127, 224, 168, 0.8); }
+
+/* ================= 浅色 · 元气日光 · 植宠体检报告 ================= */
+
+/* 顶栏 */
+.nav {
+  position: relative;
+  z-index: 2;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8rpx 32rpx 20rpx;
+  box-sizing: border-box;
+}
+.nav-side {
+  width: 88rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  font-size: 40rpx;
+  font-weight: 700;
+  background: var(--jelly2);
+  border: 2rpx solid var(--line2);
+  border-radius: 16rpx;
+}
+.nav-center { display: flex; flex-direction: column; align-items: center; min-width: 0; }
+.brand { color: var(--text); font-size: 34rpx; font-weight: 800; letter-spacing: 4rpx; }
+.subline { margin-top: 4rpx; color: var(--warn); font-size: 19rpx; letter-spacing: 2rpx; }
+
+/* 体检单 */
+.report {
+  position: relative;
+  margin-top: 24rpx;
+  background: var(--paper);
+  border: 2rpx solid #3A423C;
+  border-radius: 12rpx;
+  padding: 30rpx 32rpx;
+  box-shadow: 0 6rpx 20rpx rgba(52, 66, 58, 0.07);
+}
+.bigstamp {
+  position: absolute;
+  right: 24rpx;
+  top: 96rpx;
+  width: 168rpx;
+  height: 168rpx;
+  border: 5rpx solid rgba(138, 52, 40, 0.72);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: rgba(138, 52, 40, 0.8);
+  font-family: var(--font-serif);
+  transform: rotate(-14deg);
+  z-index: 3;
+  pointer-events: none;
+}
+.bigstamp::before {
+  content: '';
+  position: absolute;
+  inset: 10rpx;
+  border: 2rpx solid rgba(138, 52, 40, 0.45);
+  border-radius: 50%;
+}
+/* 待复查（有异常）加深红色；待检测（无数据）淡化 */
+.bigstamp.warn { border-color: rgba(138, 52, 40, 0.95); }
+.bigstamp.warn::before { border-color: rgba(138, 52, 40, 0.7); }
+.bigstamp.na { opacity: 0.45; }
+.bigstamp .bs-t { font-size: 28rpx; font-weight: 700; letter-spacing: 4rpx; }
+.bigstamp .bs-s { font-size: 15rpx; letter-spacing: 3rpx; margin-top: 4rpx; }
+
+.r-org {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 18rpx;
+  border-bottom: 3rpx solid #3A423C;
+}
+.r-org .h { font-family: var(--font-serif); font-size: 28rpx; font-weight: 700; letter-spacing: 6rpx; color: var(--text); }
+.r-org .no { font-family: 'DIN Alternate', 'Bahnschrift', sans-serif; font-size: 18rpx; color: var(--text2); letter-spacing: 2rpx; }
+
+.r-pet { display: flex; align-items: center; gap: 22rpx; padding: 24rpx 4rpx 16rpx; }
+.r-ava {
+  width: 104rpx;
+  height: 104rpx;
+  border: 2rpx solid #3A423C;
+  border-radius: 50%;
+  background: var(--paper);
+  padding: 8rpx;
+  box-sizing: border-box;
+  flex: none;
+}
+.r-ava-img { width: 100%; height: 100%; border-radius: 50%; }
+.r-pet-copy { flex: 1; min-width: 0; }
+.r-name { font-family: var(--font-serif); font-size: 30rpx; font-weight: 700; color: var(--text); }
+.r-meta { display: flex; align-items: center; gap: 10rpx; font-size: 20rpx; color: var(--text2); margin-top: 6rpx; flex-wrap: wrap; }
+.r-pet-acts { display: flex; flex-direction: column; gap: 10rpx; flex: none; }
+.mini-btn {
+  font-family: var(--font-serif);
+  font-size: 19rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+  color: var(--matcha-deep);
+  border: 2rpx solid var(--line);
+  background: var(--jelly2);
+  padding: 4rpx 16rpx;
+  border-radius: 6rpx;
+  text-align: center;
+}
+
+/* 分节标题 */
+.r-sec {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+  padding: 12rpx 4rpx 4rpx;
+  font-family: var(--font-serif);
+  font-size: 21rpx;
+  font-weight: 700;
+  color: var(--text2);
+  letter-spacing: 2rpx;
+}
+.r-sec .ln { flex: 1; border-top: 2rpx dashed var(--line2); }
+
+/* 逐项体检行 */
+.rp-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr auto;
+  align-items: center;
+  padding: 20rpx 8rpx;
+  border-bottom: 2rpx dotted var(--line2);
+  font-size: 24rpx;
+}
+.rp-list .rp-row:last-child { border-bottom: none; }
+.rp-row .k { font-family: var(--font-serif); font-size: 23rpx; font-weight: 600; color: var(--text2); }
+.rp-row .v { display: flex; align-items: baseline; gap: 4rpx; }
+.rp-row .vn { font-family: 'DIN Alternate', 'Bahnschrift', sans-serif; font-weight: 700; font-size: 28rpx; color: var(--text); }
+.rp-row .vu { font-size: 18rpx; color: var(--text2); font-weight: 500; }
+.rp-row .ok {
+  justify-self: end;
+  font-family: var(--font-serif);
+  font-size: 18rpx;
+  font-weight: 700;
+  color: var(--matcha-deep);
+  border: 2rpx solid var(--matcha-deep);
+  border-radius: 6rpx;
+  padding: 4rpx 16rpx;
+  background: var(--matcha-soft);
+  transform: rotate(-3deg);
+}
+/* 异常 / 无数据判定标签配色 */
+.rp-row .ok.warn {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: rgba(138, 52, 40, 0.08);
+}
+.rp-row .ok.na {
+  color: var(--text2);
+  border-color: var(--line2);
+  background: transparent;
+}
+.rp-row.sel { background: #F0EDE2; border-radius: 8rpx; }
+
+/* 医嘱 */
+.r-advice {
+  margin-top: 20rpx;
+  padding: 20rpx 24rpx;
+  border: 2rpx dashed var(--line2);
+  border-radius: 8rpx;
+  background: #F5F3EB;
+}
+.r-advice-txt { font-size: 22rpx; line-height: 1.7; color: var(--text); }
+.r-advice .ab { font-family: var(--font-serif); font-size: 21rpx; color: var(--matcha-deep); font-weight: 700; }
+
+/* 综合评定 */
+.r-sum {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 2rpx;
+  background: var(--line2);
+  border: 2rpx solid var(--line2);
+  border-radius: 8rpx;
+  overflow: hidden;
+  margin-top: 20rpx;
+}
+.r-sum .rs { background: var(--paper); text-align: center; padding: 18rpx 8rpx 16rpx; display: flex; flex-direction: column; align-items: center; }
+.r-sum .rk { font-family: var(--font-serif); font-size: 18rpx; color: var(--text2); letter-spacing: 2rpx; }
+.r-sum .rv { font-family: 'DIN Alternate', 'Bahnschrift', sans-serif; font-size: 32rpx; font-weight: 700; margin-top: 6rpx; color: var(--matcha-deep); }
+.r-sum .rv-sm { font-size: 28rpx; }
+
+/* 记录墙：成长曲线 */
+.dd {
+  position: relative;
+  margin-top: 36rpx;
+  background: var(--paper);
+  border: 2rpx solid #3A423C;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  box-shadow: 0 6rpx 20rpx rgba(52, 66, 58, 0.07);
+}
+.dd-tag {
+  position: absolute;
+  top: -18rpx;
+  left: 28rpx;
+  z-index: 3;
+  background: #3A423C;
+  color: #F3F1E8;
+  font-family: var(--font-serif);
+  font-size: 19rpx;
+  font-weight: 700;
+  letter-spacing: 4rpx;
+  padding: 6rpx 20rpx;
+  border-radius: 6rpx;
+}
+.dd-head { display: flex; justify-content: space-between; align-items: center; gap: 16rpx; margin-top: 8rpx; }
+.dd-head-l { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6rpx; }
+.dd-title { font-family: var(--font-serif); font-size: 26rpx; font-weight: 700; color: var(--text); }
+.dd-sub { font-size: 20rpx; color: var(--text2); }
+.range-chips { display: flex; gap: 10rpx; flex: none; }
+.rchip {
+  font-family: var(--font-serif);
+  font-size: 20rpx;
+  font-weight: 700;
+  color: var(--text2);
+  border: 2rpx solid var(--line2);
+  padding: 6rpx 18rpx;
+  border-radius: 4rpx;
+  background: var(--paper);
+}
+.rchip.active { color: var(--matcha-deep); border-color: var(--matcha-deep); background: var(--matcha-soft); }
+
+/* 身高墙纸纹 */
+.growwall {
+  position: relative;
+  margin-top: 20rpx;
+  padding: 28rpx 20rpx 16rpx;
+  background: repeating-linear-gradient(0deg, #FAF8F1 0 44rpx, #EAE6D9 44rpx 46rpx);
+  border: 2rpx solid var(--line2);
+  border-radius: 10rpx;
+  overflow: hidden;
+}
+.gw-t {
+  position: absolute;
+  left: 20rpx;
+  top: 8rpx;
+  z-index: 2;
+  font-family: var(--font-serif);
+  font-size: 18rpx;
+  font-weight: 700;
+  color: var(--text2);
+  letter-spacing: 2rpx;
+}
+.chart { width: 100%; height: 360rpx; display: block; }
+.gw-stats { display: flex; justify-content: space-between; text-align: center; padding: 8rpx 12rpx 0; margin-top: 8rpx; position: relative; z-index: 2; }
+.gw-stats .gs { display: flex; flex-direction: column; align-items: center; }
+.gw-stats .gv { font-family: 'DIN Alternate', 'Bahnschrift', sans-serif; font-size: 28rpx; font-weight: 700; color: var(--text); }
+.gw-stats .gv.avg { color: var(--matcha-deep); }
+.gw-stats .gl { font-size: 16rpx; color: var(--text2); letter-spacing: 2rpx; margin-top: 4rpx; }
+
+/* ================= 深色 · 萤火温室 · 监控大屏 ================= */
+
+/* 守夜手记 + 萤火虫 */
+.d-root {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.nw {
+  flex: none;
+  text-align: center;
+  font-size: 17rpx;
+  letter-spacing: 4rpx;
+  color: rgba(245, 217, 139, 0.45);
+  padding: 10rpx 12rpx 0;
+  font-weight: 600;
+  position: relative;
+  z-index: 2;
+}
+.ff {
+  position: absolute;
+  width: 10rpx;
+  height: 10rpx;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 20rpx 8rpx rgba(245, 217, 139, 0.5);
+  animation: fly 9s ease-in-out infinite;
+  z-index: 1;
+  pointer-events: none;
+}
+.ff.f1 { left: 14%; top: 24%; }
+.ff.f2 { right: 11%; top: 38%; animation-delay: 3.5s; animation-duration: 11s; }
+
+/* 顶栏 */
+.pg-top { display: flex; align-items: center; justify-content: space-between; padding: 4rpx 0 24rpx; }
+.pg-top .back {
+  width: 68rpx;
+  height: 68rpx;
+  border-radius: 24rpx;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  font-size: 36rpx;
+}
+.pg-top .mid { text-align: center; display: flex; flex-direction: column; gap: 4rpx; }
+.pg-top .mid .k { font-size: 18rpx; letter-spacing: 4rpx; color: var(--accent); font-weight: 800; }
+.pg-top .mid .t { font-size: 29rpx; font-weight: 800; color: var(--text); }
+
+/* 设备行 */
+.dev-row { display: flex; align-items: center; gap: 20rpx; margin-top: 8rpx; }
+.dev-ava {
+  width: 88rpx;
+  height: 88rpx;
+  border-radius: 24rpx;
+  overflow: hidden;
+  border: 2rpx solid var(--border);
+  background: var(--surface2);
+  flex: none;
+}
+.dev-ava image { width: 100%; height: 100%; }
+.dev-copy { flex: 1; min-width: 0; }
+.dev-name { font-size: 34rpx; font-weight: 800; color: var(--text); }
+.dev-meta { font-size: 22rpx; color: var(--text2); margin-top: 8rpx; }
+.dev-meta .mono { font-family: Menlo, Consolas, monospace; }
+.dev-acts { display: flex; gap: 12rpx; flex: none; }
+.btn-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52rpx;
+  padding: 0 26rpx;
+  border-radius: 999rpx;
+  border: 2rpx solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 20rpx;
+  font-weight: 600;
+}
+.btn-soft {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52rpx;
+  padding: 0 26rpx;
+  border-radius: 999rpx;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 20rpx;
+  font-weight: 700;
+}
+
+/* 监控大屏 */
+.d-screen { margin-top: 24rpx; display: flex; flex-direction: column; }
+.d-big {
+  position: relative;
+  background: linear-gradient(160deg, var(--accent-soft), var(--surface) 60%);
+  border: 2rpx solid var(--accent);
+  border-radius: 44rpx;
+  padding: 36rpx;
+  min-height: 300rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.d-big::before,
+.d-big::after { content: ''; position: absolute; width: 32rpx; height: 32rpx; pointer-events: none; }
+.d-big::before { top: 18rpx; left: 18rpx; border-top: 4rpx solid var(--accent); border-left: 4rpx solid var(--accent); border-top-left-radius: 10rpx; }
+.d-big::after { bottom: 18rpx; right: 18rpx; border-bottom: 4rpx solid var(--accent); border-right: 4rpx solid var(--accent); border-bottom-right-radius: 10rpx; }
+.d-big .scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 68rpx;
+  top: -80rpx;
+  background: linear-gradient(180deg, transparent, rgba(127, 224, 168, 0.08), transparent);
+  animation: scanmove 4.5s linear infinite;
+  pointer-events: none;
+}
+.db-top { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2; }
+.db-top .bk { font-size: 20rpx; letter-spacing: 4rpx; color: var(--text2); }
+.bignum {
+  font-family: 'DIN Alternate', 'Bahnschrift', sans-serif;
+  font-size: 104rpx;
+  font-weight: 900;
+  color: var(--accent);
+  line-height: 1;
+  text-shadow: 0 0 52rpx rgba(127, 224, 168, 0.35);
+  position: relative;
+  z-index: 2;
+}
+.bignum .bn-v { font-size: inherit; }
+.bignum .mu { font-size: 30rpx; color: var(--text2); font-weight: 600; margin-left: 8rpx; }
+.db-sub { font-size: 21rpx; color: var(--accent); position: relative; z-index: 2; }
+
+/* 四盏台灯读数 */
+.lamps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16rpx; margin-top: 20rpx; }
+.lamp {
+  position: relative;
+  padding: 22rpx 12rpx 18rpx;
+  border-radius: 36rpx;
+  background: var(--jelly);
+  border: 2rpx solid var(--line);
+  text-align: center;
+}
+.lamp .cap { width: 44rpx; height: 10rpx; border-radius: 6rpx 6rpx 0 0; background: var(--line2); margin: 0 auto -2rpx; position: relative; z-index: 2; }
+.lamp .ring { width: 8rpx; height: 8rpx; border-radius: 50%; background: var(--line2); margin: 4rpx auto 12rpx; position: relative; z-index: 2; }
+.lamp .lv { position: relative; z-index: 2; display: flex; align-items: baseline; justify-content: center; gap: 2rpx; }
+.lamp .lvn { font-family: 'DIN Alternate', 'Bahnschrift', sans-serif; font-size: 30rpx; font-weight: 800; color: var(--text); }
+.lamp .lvu { font-size: 17rpx; color: var(--text2); font-weight: 600; }
+.lamp .lk { font-size: 17rpx; color: var(--text2); margin-top: 6rpx; position: relative; z-index: 2; }
+.lamp::after {
+  content: '';
+  position: absolute;
+  left: 14%;
+  right: 14%;
+  top: 18rpx;
+  bottom: 18rpx;
+  border-radius: 28rpx;
+  background: radial-gradient(closest-side, rgba(245, 217, 139, 0.16), transparent);
+  animation: lampglow 3.5s ease-in-out infinite;
+  z-index: 1;
+}
+.lamp.hot { border-color: rgba(245, 217, 139, 0.4); }
+.lamp.hot::after { background: radial-gradient(closest-side, rgba(245, 217, 139, 0.3), transparent); }
+
+/* 生命体征 chips */
+.chips { display: flex; gap: 14rpx; margin-top: 20rpx; }
+.chip {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  height: 60rpx;
+  border-radius: 999rpx;
+  background: var(--surface2);
+  border: 2rpx solid var(--border);
+  font-size: 21rpx;
+  color: var(--text2);
+  white-space: nowrap;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.chip .cv { font-size: 22rpx; color: var(--text); font-weight: 700; }
+
+/* 趋势卡 */
+.trend-card {
+  margin-top: 24rpx;
+  padding: 32rpx;
+  border-radius: 44rpx;
+  background: var(--surface);
+  border: 2rpx solid var(--border);
+  box-shadow: var(--shadow-sm);
+  box-sizing: border-box;
+}
+.tc-head { display: flex; justify-content: space-between; align-items: center; gap: 16rpx; }
+.tc-l { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8rpx; }
+.tc-k { font-size: 20rpx; letter-spacing: 4rpx; color: var(--accent); font-weight: 700; }
+.tc-sub { font-size: 21rpx; color: var(--text2); }
+.range-btns { display: flex; gap: 10rpx; flex: none; }
+.trend-card .chart { margin-top: 28rpx; }
+.trend-stats { display: flex; justify-content: space-between; margin-top: 20rpx; text-align: center; }
+.trend-stat { display: flex; flex-direction: column; align-items: center; }
+.trend-stat .tv { font-family: 'DIN Alternate', 'Bahnschrift', sans-serif; font-size: 30rpx; font-weight: 800; }
+.trend-stat .tv.blue { color: #A9C6E8; }
+.trend-stat .tv.gold { color: var(--gold); }
+.trend-stat .tv.green { color: var(--accent); }
+.trend-stat .tl { font-size: 19rpx; color: var(--text2); margin-top: 4rpx; letter-spacing: 2rpx; }
+
+/* ================= 动画 ================= */
+@keyframes blink { 0%, 92%, 100% { opacity: 1; } 95% { opacity: 0.2; } }
+@keyframes lampglow { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
+@keyframes scanmove { 0% { top: -80rpx; } 100% { top: 100%; } }
+@keyframes fly {
+  0%, 100% { transform: translate(0, 0); opacity: 0.1; }
+  30% { opacity: 0.85; }
+  55% { transform: translate(32rpx, -44rpx); opacity: 0.45; }
+  80% { opacity: 0.9; }
+}

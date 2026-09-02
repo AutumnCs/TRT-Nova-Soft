@@ -1,0 +1,108 @@
+<page-meta background-color="{{theme === 'dark' ? '#0C1410' : '#F7F5EE'}}" page-style="{{theme === 'dark' ? 'background: #0C1410' : 'background: #F7F5EE'}}" />
+<view class="page {{theme === 'dark' ? 'theme-dark' : 'theme-light'}}" wx:if="{{ready}}">
+  <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}">
+    <view class="top-shell" style="padding-top: {{statusBarHeight}}px;">
+
+      <!-- ================= 浅色 · 元气日光（个人档案证件卡 + 功能票券） ================= -->
+      <block wx:if="{{theme !== 'dark'}}">
+        <!-- 顶栏 -->
+        <view class="l-top">
+          <view class="l-back"><text>‹</text></view>
+          <view class="l-title"><text>我的档案</text></view>
+          <view class="l-acts">
+            <view class="l-signal"><text>◉</text></view>
+
+          </view>
+        </view>
+
+        <!-- 档案证件卡 -->
+        <view class="idcard">
+          <view class="photo"><image src="{{user.avatar}}" mode="aspectFill" class="photo-img"></image></view>
+          <view class="id-info">
+            <text class="id-label">个人档案 · PROFILE</text>
+            <text class="id-name">{{user.name}}</text>
+            <view class="id-stats">
+              <text>等级 <text class="id-b">{{user.level}}</text></text>
+              <text>记录你的植宠宇宙</text>
+            </view>
+          </view>
+          <view class="seal"><text>TRT</text><text>认证</text></view>
+        </view>
+
+        <!-- 功能导航 -->
+        <view class="sec-head">
+          <text class="sec-title">功能导航</text>
+          <view class="sec-line"></view>
+        </view>
+        <view class="tickets">
+          <view class="ticket {{index % 2 === 1 ? 'tk-g' : ''}}" wx:for="{{menu}}" wx:key="index" hover-class="pressed" bindtap="onMenuItemTap" data-index="{{index}}">
+            <view class="tico"><text class="tico-txt">{{item.icon}}</text></view>
+            <view class="tbody">
+              <text class="tt">{{item.title}}</text>
+              <text class="td">{{item.desc}}</text>
+            </view>
+            <view class="t-right">
+              <text class="tail">{{item.tail}}</text>
+              <text class="chev">›</text>
+            </view>
+          </view>
+          <view class="ticket tk-d" hover-class="pressed" bindtap="onLogout">
+            <view class="tico tico-d"><text class="tico-txt">↗</text></view>
+            <view class="tbody">
+              <text class="tt tt-danger">退出登录</text>
+              <text class="td">清除本地登录状态</text>
+            </view>
+            <view class="t-right"><text class="chev chev-danger">›</text></view>
+          </view>
+        </view>
+      </block>
+
+      <!-- ================= 深色 · 萤火温室（夜间档案柜） ================= -->
+      <block wx:else>
+        <view class="nw">守夜手记 · 天边有点亮了，先整理档案</view>
+        <view class="ff f1"></view>
+        <view class="ff f2"></view>
+
+        <!-- 顶栏：夜巡档案 -->
+        <view class="pg-top">
+          <view class="back"><text>‹</text></view>
+          <view class="mid">
+            <text class="k">NIGHT FILE</text>
+            <text class="t">我的档案</text>
+          </view>
+          <view class="act">
+            <view class="d-signal"><text>◉</text></view>
+
+          </view>
+        </view>
+
+        <!-- 档案柜：左徽章 + 右条目 -->
+        <view class="d-file">
+          <view class="fl">
+            <view class="d-av-ring"><image src="{{user.avatar}}" mode="aspectFill" class="d-av"></image></view>
+            <text class="d-name">{{user.name}}</text>
+            <view class="chip green"><text class="chip-b">{{user.level}}</text></view>
+            <text class="d-fl-cap">植宠档案 · 记录你的植宠宇宙</text>
+          </view>
+          <view class="fr">
+            <view class="frow" wx:for="{{menu}}" wx:key="index" hover-class="pressed" bindtap="onMenuItemTap" data-index="{{index}}">
+              <text class="fico">{{item.icon}}</text>
+              <text class="fk">{{item.title}}</text>
+              <text class="fv">{{item.desc}}</text>
+              <text class="ftail">{{item.tail}}</text>
+              <text class="chev-d">›</text>
+            </view>
+            <view class="frow frow-danger" hover-class="pressed" bindtap="onLogout">
+              <text class="fico fico-d">↗</text>
+              <text class="fk fk-danger">退出</text>
+              <text class="fv fv-d">清除本地登录状态</text>
+              <text class="chev-d chev-danger">›</text>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <view class="bottom-spacer"></view>
+    </view>
+  </scroll-view>
+</view>

@@ -1,0 +1,209 @@
+<page-meta background-color="{{theme === 'dark' ? '#0C1410' : '#F7F5EE'}}" page-style="{{theme === 'dark' ? 'background: #0C1410' : 'background: #F7F5EE'}}" />
+<view class="page {{theme === 'dark' ? 'theme-dark' : 'theme-light'}}" style="padding-top: {{statusBarHeight}}px;" wx:if="{{ready}}">
+
+  <!-- ================= 浅色 · 元气日光 · 植宠报刊亭 ================= -->
+  <block wx:if="{{theme !== 'dark'}}">
+    <view class="ppad">
+      <!-- 报刊亭（亭形：招牌 → 雨棚 → 营业窗 → 窗台 → 台后陈列 → 侧挂报） -->
+      <view class="kiosk">
+        <view class="k-sign">植宠报刊亭 · {{countText}}</view>
+        <view class="awning"></view>
+        <view class="k-body">
+          <!-- 营业玻璃窗 -->
+          <view class="k-win">
+            <view class="k-open"><text class="k-open-i">●</text><text>营业中</text></view>
+            <!-- 问亭主（搜索，窗内台面） -->
+            <view class="k-search">
+              <text class="k-search-ico">⌕</text>
+              <input class="k-search-input" placeholder="{{searchPlaceholder}}" placeholder-class="k-ph" value="{{searchKeyword}}" bindinput="onSearch" />
+              <view wx:if="{{searchKeyword}}" class="k-clear" bindtap="clearFilters">清除</view>
+            </view>
+            <!-- 窗内架子（双模式） -->
+            <view class="k-modes">
+              <view class="k-mode {{currentMode === 'articles' ? 'on' : ''}}" bindtap="switchToArticles">
+                <text class="k-mode-t">养护文库</text>
+                <text class="k-mode-d">养护、字段、规则</text>
+              </view>
+              <view class="k-mode {{currentMode === 'plants' ? 'on' : ''}}" bindtap="switchToPlants">
+                <text class="k-mode-t">植物图鉴</text>
+                <text class="k-mode-d">资料、参数、问答</text>
+              </view>
+            </view>
+            <!-- 窗沿吊牌（分类） -->
+            <scroll-view wx:if="{{currentMode === 'articles'}}" scroll-x="true" show-scrollbar="{{false}}" class="k-tags-scroll">
+              <view class="k-ktags">
+                <view wx:for="{{categories}}" wx:key="value" class="ktag {{activeCategory === item.value ? 'on' : ''}}" bindtap="setCategory" data-category="{{item.value}}">{{item.label}}</view>
+              </view>
+            </scroll-view>
+          </view>
+          <!-- 窗台板 -->
+          <view class="k-counter"></view>
+          <!-- 台后杂志陈列 -->
+          <view class="k-rack">
+            <view wx:if="{{currentMode === 'articles'}}">
+              <view wx:if="{{loading && filteredArticles.length === 0}}" class="loading-panel">
+                <view class="loading-line loading-line-lg"></view>
+                <view class="loading-line loading-line-md"></view>
+                <view class="loading-card" wx:for="{{[1, 2, 3]}}" wx:key="*this"></view>
+              </view>
+              <view wx:elif="{{filteredArticles.length > 0}}" class="k-news-list">
+                <view wx:for="{{filteredArticles}}" wx:key="id" class="k-news {{item.category === 'plant-care' ? 't-care' : item.category === 'device-protocol' ? 't-tech' : item.category === 'system-rule' ? 't-sick' : item.category === 'usage-guide' ? 't-soul' : 't-care'}}" bindtap="openArticle" data-id="{{item.id}}">
+                  <view class="kn-bar">
+                    <view class="kn-bar-l"><text class="kn-dot">●</text><text>{{item.displayCategory || item.category}}</text></view>
+                    <text>阅读 ›</text>
+                  </view>
+                  <view class="kn-brand">
+                    <text class="kn-bs">植宠文库</text>
+                    <text class="kn-bw">{{item.displayCategory || item.category}}</text>
+                    <text class="kn-bs">{{item.tags[0] || '亭主荐读'}}</text>
+                  </view>
+                  <view class="kn-t">{{item.title}}</view>
+                  <view class="kn-cols"><text>{{item.summary}}</text></view>
+                  <view class="kn-tags" wx:if="{{item.tags.length > 0}}">
+                    <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" class="kn-tag">{{tag}}</text>
+                  </view>
+                  <view class="kn-foot"><text>亭主荐读</text><text>展开读报 ›</text></view>
+                </view>
+              </view>
+              <view wx:else class="empty-panel">
+                <text class="empty-title">没有找到相关文章</text>
+                <text class="empty-desc">换一个关键词，或清除当前筛选后再试。</text>
+              </view>
+            </view>
+            <view wx:else>
+              <view wx:if="{{plantLoading && filteredPlants.length === 0}}" class="loading-panel">
+                <view class="loading-line loading-line-lg"></view>
+                <view class="loading-line loading-line-md"></view>
+                <view class="loading-card" wx:for="{{[1, 2, 3]}}" wx:key="*this"></view>
+              </view>
+              <view wx:elif="{{filteredPlants.length > 0}}" class="k-plant-list">
+                <view wx:for="{{filteredPlants}}" wx:key="id" class="k-plant">
+                  <image class="k-plant-thumb" src="{{item.image || '/images/plant-default.jpg'}}" mode="aspectFill"></image>
+                  <view class="k-plant-info">
+                    <view class="k-plant-row">
+                      <text class="k-plant-name">{{item.name}}</text>
+                      <text class="k-plant-diff">{{item.difficulty || '通用'}}</text>
+                    </view>
+                    <text class="k-plant-family">{{item.family || item.scientificName}}</text>
+                    <text class="k-plant-desc">{{item.featureText || item.description}}</text>
+                    <view class="k-plant-care">
+                      <text wx:if="{{item.care.light}}" class="k-care-chip">光照 {{item.care.light}}</text>
+                      <text wx:if="{{item.care.water}}" class="k-care-chip">浇水 {{item.care.water}}</text>
+                    </view>
+                  </view>
+                </view>
+              </view>
+              <view wx:else class="empty-panel">
+                <text class="empty-title">没有找到植物资料</text>
+                <text class="empty-desc">换一个植物名称、科属或特征关键词再试。</text>
+              </view>
+            </view>
+            <!-- 亭侧挂报（今日头版） -->
+            <view class="k-paper" wx:if="{{currentMode === 'articles' && filteredArticles.length > 0}}">
+              <view class="kp-head">NOVA DAILY · {{stats.articleCount}} 期</view>
+              <view class="kp-title">{{filteredArticles[0].title}}</view>
+              <view class="kp-lines"><view class="ln"></view><view class="ln"></view><view class="ln short"></view></view>
+              <view class="kp-stamp">今日头版</view>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view style="padding-bottom: calc(170rpx + env(safe-area-inset-bottom));"></view>
+    </view>
+  </block>
+
+  <!-- ================= 深色 · 萤火温室 · 夜读书架 ================= -->
+  <block wx:else>
+    <view class="nw">守夜手记 · 翻两页园艺书，夜还很长</view>
+    <view class="ff f1"></view>
+    <view class="ff f2"></view>
+    <view class="ppad">
+      <!-- 顶栏：书架名 + 卷数 -->
+      <view class="d-head">
+        <view class="d-head-l">
+          <text class="d-k">BEDTIME READING</text>
+          <text class="d-t">夜读书架</text>
+        </view>
+        <view class="d-count">{{countText}}</view>
+      </view>
+      <!-- 搜索 -->
+      <view class="d-field">
+        <text class="d-field-ico">⌕</text>
+        <input class="d-field-input" placeholder="{{searchPlaceholder}}" placeholder-class="d-ph" value="{{searchKeyword}}" bindinput="onSearch" />
+        <text wx:if="{{searchKeyword}}" class="d-clear" bindtap="clearFilters">清除</text>
+      </view>
+      <!-- 双模式 -->
+      <view class="d-modes">
+        <view class="d-mode {{currentMode === 'articles' ? 'on' : ''}}" bindtap="switchToArticles">
+          <text class="d-mode-t">知识文章</text>
+          <text class="d-mode-d">养护、设备字段、系统规则</text>
+        </view>
+        <view class="d-mode {{currentMode === 'plants' ? 'on' : ''}}" bindtap="switchToPlants">
+          <text class="d-mode-t">植物图鉴</text>
+          <text class="d-mode-d">植物资料、养护参数、常见问题</text>
+        </view>
+      </view>
+      <!-- 分类胶囊 -->
+      <scroll-view wx:if="{{currentMode === 'articles'}}" scroll-x="true" show-scrollbar="{{false}}" class="d-chips-scroll">
+        <view class="d-chip-row">
+          <view wx:for="{{categories}}" wx:key="value" class="d-chip {{activeCategory === item.value ? 'on' : ''}}" bindtap="setCategory" data-category="{{item.value}}">{{item.label}}</view>
+        </view>
+      </scroll-view>
+      <!-- 书架 -->
+      <view class="d-list">
+        <view wx:if="{{currentMode === 'articles'}}">
+          <view wx:if="{{loading && filteredArticles.length === 0}}" class="d-panel">
+            <view class="d-line d-line-lg"></view>
+            <view class="d-line d-line-md"></view>
+            <view class="d-card-skel" wx:for="{{[1, 2, 3]}}" wx:key="*this"></view>
+          </view>
+          <view wx:elif="{{filteredArticles.length > 0}}" class="d-books">
+            <view wx:for="{{filteredArticles}}" wx:key="id" class="d-book" bindtap="openArticle" data-id="{{item.id}}">
+              <view class="bmark"></view>
+              <text class="btag">{{item.displayCategory || item.category}}</text>
+              <view class="bno">{{index < 9 ? '0' : ''}}{{index + 1}}</view>
+              <text class="b-title">{{item.title}}</text>
+              <view class="bd">{{item.summary}}</view>
+              <view class="art-tags" wx:if="{{item.tags.length > 0}}">
+                <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this" class="d-tag">{{tag}}</text>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="d-panel d-empty">
+            <text class="d-empty-t">没有找到相关文章</text>
+            <text class="d-empty-d">换一个关键词，或清除当前筛选后再试。</text>
+          </view>
+        </view>
+        <view wx:else>
+          <view wx:if="{{plantLoading && filteredPlants.length === 0}}" class="d-panel">
+            <view class="d-line d-line-lg"></view>
+            <view class="d-line d-line-md"></view>
+            <view class="d-card-skel" wx:for="{{[1, 2, 3]}}" wx:key="*this"></view>
+          </view>
+          <view wx:elif="{{filteredPlants.length > 0}}" class="d-plants">
+            <view wx:for="{{filteredPlants}}" wx:key="id" class="d-plant">
+              <image class="d-plant-thumb" src="{{item.image || '/images/plant-default.jpg'}}" mode="aspectFill"></image>
+              <view class="d-plant-info">
+                <view class="d-plant-row">
+                  <text class="d-plant-name">{{item.name}}</text>
+                  <text class="d-plant-diff">{{item.difficulty || '通用'}}</text>
+                </view>
+                <text class="d-plant-family">{{item.family || item.scientificName}}</text>
+                <text class="d-plant-desc">{{item.featureText || item.description}}</text>
+                <view class="d-plant-care">
+                  <text wx:if="{{item.care.light}}" class="d-care">光照 {{item.care.light}}</text>
+                  <text wx:if="{{item.care.water}}" class="d-care">浇水 {{item.care.water}}</text>
+                </view>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="d-panel d-empty">
+            <text class="d-empty-t">没有找到植物资料</text>
+            <text class="d-empty-d">换一个植物名称、科属或特征关键词再试。</text>
+          </view>
+        </view>
+      </view>
+      <view style="padding-bottom: calc(170rpx + env(safe-area-inset-bottom));"></view>
+    </view>
+  </block>
+</view>

@@ -1,0 +1,18 @@
+<view class="tab-shell" catchtouchmove="noop">
+  <view class="tab-bar {{theme === 'dark' ? 'dark' : ''}}">
+    <view
+      wx:for="{{list}}"
+      wx:key="pagePath"
+      class="tab-item {{selected === index ? 'active' : ''}}"
+      data-path="{{item.pagePath}}"
+      data-index="{{index}}"
+      bindtap="switchTab"
+    >
+      <view class="tab-icon-wrap">
+        <text class="tab-icon">{{item.icon}}</text>
+      </view>
+      <text class="tab-text">{{item.text}}</text>
+      <view class="tab-indicator"></view>
+    </view>
+  </view>
+</view>

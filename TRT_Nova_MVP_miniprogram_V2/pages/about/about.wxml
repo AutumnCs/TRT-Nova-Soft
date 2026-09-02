@@ -1,0 +1,141 @@
+<page-meta background-color="{{theme === 'dark' ? '#0C1410' : '#F7F5EE'}}" page-style="{{theme === 'dark' ? 'background: #0C1410' : 'background: #F7F5EE'}}" />
+<view class="about-page {{theme === 'dark' ? 'theme-dark' : 'theme-light'}}" style="padding-top: {{statusBarHeight}}px;" wx:if="{{ready}}">
+
+  <!-- ================= 浅色 · 元气日光 · 关于 · 说明书封底 ================= -->
+  <block wx:if="{{theme !== 'dark'}}">
+    <view class="ppad">
+      <!-- 刊头导航 -->
+      <view class="pg-top">
+        <view class="pg-back" bindtap="goBack"><text class="pg-back-ico">←</text></view>
+        <view class="pg-mid"><text class="pg-t">关于</text></view>
+        <view class="pg-act">
+
+        </view>
+      </view>
+
+      <!-- 说明书封底：刊头、感谢语、条码与铭牌 -->
+      <view class="manual">
+        <view class="mn-head">TRT NOVA</view>
+        <view class="mn-sub">{{appInfo.name}} · 产品信息</view>
+        <view class="mn-plant"><view class="mn-plant-ico ico ico-leaf"></view></view>
+        <view class="mn-thanks">
+          <text>{{appInfo.description}}</text>
+          <text class="mn-thanks-brand">{{appInfo.developer}} 出品</text>
+        </view>
+        <view class="mn-specs">
+          <view class="mn-spec" wx:for="{{appInfo.features}}" wx:key="index">
+            <text class="mn-spec-check">✓</text>
+            <text class="mn-spec-txt">{{item}}</text>
+          </view>
+        </view>
+        <view class="barcode"></view>
+        <view class="mn-serial">TRT-2026-0826-NOVA</view>
+        <view class="mn-plate">
+          <text>v{{appInfo.version}} · Build 20260826</text>
+          <text>MADE WITH 💚</text>
+        </view>
+      </view>
+
+      <!-- 附录：协议与联系方式 -->
+      <view class="dd">
+        <text class="dd-tag">附录 · 你可能想翻的页</text>
+        <view class="dd-row" bindtap="viewUserAgreement">
+          <text class="dd-row-t">用户协议</text>
+          <text class="dd-chev">›</text>
+        </view>
+        <view class="divider"></view>
+        <view class="dd-row" bindtap="viewPrivacyPolicy">
+          <text class="dd-row-t">隐私政策</text>
+          <text class="dd-chev">›</text>
+        </view>
+        <view class="divider"></view>
+        <view class="dd-row">
+          <text class="dd-row-t">开发团队</text>
+          <text class="dd-row-v">{{appInfo.developer}}</text>
+        </view>
+        <view class="divider"></view>
+        <view class="dd-row">
+          <text class="dd-row-t">联系我们</text>
+          <text class="dd-row-v">{{appInfo.contact}}</text>
+        </view>
+      </view>
+
+      <view class="l-foot">
+        <text>TRT 灵枢智能 · 植愈星球</text>
+        <text>Made with 💚 for plants & their people</text>
+        <text class="l-foot-cr">© 2026 {{appInfo.developer}} · All rights reserved</text>
+      </view>
+
+      <view style="padding-bottom: 60rpx;"></view>
+    </view>
+  </block>
+
+  <!-- ================= 深色 · 萤火温室 · 关于 · 黎明将至 ================= -->
+  <block wx:else>
+    <view class="nw">守夜手记 · 守到天亮，该说早安了</view>
+    <view class="dawn"></view>
+    <view class="ff f1"></view><view class="ff f2"></view>
+    <view class="ppad">
+      <!-- 刊头导航 -->
+      <view class="pg-top">
+        <view class="pg-back" bindtap="goBack"><text class="pg-back-ico">←</text></view>
+        <view class="pg-mid"><text class="pg-t">关于</text></view>
+        <view class="pg-act">
+
+        </view>
+      </view>
+
+      <!-- 黎明将至：品牌铭牌 -->
+      <view class="about-body">
+        <view class="halo"></view>
+        <text class="ff ab-ff"></text>
+        <view class="ab-plant ico ico-leaf"></view>
+        <view class="ab-brand">TRT Nova</view>
+        <view class="ab-sub">{{appInfo.name}}</view>
+        <view class="ab-sub2">{{appInfo.description}}</view>
+        <view class="ver-chip">v{{appInfo.version}} · Build 20260826</view>
+      </view>
+
+      <!-- 核心功能 -->
+      <view class="d-sec"><text>核心功能 · SPECS</text><view class="ln"></view></view>
+      <view class="card spec-card">
+        <view class="spec-row" wx:for="{{appInfo.features}}" wx:key="index">
+          <text class="spec-check">✓</text>
+          <text class="spec-txt">{{item}}</text>
+        </view>
+      </view>
+
+      <!-- 协议与联系 -->
+      <view class="d-sec"><text>附录 · LINKS</text><view class="ln"></view></view>
+      <view class="card link-card">
+        <view class="link-row" bindtap="viewUserAgreement">
+          <text>用户协议</text>
+          <text class="link-chev">›</text>
+        </view>
+        <view class="divider"></view>
+        <view class="link-row" bindtap="viewPrivacyPolicy">
+          <text>隐私政策</text>
+          <text class="link-chev">›</text>
+        </view>
+        <view class="divider"></view>
+        <view class="link-row">
+          <text>开发团队</text>
+          <text class="link-v">{{appInfo.developer}}</text>
+        </view>
+        <view class="divider"></view>
+        <view class="link-row">
+          <text>联系我们</text>
+          <text class="link-v">{{appInfo.contact}}</text>
+        </view>
+      </view>
+
+      <view class="about-foot">
+        <text>TRT 灵枢智能 · 植愈星球</text>
+        <text>Made with 💚 for plants & their people</text>
+        <text class="about-foot-cr">© 2026 {{appInfo.developer}} · All rights reserved</text>
+      </view>
+
+      <view style="padding-bottom: 60rpx;"></view>
+    </view>
+  </block>
+</view>

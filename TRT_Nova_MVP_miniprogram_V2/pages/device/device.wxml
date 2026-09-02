@@ -1,0 +1,225 @@
+<page-meta background-color="{{theme === 'dark' ? '#0C1410' : '#F7F5EE'}}" page-style="{{theme === 'dark' ? 'background: #0C1410' : 'background: #F7F5EE'}}" />
+<view class="device-page {{theme === 'dark' ? 'theme-dark' : 'theme-light'}}" style="padding-top: {{statusBarHeight}}px;" wx:if="{{ready}}">
+
+  <!-- ================= 浅色 · 元气日光 · 迎新日设备登记 ================= -->
+  <block wx:if="{{theme !== 'dark'}}">
+    <view class="ppad">
+      <!-- 顶栏 -->
+      <view class="pg-top">
+        <view class="pg-back" bindtap="goBack" hover-class="pg-back-hover">
+          <text class="pg-back-ico">←</text>
+        </view>
+        <view class="pg-mid">
+          <text class="pg-t">迎新日 · 设备登记</text>
+        </view>
+        <view class="pg-act">
+
+        </view>
+      </view>
+
+      <!-- 展示位橱窗 -->
+      <view class="shopwin">
+        <view class="open-tag"><text>登记开放中</text></view>
+        <view class="hintline"><text>待登记设备 · 展示位</text></view>
+        <view class="win-pet"><text class="win-pet-ico">🪴</text></view>
+        <view class="shelf"></view>
+      </view>
+
+      <!-- 设备登记表 -->
+      <view class="cert">
+        <view class="c-no"><text>NO. TRT-042</text></view>
+        <view class="c-title"><text>设备登记表</text></view>
+        <view class="c-sub"><text>DEVICE REGISTRATION · 完成登记即完成绑定</text></view>
+        <view class="c-rows">
+          <view class="c-row">
+            <text class="ck">设备编码</text>
+            <input class="cv-input" placeholder="花盆底部铭牌" placeholder-class="ph2" value="{{deviceCode}}" bindinput="onDeviceCodeInput" />
+          </view>
+          <view class="c-row">
+            <text class="ck">设备名称</text>
+            <input class="cv-input" placeholder="给它起个名字" placeholder-class="ph2" value="{{alias}}" bindinput="onAliasInput" />
+          </view>
+          <view class="c-row">
+            <text class="ck">摆放位置</text>
+            <input class="cv-input" placeholder="例如：客厅" placeholder-class="ph2" value="{{location}}" bindinput="onLocationInput" />
+          </view>
+          <view class="c-row" bindtap="choosePlantType">
+            <text class="ck">植物类型</text>
+            <view class="c-pick">
+              <text class="cv">{{plantOptions[plantTypeIndex]}}</text>
+              <text class="chev">⌄</text>
+            </view>
+          </view>
+        </view>
+        <button class="reg-btn" bindtap="bindDevice" hover-class="btn-hover">
+          <text>立即登记绑定</text>
+        </button>
+        <view class="c-foot"><text>登记即绑定设备 · 信息可随时修改</text></view>
+      </view>
+
+      <!-- 已登记设备 -->
+      <view class="dev-head">
+        <text class="dev-head-t">已登记设备</text>
+        <view class="dev-head-ln"></view>
+        <view class="dev-refresh" bindtap="refreshData" hover-class="btn-hover">
+          <text class="refresh-ico">⟳</text>
+          <text>刷新</text>
+        </view>
+      </view>
+
+      <view class="plates">
+        <view class="plate" wx:for="{{deviceList}}" wx:key="_id" style="animation-delay: {{index * 0.06}}s;">
+          <view class="p-pin"></view>
+          <view class="p-main">
+            <view class="p-ava"><text class="p-ava-ico">🪴</text></view>
+            <view class="p-info">
+              <view class="p-title-row">
+                <text class="p-name">{{item.alias || item.deviceName || '未命名设备'}}</text>
+                <view class="p-badge {{item.online ? '' : 'offline'}}">
+                  <text>{{item.online ? '● 在线' : '○ 离线'}}</text>
+                </view>
+              </view>
+              <text class="p-meta">{{item.location || '未设置地点'}} · {{item.plantType || '未设置植物类型'}} · 胸牌 {{item.logicalKey || '--'}}</text>
+              <text class="p-desc">平安信标 · {{item.hasData ? '已有上报数据' : '暂无上报数据'}} · {{item.updatedAt || '刚刚'}}</text>
+            </view>
+          </view>
+          <view class="p-acts">
+            <view class="p-cmd">
+              <input class="p-cmd-in" placeholder="输入 JSON 命令..." placeholder-class="ph2" bindinput="onCmdInput" data-index="{{index}}" />
+            </view>
+            <view class="p-btn soft" bindtap="sendCmd" data-logicalkey="{{item.logicalKey}}" hover-class="btn-hover">
+              <text>发送</text>
+            </view>
+            <view class="p-btn danger" bindtap="unbindDevice" data-logicalkey="{{item.logicalKey}}" hover-class="btn-hover">
+              <text>解绑</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{deviceList.length === 0}}" class="empty-state">
+        <text class="empty-icon">⌁</text>
+        <text class="empty-title">还没有绑定设备</text>
+        <text class="empty-desc">先绑定一台智能花盆，设备状态和命令才会开始流转。</text>
+      </view>
+
+      <view style="padding-bottom: 64rpx;"></view>
+    </view>
+  </block>
+
+  <!-- ================= 深色 · 萤火温室 · 深夜迎新 ================= -->
+  <block wx:else>
+    <view class="whisper"><text>夜巡 · 第 5 站 · 给新来的留一盏灯</text></view>
+    <view class="ff f1"></view>
+    <view class="ff f2"></view>
+    <view class="ppad">
+      <!-- 顶栏 -->
+      <view class="pg-top">
+        <view class="pg-back" bindtap="goBack" hover-class="pg-back-hover">
+          <text class="pg-back-ico">←</text>
+        </view>
+        <view class="pg-mid">
+          <text class="pg-t">迎新日</text>
+        </view>
+        <view class="pg-act">
+
+        </view>
+      </view>
+
+      <view class="pg-intro">
+        <view class="pg-kicker"><text>WELCOME HOME</text></view>
+        <view class="pg-title"><text>新植宠到家 🌙</text></view>
+        <view class="pg-sub"><text>深夜也能迎接新成员——填一张小卡就好。</text></view>
+      </view>
+
+      <!-- 入住登记卡 -->
+      <view class="card">
+        <view class="card-head">
+          <text class="card-head-t">入住登记 · ENROLL</text>
+          <text class="card-head-s">编码在花盆底部铭牌上</text>
+        </view>
+        <view class="fields">
+          <view class="field">
+            <text class="f-ico">⌁</text>
+            <input class="f-in" placeholder="设备编码（花盆底部铭牌）" placeholder-class="ph2" value="{{deviceCode}}" bindinput="onDeviceCodeInput" />
+          </view>
+          <view class="field">
+            <text class="f-ico">✎</text>
+            <input class="f-in" placeholder="给它起个名字" placeholder-class="ph2" value="{{alias}}" bindinput="onAliasInput" />
+          </view>
+          <view class="field">
+            <text class="f-ico">⌖</text>
+            <input class="f-in" placeholder="它住在哪儿（例如：客厅）" placeholder-class="ph2" value="{{location}}" bindinput="onLocationInput" />
+          </view>
+          <view class="field f-pick" bindtap="choosePlantType">
+            <view class="f-left">
+              <text class="f-ico">✦</text>
+              <text class="f-lab">植物类型</text>
+            </view>
+            <view class="f-right">
+              <text class="val">{{plantOptions[plantTypeIndex]}}</text>
+              <text class="chev">⌄</text>
+            </view>
+          </view>
+        </view>
+        <button class="reg-btn" bindtap="bindDevice" hover-class="btn-hover">
+          <text>接它回家 💚</text>
+        </button>
+      </view>
+
+      <!-- 已入住的小家伙 -->
+      <view class="sec-head">
+        <view class="sec-title">
+          <text class="sec-ico">🪴</text>
+          <text>已入住的小家伙</text>
+        </view>
+        <view class="chip chip-refresh" bindtap="refreshData" hover-class="btn-hover">
+          <text class="refresh-ico">⟳</text>
+          <text>刷新</text>
+        </view>
+      </view>
+
+      <view class="card dev-card" wx:for="{{deviceList}}" wx:key="_id" style="animation-delay: {{index * 0.06}}s;">
+        <view class="d-main">
+          <view class="d-ava"><text class="d-ava-ico">🪴</text></view>
+          <view class="d-info">
+            <view class="d-title-row">
+              <text class="d-name">{{item.alias || item.deviceName || '未命名设备'}}</text>
+              <view class="chip green">
+                <view class="dot {{item.online ? 'on' : 'off-warn'}}"></view>
+                <text>{{item.online ? '在线' : '离线'}}</text>
+              </view>
+            </view>
+            <text class="d-meta">{{item.location || '未设置地点'}} · {{item.plantType || '未设置植物类型'}} · 胸牌号 {{item.logicalKey || '--'}}</text>
+          </view>
+        </view>
+        <view class="d-signal">
+          <view class="d-signal-l">
+            <view class="ds-label"><text>平安信号</text></view>
+            <view class="ds-val"><text>{{item.hasData ? '已有上报数据' : '暂无上报数据'}}</text></view>
+          </view>
+          <view class="chip"><text>{{item.updatedAt || '刚刚'}}</text></view>
+        </view>
+        <view class="d-acts">
+          <view class="field d-cmd">
+            <input class="f-in" placeholder="输入 JSON 命令…" placeholder-class="ph2" bindinput="onCmdInput" data-index="{{index}}" />
+          </view>
+          <view class="p-btn soft" bindtap="sendCmd" data-logicalkey="{{item.logicalKey}}" hover-class="btn-hover">
+            <text>发送</text>
+          </view>
+          <view class="p-btn danger" bindtap="unbindDevice" data-logicalkey="{{item.logicalKey}}" hover-class="btn-hover">
+            <text>解绑</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{deviceList.length === 0}}" class="empty-state">
+        <text class="empty-icon">⌁</text>
+        <text class="empty-title">还没有绑定设备</text>
+        <text class="empty-desc">先绑定一台智能花盆，设备状态和命令才会开始流转。</text>
+      </view>
+
+      <view style="padding-bottom: 64rpx;"></view>
+    </view>
+  </block>
+</view>

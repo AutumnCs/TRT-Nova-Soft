@@ -1,0 +1,138 @@
+<page-meta background-color="{{theme === 'dark' ? '#0C1410' : '#F7F5EE'}}" page-style="{{theme === 'dark' ? 'background: #0C1410' : 'background: #F7F5EE'}}" />
+<view class="garden-page {{theme === 'dark' ? 'theme-dark' : 'theme-light'}}" style="padding-top: {{statusBarHeight}}px;" wx:if="{{ready}}">
+
+  <!-- ================= 浅色 · 元气日光 · 窗台视图 ================= -->
+  <block wx:if="{{theme !== 'dark'}}">
+    <view class="ppad">
+      <!-- 顶栏：标题 + 摘要 + 主题切换 -->
+      <view class="l-top">
+        <view class="l-back" hover-class="hover-dim" bindtap="goBackHome"><text>‹</text></view>
+        <view class="l-top-l">
+          <text class="l-title">我的花园</text>
+          <text class="l-sub">{{summaryText}}</text>
+        </view>
+
+      </view>
+
+      <!-- 窗台场景：在线的晒太阳，睡着的打 z z -->
+      <view class="window">
+        <view class="w-sun"></view>
+        <view class="w-cloud c1"></view>
+        <view class="w-cloud c2"></view>
+        <view class="w-bar-v"></view>
+        <view class="w-bar-h"></view>
+        <image wx:if="{{devices[0]}}" class="w-pet left" src="{{devices[0].image}}" mode="aspectFill" />
+        <image wx:if="{{devices[1]}}" class="w-pet right {{devices[1] && !devices[1].online ? 'sleep' : ''}}" src="{{devices[1].image}}" mode="aspectFill" />
+        <text wx:if="{{devices[1] && !devices[1].online}}" class="w-zzz">z z</text>
+        <view class="w-ledge"></view>
+      </view>
+
+      <!-- 窗台上的设备卡（详情入口） -->
+      <view class="w-list">
+        <view class="wcard" wx:for="{{devices}}" wx:key="logicalKey" hover-class="hover-dim" bindtap="openDeviceDetail" data-logicalkey="{{item.logicalKey}}">
+          <image class="w-pot {{item.online ? '' : 'sleep'}}" src="{{item.image}}" mode="aspectFill" />
+          <view class="w-main">
+            <view class="w-head">
+              <text class="w-name">{{item.alias}}</text>
+              <view class="w-head-r">
+                <text class="w-no">NO.{{index > 8 ? '' : '0'}}{{index + 1}}</text>
+                <text class="w-badge {{item.online ? 'ok' : 'off'}}">● {{item.online ? '在线' : '离线'}}</text>
+              </view>
+            </view>
+            <text class="w-meta">{{item.location}} · 智能花盆 · {{item.plantType}}</text>
+            <view class="w-status s-{{item.online ? item.statusType : 'warn'}}">
+              <text class="w-status-txt">{{item.statusText}}</text>
+              <text class="w-more">详情 ›</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 没有绑定设备 -->
+        <view wx:if="{{!hasDevices}}" class="empty-state light" hover-class="hover-dim" bindtap="openDeviceManager">
+          <text class="empty-icon">＋</text>
+          <text class="empty-title">还没有绑定设备</text>
+          <text class="empty-desc">绑定一台智能花盆，开始收集植宠的状态和成长记录。</text>
+          <view class="empty-btn"><text class="empty-btn-text">去绑定设备</text></view>
+        </view>
+
+        <!-- 添加设备 -->
+        <view class="w-add" hover-class="hover-dim" bindtap="openDeviceManager">
+          <text class="w-add-plus">＋</text>
+          <text class="w-add-txt">添加设备</text>
+        </view>
+      </view>
+
+      <view style="padding-bottom: 60rpx;"></view>
+    </view>
+  </block>
+
+  <!-- ================= 深色 · 萤火温室 · 温室夜巡 ================= -->
+  <block wx:else>
+    <view class="nw">守夜手记 · 巡到第三排，睡着的都盖好了叶子</view>
+    <view class="ff f1"></view>
+    <view class="ff f2"></view>
+    <view class="ppad">
+      <!-- 顶栏：返回 + 夜巡画廊 + 主题切换 -->
+      <view class="pg-top">
+        <view class="pg-back" hover-class="hover-dim" bindtap="goBackHome"><text>‹</text></view>
+        <view class="pg-mid">
+          <text class="pg-t">我的花园</text>
+          <text class="pg-k">NIGHT GALLERY</text>
+        </view>
+        <view class="pg-act">
+  
+        </view>
+      </view>
+
+      <view class="pg-head">
+        <text class="pg-kicker">温室夜巡</text>
+        <text class="pg-title">你的植宠小伙伴都在这 🌙</text>
+        <text class="pg-sub">{{summaryText}}</text>
+      </view>
+
+      <!-- 温室大卡：醒着的摇叶子，睡着的盖小夜灯 -->
+      <view class="d-list">
+        <view class="plant-card {{item.online ? 'online' : ''}}" wx:for="{{devices}}" wx:key="logicalKey" hover-class="hover-dim" bindtap="openDeviceDetail" data-logicalkey="{{item.logicalKey}}">
+          <view class="plant-ava">
+            <image class="ava-img {{item.online ? 'sway-anim' : ''}}" src="{{item.image}}" mode="aspectFill" />
+            <view wx:if="{{!item.online}}" class="zzz"><text>z</text><text>z</text><text>Z</text></view>
+          </view>
+          <view class="plant-info">
+            <view class="pn">
+              <text class="pn-name">{{item.alias}}</text>
+              <view class="chip {{item.online ? 'green' : 'warn'}}">
+                <view class="dot {{item.online ? 'on' : 'off'}}"></view>
+                <text>{{item.online ? '在线' : '离线'}}</text>
+              </view>
+            </view>
+            <text class="pd">{{item.location}} · 智能花盆</text>
+            <text class="pd">植物类型：{{item.plantType}}</text>
+            <view class="plant-status">
+              <view class="ps-txt s-{{item.online ? item.statusType : 'warn'}}">
+                <view class="dot {{item.online ? 'on' : 'off'}}"></view>
+                <text>{{item.statusText}}</text>
+              </view>
+              <text class="ps-more">详情 ›</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 没有绑定设备 -->
+        <view wx:if="{{!hasDevices}}" class="empty-state dark" hover-class="hover-dim" bindtap="openDeviceManager">
+          <text class="empty-icon">＋</text>
+          <text class="empty-title">还没有绑定设备</text>
+          <text class="empty-desc">绑定一台智能花盆，让温室夜里也亮着小夜灯。</text>
+          <view class="empty-btn"><text class="empty-btn-text">去绑定设备</text></view>
+        </view>
+      </view>
+
+      <view style="padding-bottom: 220rpx;"></view>
+    </view>
+
+    <!-- 添加设备 -->
+    <view class="cta-btn" hover-class="hover-dim" bindtap="openDeviceManager">
+      <text class="cta-plus">＋</text>
+      <text>添加设备</text>
+    </view>
+  </block>
+</view>

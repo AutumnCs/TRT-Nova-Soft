@@ -1,0 +1,111 @@
+{
+  "success": true,
+  "outcome": "passed",
+  "repairable": true,
+  "terminalViolations": [],
+  "terminalBlockingSummary": null,
+  "skillProvenance": {
+    "name": "solo-design",
+    "version": "2026.08.06.19.15.08",
+    "version_source": "skill-release-manifest.json",
+    "runtime_skill_dir": null,
+    "recorded_at": null,
+    "expected_version": "2026.08.06.19.15.08",
+    "status": "matched",
+    "read_status": "loaded"
+  },
+  "operatingMode": "free-explore",
+  "renderBlockingErrorCount": 0,
+  "softWarningCount": 2,
+  "renderBlockingErrors": [],
+  "errorSignatures": [],
+  "softWarnings": [
+    "[html-quality] tech-overview.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] tech-overview.html: hardcoded colors are forbidden outside <style id=\"theme-vars\">. Use brand CSS variables from the token reference."
+  ],
+  "repairPlanHints": [
+    {
+      "errorClass": "hardcoded-color-in-body",
+      "owner": "sub-agent",
+      "repairScope": "targeted-token-replace",
+      "strategy": "targeted_token_replace_once",
+      "affectedFiles": [
+        "tech-overview.html"
+      ],
+      "repairReportPath": null,
+      "repairAlreadyAttempted": false,
+      "allowSourceRead": "no-full-html-read",
+      "maxValidationRuns": 2
+    }
+  ],
+  "repairActionTable": [],
+  "errorCount": 0,
+  "warningCount": 2,
+  "errors": [],
+  "warnings": [
+    "[html-quality] tech-overview.html: Tailwind named color utilities are forbidden (bg-neutral-50, text-neutral-50, border-neutral-50, ring-neutral-50, bg-neutral-100, text-neutral-100, border-neutral-100, ring-neutral-100). Use brand CSS variables instead.",
+    "[html-quality] tech-overview.html: hardcoded colors are forbidden outside <style id=\"theme-vars\">. Use brand CSS variables from the token reference."
+  ],
+  "validationRunDisciplineStatus": {
+    "declared": true,
+    "restoreMode": false,
+    "maxFullValidationRuns": 2,
+    "validationHistoryCount": 0,
+    "repairLedgerCount": 0,
+    "softWarningsTriggerRepair": false,
+    "terminalState": null,
+    "nextAction": null,
+    "violations": [],
+    "success": true
+  },
+  "terminalState": null,
+  "nextCheck": {
+    "type": "finish-readiness",
+    "command": "node \"c:\\Users\\24542\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs\" \"c:\\Users\\24542\\Desktop\\TRT小程序\\trt-tech-overview\" --check=all",
+    "fullValidationAllowed": false,
+    "reason": "workspace validation passed; run complete finish readiness before final delivery"
+  },
+  "repairBatch": [],
+  "repairContextPacket": {
+    "schema_version": "1.0",
+    "purpose": "small-context repair packet; read this before full validation-report.json",
+    "success": true,
+    "terminalState": null,
+    "skillProvenance": {
+      "name": "solo-design",
+      "version": "2026.08.06.19.15.08",
+      "version_source": "skill-release-manifest.json",
+      "runtime_skill_dir": null,
+      "recorded_at": null,
+      "expected_version": "2026.08.06.19.15.08",
+      "status": "matched",
+      "read_status": "loaded"
+    },
+    "renderBlockingErrorCount": 0,
+    "softWarningCount": 2,
+    "renderBlockingErrors": [],
+    "repairActionTable": [],
+    "nextCheck": {
+      "type": "finish-readiness",
+      "command": "node \"c:\\Users\\24542\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs\" \"c:\\Users\\24542\\Desktop\\TRT小程序\\trt-tech-overview\" --check=all",
+      "fullValidationAllowed": false,
+      "reason": "workspace validation passed; run complete finish readiness before final delivery"
+    },
+    "forbidden": [
+      "do not read validator source",
+      "do not rerun full validation when nextCheck.fullValidationAllowed=false",
+      "do not start preview/browser unless user explicitly asks",
+      "do not hand-edit repair ledger fields"
+    ]
+  },
+  "projectFileHashes": {
+    "trt-tech-overview.design": "452dedf90aa780712440076ce8f0346cdadacb44c1be5238d2b8076601dcd78d",
+    "colors_and_type.css": "c7f8be365334b8268868a579e40779d6b70a38bf29135ea8c438a32f05098a1b",
+    "runtime-orchestration-summary.json": "d91fabbac01f5067add9b1037f74c21238705b6c0e527688d8f550fb3d8ad8cd",
+    "pages/tech-overview.html": "8b3fcf5bee7e7f47f7584d0dd6d03e90c40771a1f54903df6a852035b9737bfb"
+  },
+  "designDir": "c:\\Users\\24542\\Desktop\\TRT小程序\\trt-tech-overview",
+  "expectedPages": 1,
+  "requireInteractions": null,
+  "checkedAt": "2026-08-26T14:11:29.538Z"
+}

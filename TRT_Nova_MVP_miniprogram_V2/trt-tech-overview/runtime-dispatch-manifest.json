@@ -1,0 +1,127 @@
+{
+  "schema_version": "1.0",
+  "generated_at": "2026-08-26T14:02:43.912Z",
+  "source": "build-page-dispatch-manifest.mjs",
+  "mode": "complex",
+  "summary_path": "runtime-orchestration-summary.json",
+  "skillProvenance": {
+    "name": "solo-design",
+    "version": "2026.08.06.19.15.08",
+    "version_source": "skill-release-manifest.json",
+    "schema_version": "1.0",
+    "release": "prompt-base-cloud-ssot-migration",
+    "read_status": "loaded"
+  },
+  "dispatchPreflightManifest": [
+    {
+      "recorded_at": "2026-08-26T14:02:43.908Z",
+      "generatedBy": "build-page-dispatch-manifest.mjs",
+      "packetType": "GraphicLayoutPagePacket",
+      "laneContract": {
+        "resolvedLane": "graphic_layout_static",
+        "packetType": "GraphicLayoutPagePacket",
+        "pageRuntimeGuide": "intent-workflows/intent-project-complex-build/graphic-layout-page-runtime.md",
+        "dispatchContract": "intent-workflows/intent-project-complex-build/graphic-layout-dispatch-contract.md"
+      },
+      "taskLinePresent": true,
+      "outputPathPresent": true,
+      "sharedTemplate": "intent-workflows/intent-project-complex-build/graphic-layout-page-runtime.md",
+      "nodeId": "page-tech-overview",
+      "htmlSrc": "pages/tech-overview.html",
+      "supplementaryReads": [],
+      "allowedWritePaths": [
+        "pages/tech-overview.html",
+        "assets/"
+      ],
+      "forbiddenWriteRoots": [
+        "*.design",
+        "runtime-orchestration-summary.json",
+        "validation-report.json",
+        "finish-readiness-report.json",
+        "restore-contract-report.json",
+        "page-generation-summary.json"
+      ],
+      "toolPolicy": {
+        "todoWriteAllowed": false,
+        "validationScriptsAllowed": false,
+        "previewAllowed": false,
+        "helperScriptsAllowed": false,
+        "designFileWriteAllowed": false,
+        "allowedWritePaths": [
+          "pages/tech-overview.html",
+          "assets/"
+        ]
+      },
+      "skillRuntime": {
+        "skillDir": "c:\\Users\\24542\\.trae-cn\\builtin\\design\\default\\skills\\solo-design",
+        "deterministicToolDir": "c:\\Users\\24542\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling",
+        "toolPaths": {
+          "applyHtmlHeadContract": "c:\\Users\\24542\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs",
+          "recordDispatchCompletion": "c:\\Users\\24542\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs",
+          "buildPageDispatchManifest": "c:\\Users\\24542\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\build-page-dispatch-manifest.mjs",
+          "validateDesignWorkspace": "c:\\Users\\24542\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-design-workspace.mjs",
+          "validateFinishReadiness": "c:\\Users\\24542\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-finish-readiness.mjs",
+          "validateRestoreContract": "c:\\Users\\24542\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\validate-restore-contract.mjs"
+        },
+        "requiredForPageSubAgent": [
+          "applyHtmlHeadContract",
+          "recordDispatchCompletion"
+        ],
+        "pathInjection": "absolute",
+        "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
+        "commandTemplates": {
+          "recordDispatchCompletion": "node \"c:\\Users\\24542\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\record-dispatch-completion.mjs\" \"c:\\Users\\24542\\Desktop\\TRT小程序\\trt-tech-overview\" --node-id=\"page-tech-overview\" --html-src=\"pages/tech-overview.html\" --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+        }
+      },
+      "cssFilePath": "c:\\Users\\24542\\Desktop\\TRT小程序\\trt-tech-overview\\colors_and_type.css",
+      "htmlFilePath": "c:\\Users\\24542\\Desktop\\TRT小程序\\trt-tech-overview\\pages\\tech-overview.html",
+      "brandPrefix": "trt",
+      "aestheticsMode": "free-explore",
+      "toolDisciplineBlockPresent": true,
+      "fillHtmlHeadCommand": "node \"c:\\Users\\24542\\.trae-cn\\builtin\\design\\default\\skills\\solo-design\\shared-runtime\\deterministic-tooling\\apply-html-head-contract.mjs\" \"c:\\Users\\24542\\Desktop\\TRT小程序\\trt-tech-overview\\colors_and_type.css\" \"c:\\Users\\24542\\Desktop\\TRT小程序\\trt-tech-overview\\pages\\tech-overview.html\" --title=\"技术架构概览\" --lang=\"zh-CN\" --prefix=\"trt\"",
+      "headFillMode": "skeleton-first",
+      "viewportMode": "document-scroll",
+      "completionSchemaExpected": "full",
+      "restoreFields": null,
+      "restoreContractStatus": null,
+      "restoreCompactPacket": null,
+      "deterministicCommands": null,
+      "sourceAuthorityLock": null,
+      "preDispatchFileHashes": {
+        "trt-tech-overview.design": "452dedf90aa780712440076ce8f0346cdadacb44c1be5238d2b8076601dcd78d"
+      },
+      "contextPreflight": {
+        "workflowPath": "intent-workflows/intent-project-complex-build/INTENT_WORKFLOW.md",
+        "requiredContextFiles": [
+          "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+          "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+          "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+          "delivery-quality/page-rendering-quality-gate.md",
+          "delivery-quality/design-artifact-validation.md",
+          "delivery-quality/delivery-evidence-contract.md",
+          "visual-experience/visual-experience-guidelines.md",
+          "visual-experience/visual-checkpoint-protocol.md"
+        ],
+        "optionalContextFiles": [],
+        "passed": true
+      },
+      "pageSliceOnly": true,
+      "requiredFieldsPresent": true,
+      "missingFields": [],
+      "fillHtmlHeadCommandValid": true,
+      "mobileNavigation": {
+        "required": false,
+        "appliesToThisPage": false,
+        "canonicalHtmlIncluded": false,
+        "missingFields": []
+      },
+      "persistedToSummary": true,
+      "taskQueryAudited": false,
+      "proofSource": "summary-only",
+      "largeWorkflowFilesInTaskQuery": null
+    }
+  ],
+  "deterministicCommandsByPage": {
+    "pages/tech-overview.html": {}
+  }
+}

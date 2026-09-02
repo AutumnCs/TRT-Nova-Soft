@@ -1,0 +1,196 @@
+<page-meta background-color="{{theme === 'dark' ? '#0C1410' : '#F7F5EE'}}" page-style="{{theme === 'dark' ? 'background: #0C1410' : 'background: #F7F5EE'}}" />
+<view class="page {{theme === 'dark' ? 'theme-dark' : 'theme-light'}}" wx:if="{{ready}}">
+  <scroll-view scroll-y="true" class="scroll-content" show-scrollbar="{{false}}">
+    <view class="top-shell" style="padding-top: {{statusBarHeight}}px;">
+
+      <!-- ================= 浅色 · 元气日光（潮玩社 · 陈列货架） ================= -->
+      <block wx:if="{{theme !== 'dark'}}">
+        <!-- 顶栏 -->
+        <view class="l-top">
+          <view class="l-back"><text>‹</text></view>
+          <view class="l-title">
+            <text class="l-k">NOVA TOY SHELF</text>
+            <text class="l-t">潮玩社</text>
+          </view>
+          <view class="l-acts">
+            <view class="l-chip"><text>在售 <text class="l-chip-b">{{onSaleCount}}</text> 款</text></view>
+
+          </view>
+        </view>
+
+        <!-- 页眉 -->
+        <view class="pg-head">
+          <text class="pg-kicker">NEW SHELF</text>
+          <text class="pg-title">新品货架</text>
+          <text class="pg-sub">横向滑动逛货架 · 本季主推已上架</text>
+        </view>
+
+        <!-- 新品货架 · 横滑 -->
+        <scroll-view scroll-x="true" enable-flex="true" show-scrollbar="{{false}}" class="shelf-row">
+          <view class="shelf-card {{item.main ? 'main' : ''}} {{item.soon ? 'soon' : ''}}" wx:for="{{shelf}}" wx:key="id" hover-class="pressed" bindtap="onShelfTap" data-id="{{item.id}}">
+            <text wx:if="{{item.badge}}" class="sc-badge">{{item.badge}}</text>
+            <view wx:if="{{!item.soon}}" class="sc-hole"></view>
+            <view class="sc-fig">
+              <view wx:if="{{item.soon}}" class="soon-ico"><text>？</text></view>
+              <text wx:else class="sc-emoji" style="{{item.hue ? 'filter:hue-rotate(' + item.hue + 'deg) saturate(1.12);' : ''}}">{{item.emoji}}</text>
+            </view>
+            <view class="sc-bar">
+              <text class="sc-name">{{item.name}}</text>
+              <text class="sc-sub">{{item.sub}}</text>
+              <text wx:if="{{item.price}}" class="sc-price">{{item.price}}</text>
+            </view>
+          </view>
+        </scroll-view>
+
+        <!-- 本周主角 · 左右分栏 -->
+        <view class="sec-head">
+          <text class="sec-title">本周主角</text>
+          <view class="sec-line"></view>
+          <text class="sec-no">NO.001</text>
+        </view>
+        <view class="duo">
+          <view class="duo-fig">
+            <view class="duo-stage"><text class="duo-emoji">{{hero.emoji}}</text></view>
+            <view class="duo-base"></view>
+            <text class="duo-no">{{hero.no}}</text>
+          </view>
+          <view class="duo-info">
+            <text class="duo-name">{{hero.name}}</text>
+            <text class="duo-latin">{{hero.latin}}</text>
+            <text class="duo-quote">{{hero.quote}}</text>
+            <view class="duo-facts">
+              <view class="df" wx:for="{{hero.facts}}" wx:key="k">
+                <text class="df-k">{{item.k}}</text>
+                <text class="df-v">{{item.v}}</text>
+              </view>
+            </view>
+            <view class="duo-stats">
+              <view class="chip {{item.green ? 'green' : ''}}" wx:for="{{hero.stats}}" wx:key="text">
+                <text class="chip-b">{{item.text}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- 收集横带 · 横滑 -->
+        <view class="sec-head">
+          <text class="sec-title">收集横带</text>
+          <view class="sec-line"></view>
+          <text class="sec-no">1 / 4</text>
+        </view>
+        <scroll-view scroll-x="true" enable-flex="true" show-scrollbar="{{false}}" class="belt-row">
+          <view class="belt-chip {{item.type}}" wx:for="{{belt}}" wx:key="key">
+            <text class="btag">{{item.tag}}</text>
+            <view class="bv"><text class="bv-emoji" style="{{item.hue ? 'filter:hue-rotate(' + item.hue + 'deg) saturate(1.12);' : ''}}">{{item.emoji}}</text></view>
+            <text class="bn">{{item.name}}</text>
+            <text class="bd">{{item.desc}}</text>
+          </view>
+        </scroll-view>
+      </block>
+
+      <!-- ================= 深色 · 萤火温室（潮玩社 · 午夜首发） ================= -->
+      <block wx:else>
+        <view class="nw">守夜手记 · 潮玩社夜里也营业，首发零点开</view>
+        <view class="ff f1"></view>
+        <view class="ff f2"></view>
+
+        <!-- 顶栏 -->
+        <view class="pg-top">
+          <view class="back"><text>‹</text></view>
+          <view class="mid">
+            <text class="k">MIDNIGHT DROP</text>
+            <text class="t">潮玩社</text>
+          </view>
+          <view class="act">
+            <view class="d-chip"><text>收录 <text class="d-chip-b">1</text> 位</text></view>
+
+          </view>
+        </view>
+
+        <!-- 页眉 -->
+        <view class="pg-head">
+          <text class="pg-kicker">MIDNIGHT DROP</text>
+          <text class="pg-title">午夜潮玩社</text>
+          <text class="pg-sub">新品首发 · 星档案 · 夜窗收集，夜里也营业。</text>
+        </view>
+
+        <!-- 宣发大海报 · 午夜首发 -->
+        <view class="ip-drop">
+          <view class="starfield"></view>
+          <view class="starfield s2"></view>
+          <text class="drop-kicker">{{drop.kicker}}</text>
+          <view class="drop-fig">
+            <text class="drop-emoji" style="{{drop.hue ? 'filter:hue-rotate(' + drop.hue + 'deg) saturate(1.15);' : ''}}">{{drop.emoji}}</text>
+          </view>
+          <text class="drop-name">{{drop.name}}</text>
+          <view class="drop-meta">
+            <view class="chip {{item.gold ? 'gold' : ''}}" wx:for="{{drop.metas}}" wx:key="text">
+              <text class="chip-b">{{item.text}}</text>
+            </view>
+          </view>
+          <view class="drop-btn" hover-class="pressed" bindtap="onRemind">
+            <text class="db-ico">✦</text>
+            <text>开售时叫我</text>
+          </view>
+        </view>
+
+        <!-- 星档案大图 -->
+        <view class="ip-hero">
+          <text class="ip-no">{{star.no}}</text>
+          <view class="ip-fig"><text class="ip-emoji">{{star.emoji}}</text></view>
+          <text class="ip-name">{{star.name}}</text>
+          <text class="ip-latin">{{star.latin}}</text>
+          <text class="ip-tag">{{star.tag}}</text>
+          <view class="ip-meta">
+            <view class="chip {{item.gold ? 'gold' : (item.green ? 'green' : '')}}" wx:for="{{star.metas}}" wx:key="text">
+              <text class="chip-b">{{item.text}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 角色档案 -->
+        <view class="d-sec">
+          <text class="d-sec-t">角色档案 · <text class="d-sec-b">ARCHIVE</text></text>
+          <view class="ln"></view>
+          <text class="d-sec-no">001 号在册</text>
+        </view>
+        <view class="arch-card">
+          <view class="ip-row" wx:for="{{archive}}" wx:key="k">
+            <text class="ik">{{item.k}}</text>
+            <text class="iv"><text wx:if="{{item.hl}}" class="iv-b">{{item.hl}}</text>{{item.v}}</text>
+          </view>
+        </view>
+
+        <!-- 诞生手记 · 折叠 -->
+        <view class="origin-fold {{originOpen ? 'open' : ''}}">
+          <view class="origin-btn" hover-class="pressed" bindtap="toggleOrigin">
+            <text class="ob-ico">✦</text>
+            <text>诞生手记</text>
+            <text class="fold-arr">⌄</text>
+          </view>
+          <view class="fold-body">
+            <view class="fold-card"><text>{{originText}}</text></view>
+          </view>
+        </view>
+
+        <!-- 夜窗 · 收集 -->
+        <view class="d-sec">
+          <text class="d-sec-t">夜窗 · <text class="d-sec-b">COLLECTION</text></text>
+          <view class="ln"></view>
+          <text class="d-sec-no">1 / 4</text>
+        </view>
+        <view class="ip-wins">
+          <view class="ip-win {{item.type}}" wx:for="{{wins}}" wx:key="key">
+            <text class="wl">{{item.label}}</text>
+            <view class="wv">
+              <text class="wv-emoji" style="{{item.hue ? 'filter:hue-rotate(' + item.hue + 'deg) saturate(1.12);' : ''}}">{{item.emoji}}</text>
+            </view>
+            <text class="wn">{{item.name}}</text>
+            <text class="ws">{{item.sub}}</text>
+          </view>
+        </view>
+      </block>
+
+    </view>
+  </scroll-view>
+</view>

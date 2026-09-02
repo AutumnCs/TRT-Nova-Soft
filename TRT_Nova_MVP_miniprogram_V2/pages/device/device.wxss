@@ -1,0 +1,431 @@
+/* ================= 设备管理 · 双主题 ================= */
+/* 浅色 · 元气日光 · 迎新日设备登记（展示位橱窗 / 登记表证明 / 门牌挂钉） */
+/* 深色 · 萤火温室 · 深夜迎新（入住登记卡 / 平安信号 / 萤火虫夜巡） */
+/* 共享变量见 app.wxss（page 默认浅色，.theme-dark 覆盖深色） */
+
+page { background: #F7F5EE; }
+/* page 背景随主题翻转，消除切页瞬间原生底与页面色的跳变 */
+page:has(.theme-dark) { background: #0C1410; }
+
+/* ---------- 主题变量 ---------- */
+.theme-light {
+  --bg: #F7F5EE;
+  --jelly: #FFFFFF;
+  --jelly2: #EFEBDD;
+  --line: #3A423C;
+  --line2: #C8C2B2;
+  --text: #2A332D;
+  --text2: #7C837B;
+  --matcha: #2FA266;
+  --matcha-deep: #2E8259;
+  --matcha-soft: rgba(47, 162, 102, 0.12);
+  --matcha-ink: #EAF6EF;
+  --paper: #FAF8F1;
+  --danger: #8A3428;
+  --shadow-sm: 0 6px 18rpx rgba(52, 66, 58, 0.06);
+}
+.theme-dark {
+  --bg: #0C1410;
+  --jelly: #132019;
+  --jelly2: #1A2C21;
+  --line: #26402F;
+  --line2: #31523B;
+  --text: #EAF3EA;
+  --text2: #93A896;
+  --matcha: #7FE0A8;
+  --matcha-deep: #5EC98A;
+  --matcha-soft: rgba(127, 224, 168, 0.13);
+  --matcha-ink: #0A2318;
+  --gold: #F5D98B;
+  --gold-soft: rgba(245, 217, 139, 0.13);
+  --warn: #E8A05F;
+  --danger: #F08E82;
+  --surface: #132019;
+  --surface2: #1A2C21;
+  --border: #26402F;
+  --border2: #31523B;
+  --accent: #7FE0A8;
+  --accent-soft: rgba(127, 224, 168, 0.13);
+  --shadow-sm: 0 12px 44rpx rgba(0, 0, 0, 0.35);
+  background-color: #0C1410;
+}
+
+/* ---------- 容器 ---------- */
+.device-page {
+  min-height: 100vh;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+  font-size: 28rpx;
+  color: var(--text);
+  background-color: var(--bg);
+  background-image: radial-gradient(rgba(47, 162, 102, 0.045) 2rpx, transparent 2rpx);
+  background-size: 56rpx 56rpx;
+}
+.device-page.theme-dark {
+  background-image: radial-gradient(rgba(127, 224, 168, 0.05) 2rpx, transparent 2rpx);
+}
+.ppad { padding: 12rpx 32rpx 0; }
+
+/* ---------- 共用：主题按钮 / 状态点 / 按钮 ---------- */
+.theme-btn {
+  width: 64rpx; height: 64rpx; border-radius: 20rpx;
+  background: var(--jelly2); border: 2rpx solid var(--line2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32rpx;
+}
+.theme-dark .theme-btn { border-color: rgba(245, 217, 139, 0.35); background: rgba(245, 217, 139, 0.08); }
+
+.dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: var(--text2); flex: none; }
+.dot.on { background: var(--matcha); box-shadow: 0 0 12rpx rgba(47, 162, 102, 0.6); }
+.theme-dark .dot.on { background: var(--gold); box-shadow: 0 0 12rpx rgba(245, 217, 139, 0.6); }
+.dot.off-warn { background: var(--warn); }
+
+.chev { font-size: 22rpx; line-height: 1; flex: none; }
+.theme-light .chev { color: var(--matcha-deep); }
+.theme-dark .chev { color: var(--gold); }
+
+.refresh-ico { font-size: 24rpx; line-height: 1; }
+
+button::after { border: none; }
+.btn-hover { opacity: 0.85; }
+.pg-back-hover { opacity: 0.85; transform: scale(0.96); }
+
+/* 登记主按钮（两主题共用变量换色） */
+.reg-btn {
+  margin-top: 28rpx;
+  width: 100%;
+  height: 96rpx; line-height: 96rpx;
+  border-radius: 10rpx;
+  background: var(--matcha);
+  color: var(--matcha-ink);
+  border: 2rpx solid var(--matcha-deep);
+  font-size: 29rpx; font-weight: 600;
+  letter-spacing: 4rpx;
+  padding: 0;
+}
+
+/* 命令行小按钮（发送 / 解绑，两主题共用） */
+.p-btn {
+  height: 84rpx; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0 30rpx; margin: 0;
+  border-radius: 10rpx;
+  font-size: 25rpx; font-weight: 600;
+  flex: none;
+  box-sizing: border-box;
+}
+.p-btn.soft {
+  background: var(--matcha-soft);
+  color: var(--matcha-deep);
+  border: 2rpx solid rgba(46, 74, 60, 0.3);
+}
+.p-btn.danger {
+  background: transparent;
+  color: var(--danger);
+  border: 2rpx solid var(--danger);
+}
+
+/* ================= 浅色 · 元气日光 · 迎新日设备登记 ================= */
+
+/* 顶栏 */
+.theme-light .pg-top { display: flex; align-items: center; justify-content: space-between; padding: 8rpx 4rpx 24rpx; }
+.theme-light .pg-back {
+  width: 68rpx; height: 68rpx; border-radius: 14rpx;
+  background: var(--paper); border: 2rpx solid var(--line);
+  box-shadow: 4rpx 4rpx 0 rgba(35, 40, 47, 0.12);
+  display: flex; align-items: center; justify-content: center;
+}
+.theme-light .pg-back-ico { font-size: 32rpx; line-height: 1; color: var(--text); }
+.theme-light .pg-mid { flex: 1; text-align: center; min-width: 0; }
+.theme-light .pg-t { font-family: var(--font-serif); font-size: 30rpx; font-weight: 700; color: var(--text); letter-spacing: 2rpx; }
+.theme-light .pg-act { flex: none; display: flex; justify-content: flex-end; }
+
+/* 展示位橱窗 */
+.shopwin {
+  position: relative;
+  height: 400rpx; margin-top: 16rpx;
+  background: linear-gradient(180deg, #EAE6D9 0%, #F5F3EB 100%);
+  border: 2rpx solid var(--line); border-radius: 12rpx;
+  overflow: hidden;
+  display: flex; align-items: flex-end; justify-content: center;
+  box-shadow: 0 6rpx 20rpx rgba(52, 66, 58, 0.07);
+}
+.open-tag {
+  position: absolute; top: 20rpx; left: 20rpx; z-index: 5;
+  background: var(--paper); border: 2rpx solid var(--line); border-radius: 6rpx;
+  font-family: var(--font-serif);
+  font-size: 19rpx; font-weight: 700; letter-spacing: 2rpx; color: var(--text);
+  padding: 6rpx 20rpx;
+  box-shadow: 4rpx 4rpx 0 rgba(35, 40, 47, 0.08);
+}
+.hintline {
+  position: absolute; bottom: 96rpx; left: 0; right: 0; z-index: 5;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-size: 21rpx; color: var(--text2); letter-spacing: 4rpx;
+}
+.win-pet {
+  position: relative; z-index: 2;
+  width: 224rpx; height: 224rpx; margin-bottom: 20rpx;
+  display: flex; align-items: center; justify-content: center;
+  animation: sway 6s ease-in-out infinite;
+}
+.win-pet-ico { font-size: 150rpx; line-height: 1; filter: drop-shadow(0 16rpx 24rpx rgba(52, 66, 58, 0.2)); }
+.shelf {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 3;
+  height: 26rpx;
+  background: linear-gradient(180deg, #B8AE96, #A2987E);
+  border-top: 2rpx solid var(--line);
+}
+
+/* 设备登记表（证明式双线边框：outline 用双层 box-shadow 模拟） */
+.cert {
+  position: relative;
+  margin-top: 44rpx; padding: 32rpx 30rpx;
+  background: var(--paper);
+  border: 2rpx solid var(--line); border-radius: 8rpx;
+  box-shadow: 0 0 0 6rpx var(--bg), 0 0 0 8rpx var(--line), 0 8rpx 24rpx rgba(52, 66, 58, 0.08);
+}
+.c-no {
+  position: absolute; top: 20rpx; right: 28rpx;
+  font-family: 'DIN Alternate', 'Bahnschrift', sans-serif;
+  font-size: 18rpx; color: var(--text2); letter-spacing: 2rpx;
+}
+.c-title {
+  text-align: center;
+  font-family: var(--font-serif);
+  font-size: 32rpx; font-weight: 700; letter-spacing: 12rpx;
+  color: var(--matcha-deep);
+}
+.c-sub { text-align: center; font-size: 18rpx; color: var(--text2); letter-spacing: 4rpx; margin-top: 6rpx; }
+.c-rows { margin-top: 20rpx; }
+.c-row {
+  display: flex; align-items: center; gap: 16rpx;
+  padding: 18rpx 0 8rpx;
+  border-bottom: 2rpx dotted var(--line2);
+  font-size: 25rpx;
+}
+.ck {
+  font-family: var(--font-serif);
+  font-size: 22rpx; font-weight: 600; color: var(--text2);
+  white-space: nowrap; flex: none;
+}
+.cv-input { flex: 1; min-width: 0; height: 44rpx; font-size: 25rpx; font-weight: 600; color: var(--text); }
+.c-pick { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
+.cv { flex: 1; min-width: 0; font-size: 25rpx; font-weight: 600; color: var(--text); }
+.ph2 { color: var(--text2); font-weight: 400; }
+.c-foot { text-align: center; font-size: 18rpx; color: var(--text2); margin-top: 16rpx; }
+
+/* 已登记设备 · 分节头 */
+.dev-head { display: flex; align-items: baseline; gap: 20rpx; margin-top: 48rpx; padding: 0 8rpx; }
+.dev-head-t { font-family: var(--font-serif); font-size: 30rpx; font-weight: 700; color: var(--text); }
+.dev-head-ln { flex: 1; border-top: 2rpx dashed var(--line2); }
+.dev-refresh { display: flex; align-items: center; gap: 8rpx; font-size: 20rpx; color: var(--text2); }
+
+/* 门牌挂钉 */
+.plates { display: flex; flex-direction: column; gap: 32rpx; margin-top: 32rpx; }
+.plate {
+  position: relative;
+  background: #F2EFE5;
+  border: 2rpx solid var(--line); border-radius: 10rpx;
+  padding: 24rpx 28rpx;
+  box-shadow: 0 6rpx 20rpx rgba(52, 66, 58, 0.07);
+  animation: fadeUp 0.45s ease both;
+}
+.p-pin {
+  position: absolute; top: -30rpx; left: 50%;
+  transform: translateX(-50%);
+  width: 14rpx; height: 14rpx; border-radius: 50%;
+  background: var(--matcha); border: 2rpx solid var(--line);
+  z-index: 2;
+}
+.p-main { display: flex; align-items: center; gap: 22rpx; }
+.p-ava {
+  width: 88rpx; height: 88rpx; flex: none;
+  border: 2rpx solid var(--line); border-radius: 8rpx;
+  background: var(--paper);
+  display: flex; align-items: center; justify-content: center;
+}
+.p-ava-ico { font-size: 52rpx; line-height: 1; }
+.p-info { flex: 1; min-width: 0; }
+.p-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
+.p-name { font-size: 29rpx; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.p-badge {
+  flex: none;
+  font-family: var(--font-serif);
+  font-size: 19rpx; font-weight: 700;
+  color: var(--matcha-deep); background: var(--matcha-soft);
+  border: 2rpx solid var(--matcha-deep);
+  padding: 4rpx 16rpx; border-radius: 4rpx;
+}
+.p-badge.offline { color: var(--text2); border-color: var(--line2); background: rgba(58, 66, 60, 0.06); }
+.p-meta { display: block; margin-top: 6rpx; font-size: 20rpx; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.p-desc { display: block; margin-top: 4rpx; font-size: 19rpx; color: var(--text2); }
+.p-acts { display: flex; align-items: stretch; gap: 16rpx; margin-top: 22rpx; }
+.p-cmd {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center;
+  min-height: 84rpx; padding: 12rpx 24rpx; box-sizing: border-box;
+  background: var(--paper);
+  border: 2rpx solid var(--line); border-radius: 8rpx;
+  box-shadow: 4rpx 4rpx 0 rgba(35, 40, 47, 0.06);
+}
+.p-cmd-in {
+  width: 100%; height: 48rpx;
+  font-family: 'DIN Alternate', 'Bahnschrift', sans-serif;
+  font-size: 22rpx; color: var(--text);
+}
+
+/* ================= 深色 · 萤火温室 · 深夜迎新 ================= */
+
+/* 夜巡低语 + 萤火虫 */
+.whisper {
+  position: relative; z-index: 5;
+  text-align: center;
+  font-family: 'DIN Alternate', 'Bahnschrift', sans-serif;
+  font-size: 17rpx; letter-spacing: 4rpx;
+  color: rgba(245, 217, 139, 0.45);
+  padding: 0 12rpx 10rpx;
+}
+.ff {
+  position: absolute; width: 10rpx; height: 10rpx; border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 20rpx 8rpx rgba(245, 217, 139, 0.5);
+  animation: fly 9s ease-in-out infinite;
+  z-index: 1; pointer-events: none;
+}
+.ff.f1 { left: 14%; top: 24%; }
+.ff.f2 { right: 11%; top: 38%; animation-delay: 3.5s; animation-duration: 11s; }
+
+/* 顶栏 */
+.theme-dark .pg-top { display: flex; align-items: center; justify-content: space-between; padding: 4rpx 0 28rpx; }
+.theme-dark .pg-back {
+  width: 68rpx; height: 68rpx; border-radius: 24rpx;
+  background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+}
+.theme-dark .pg-back-ico { font-size: 32rpx; line-height: 1; color: var(--text); }
+.theme-dark .pg-mid { flex: 1; text-align: center; min-width: 0; }
+.theme-dark .pg-t { font-family: 'Yuanti SC', 'YouYuan', 'PingFang SC', sans-serif; font-size: 29rpx; font-weight: 800; color: var(--text); }
+.theme-dark .pg-act { flex: none; display: flex; justify-content: flex-end; }
+
+/* 迎新语 */
+.pg-intro { padding: 4rpx 0 28rpx; }
+.pg-kicker {
+  font-family: 'DIN Alternate', 'Bahnschrift', sans-serif;
+  font-size: 20rpx; font-weight: 700; letter-spacing: 5rpx;
+  color: var(--accent);
+}
+.pg-title {
+  font-family: 'Yuanti SC', 'YouYuan', 'PingFang SC', sans-serif;
+  font-size: 46rpx; font-weight: 800; letter-spacing: -0.4rpx;
+  color: var(--text); margin-top: 10rpx;
+}
+.pg-sub { font-size: 24rpx; color: var(--text2); line-height: 1.7; margin-top: 12rpx; }
+
+/* 登记卡 */
+.card {
+  margin-top: 32rpx; padding: 32rpx;
+  background: linear-gradient(180deg, rgba(127, 224, 168, 0.035), rgba(127, 224, 168, 0) 42%), var(--surface);
+  border: 2rpx solid var(--border); border-radius: 48rpx;
+  box-shadow: var(--shadow-sm);
+}
+.card-head { display: flex; align-items: center; justify-content: space-between; gap: 16rpx; margin-bottom: 26rpx; }
+.card-head-t {
+  font-family: 'DIN Alternate', 'Bahnschrift', sans-serif;
+  font-size: 24rpx; font-weight: 800; letter-spacing: 2rpx;
+  color: var(--gold); flex: none;
+}
+.card-head-s { font-size: 20rpx; color: var(--text2); text-align: right; }
+
+/* 输入行 */
+.fields { display: flex; flex-direction: column; gap: 18rpx; }
+.field {
+  display: flex; align-items: center; gap: 20rpx;
+  min-height: 96rpx; padding: 12rpx 28rpx; box-sizing: border-box;
+  border-radius: 28rpx;
+  background: var(--surface2); border: 2rpx solid var(--border);
+  color: var(--text2); font-size: 27rpx;
+}
+.f-ico { font-family: 'DIN Alternate', 'Bahnschrift', sans-serif; font-size: 27rpx; color: var(--gold); flex: none; }
+.f-in { flex: 1; min-width: 0; height: 48rpx; font-size: 27rpx; color: var(--text); }
+.f-pick { justify-content: space-between; }
+.f-left { display: flex; align-items: center; gap: 20rpx; }
+.f-lab { color: var(--text2); }
+.f-right { display: flex; align-items: center; gap: 16rpx; }
+.val { color: var(--text); font-weight: 600; }
+
+/* 分节头 + 胶囊 */
+.sec-head { display: flex; align-items: center; justify-content: space-between; margin: 44rpx 0 22rpx; }
+.sec-title {
+  display: flex; align-items: center; gap: 14rpx;
+  font-family: 'Yuanti SC', 'YouYuan', 'PingFang SC', sans-serif;
+  font-size: 33rpx; font-weight: 900; color: var(--text);
+}
+.sec-ico { font-size: 30rpx; line-height: 1; }
+.chip {
+  display: inline-flex; align-items: center; gap: 12rpx;
+  height: 48rpx; padding: 0 26rpx; border-radius: 999rpx;
+  background: var(--surface2);
+  font-size: 20rpx; color: var(--text2);
+  flex: none;
+}
+.chip.green {
+  height: 46rpx; padding: 0 24rpx;
+  background: var(--accent-soft);
+  font-size: 22rpx; color: var(--accent);
+}
+
+/* 设备卡（深夜迎新） */
+.dev-card { border-color: rgba(245, 217, 139, 0.35); animation: fadeUp 0.45s ease both; }
+.d-main { display: flex; align-items: center; gap: 24rpx; }
+.d-ava {
+  width: 92rpx; height: 92rpx; flex: none;
+  border-radius: 34rpx;
+  background: rgba(245, 217, 139, 0.08);
+  display: flex; align-items: center; justify-content: center;
+}
+.d-ava-ico { font-size: 44rpx; line-height: 1; }
+.d-info { flex: 1; min-width: 0; }
+.d-title-row { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; }
+.d-name { font-size: 29rpx; font-weight: 800; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.d-meta { display: block; margin-top: 8rpx; font-size: 21rpx; color: var(--text2); }
+
+/* 平安信号 */
+.d-signal {
+  display: flex; align-items: center; justify-content: space-between; gap: 16rpx;
+  margin-top: 24rpx; padding: 20rpx 26rpx;
+  background: var(--jelly2); border-radius: 28rpx;
+}
+.d-signal-l { min-width: 0; }
+.ds-label { font-size: 19rpx; color: var(--text2); }
+.ds-val { font-size: 24rpx; font-weight: 700; color: var(--text); margin-top: 4rpx; }
+
+/* 命令行 */
+.d-acts { display: flex; align-items: stretch; gap: 16rpx; margin-top: 24rpx; }
+.d-cmd { flex: 1; min-width: 0; min-height: 84rpx; font-family: 'DIN Alternate', 'Bahnschrift', sans-serif; font-size: 23rpx; }
+
+/* ---------- 空态（两主题） ---------- */
+.empty-state { margin-top: 40rpx; padding: 64rpx 32rpx; text-align: center; }
+.theme-light .empty-state { background: var(--paper); border: 2rpx dashed var(--line2); border-radius: 8rpx; }
+.theme-dark .empty-state { background: var(--surface); border: 2rpx dashed rgba(245, 217, 139, 0.28); border-radius: 48rpx; }
+.empty-icon { display: block; font-size: 64rpx; line-height: 1; margin-bottom: 12rpx; color: var(--matcha-deep); }
+.theme-dark .empty-icon { color: var(--gold); }
+.empty-title { display: block; font-size: 30rpx; font-weight: 700; color: var(--text); }
+.empty-desc { display: block; margin-top: 10rpx; font-size: 22rpx; line-height: 1.6; color: var(--text2); }
+
+/* ---------- 动画 ---------- */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24rpx); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes sway {
+  0%, 100% { transform: rotate(-2.5deg); }
+  50% { transform: rotate(2.5deg); }
+}
+@keyframes fly {
+  0%, 100% { transform: translate(0, 0); opacity: 0.1; }
+  30% { opacity: 0.85; }
+  55% { transform: translate(32rpx, -44rpx); opacity: 0.45; }
+  80% { opacity: 0.9; }
+}

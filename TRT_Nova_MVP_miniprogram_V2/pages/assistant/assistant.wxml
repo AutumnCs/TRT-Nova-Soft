@@ -1,0 +1,185 @@
+<page-meta background-color="{{theme === 'dark' ? '#0C1410' : '#F7F5EE'}}" page-style="{{theme === 'dark' ? 'background: #0C1410' : 'background: #F7F5EE'}}" />
+<view class="assistant-page {{theme === 'dark' ? 'theme-dark' : 'theme-light'}}" wx:if="{{ready}}">
+
+  <!-- ================= 浅色 · 元气日光 · 漫画式对话 ================= -->
+  <block wx:if="{{theme !== 'dark'}}">
+    <view class="a-header" style="padding-top: calc({{statusBarHeight}}px + {{headerTopGap}}rpx);">
+      <view class="l-top">
+        <view class="l-top-l">
+          <text class="l-title">NOVA 对话</text>
+          <text class="l-sub">智能植宠助手 · 有问必答</text>
+        </view>
+        <view class="l-top-r">
+          <view class="l-signal"><text class="l-signal-ico">◉</text></view>
+
+        </view>
+      </view>
+
+      <!-- 设备上下文 -->
+      <picker wx:if="{{devices.length > 0}}" range="{{devices}}" range-key="name" bindchange="onDeviceChange">
+        <view class="dev-strip">
+          <view class="dot on"></view>
+          <text class="dev-strip-txt">当前设备：{{selectedDeviceName}}</text>
+          <text class="dev-strip-badge">在线</text>
+          <text class="dev-strip-arrow">›</text>
+        </view>
+      </picker>
+      <view wx:else class="dev-strip">
+        <view class="dot"></view>
+        <text class="dev-strip-txt">{{selectedLogicalKey ? selectedDeviceName : '还没有选择植宠'}}</text>
+        <text class="dev-strip-badge off">待连接</text>
+      </view>
+
+      <!-- 知识库参考 -->
+      <view wx:if="{{knowledgeContext && knowledgeContext.title}}" class="kctx">
+        <text class="kctx-label">当前参考</text>
+        <text class="kctx-title">{{knowledgeContext.title}}</text>
+      </view>
+    </view>
+
+    <!-- 漫画页：真分格 -->
+    <scroll-view scroll-y="true" class="a-body light" show-scrollbar="{{false}}" scroll-into-view="{{scrollAnchor}}">
+      <view class="manga">
+        <text class="m-head">今日巡查</text>
+        <view class="m-corner"><view class="mc-ico"><view class="mc-ico-t ico ico-leaf"></view></view><text class="mc-no">{{messages.length}}</text></view>
+
+        <block wx:for="{{messages}}" wx:key="id">
+          <view wx:if="{{index === 1}}" class="timeline-hint">本次陪伴 · {{messages[index].timeLabel}}</view>
+          <view id="msg-{{index}}" class="panel {{item.role === 'user' ? 'me' : 'nova'}} {{item.loading ? 'focus' : ''}}">
+            <view wx:if="{{item.role === 'assistant'}}" class="p-char-wrap">
+              <view class="p-char"><view class="p-char-t ico ico-leaf"></view></view>
+              <text class="p-name">小绿</text>
+            </view>
+            <view class="cbub">
+              <view class="cw">{{item.role === 'assistant' ? 'NOVA' : '我'}}{{item.timeLabel ? ' · ' + item.timeLabel : ''}}</view>
+              <view wx:if="{{item.loading}}" class="thinking-block">
+                <view class="thinking-dots"><text class="thinking-dot dot-1"></text><text class="thinking-dot dot-2"></text><text class="thinking-dot dot-3"></text></view>
+                <text class="thinking-text">{{item.text}}</text>
+              </view>
+              <text wx:else class="msg-text">{{item.text}}</text>
+              <text wx:if="{{item.summary}}" class="msg-summary">{{item.summary}}</text>
+              <view wx:if="{{item.suggestions && item.suggestions.length}}" class="msug">
+                <text wx:for="{{item.suggestions}}" wx:for-item="sug" wx:key="*this" class="msug-chip" data-text="{{sug}}" bindtap="onQuickQuestionTap">{{sug}}</text>
+              </view>
+            </view>
+            <view wx:if="{{item.role === 'user'}}" class="u-ava"><text class="u-face">🙂</text><text class="u-name">我</text></view>
+            <text wx:if="{{item.loading}}" class="onoma">叮！</text>
+          </view>
+        </block>
+
+        <view class="m-foot"><text>— {{messages.length}} —</text><text>翻页 ›</text></view>
+      </view>
+    </scroll-view>
+
+    <!-- 快捷提问 + 输入 -->
+    <view class="a-input">
+      <scroll-view scroll-x="true" class="q-row" show-scrollbar="{{false}}">
+        <view class="q-chip" data-text="我的植物现在状态怎么样？" bindtap="onQuickQuestionTap"><text>🪴 小绿还好吗</text></view>
+        <view class="q-chip" data-text="我现在要不要浇水？" bindtap="onQuickQuestionTap"><text>💧 今天要浇水吗</text></view>
+        <view class="q-chip" data-text="最近湿度变化如何？" bindtap="onQuickQuestionTap"><text>📈 湿度怎么样</text></view>
+      </scroll-view>
+      <view class="input-row">
+        <view class="input-shell">
+          <text class="input-spark">✦</text>
+          <textarea class="a-input-in" placeholder="输入你的问题…" placeholder-class="a-ph" maxlength="300" auto-height="true" cursor-spacing="24" value="{{inputValue}}" bindinput="onInput"></textarea>
+        </view>
+        <view class="send-btn {{sending || !canSend ? 'disabled' : ''}}" bindtap="sendMessage"><text class="send-ico">{{sending ? '…' : '↑'}}</text></view>
+      </view>
+    </view>
+  </block>
+
+  <!-- ================= 深色 · 萤火温室 · 深夜电台 ================= -->
+  <block wx:else>
+    <view class="ff f1"></view><view class="ff f2"></view>
+    <view class="a-header dark" style="padding-top: calc({{statusBarHeight}}px + {{headerTopGap}}rpx);">
+      <view class="nw">守夜手记 · 电台在放慢歌，只剩你和小绿在听</view>
+      <view class="d-top">
+        <view class="d-top-l">
+          <text class="d-top-k">NOVA 电台 · FM 92.0</text>
+          <view class="d-top-t"><text class="d-top-name">植宠夜话</text><text class="d-top-meta">深夜电台 · 陪你到天亮</text></view>
+        </view>
+        <view class="d-top-r">
+
+        </view>
+      </view>
+    </view>
+
+    <scroll-view scroll-y="true" class="a-body dark" show-scrollbar="{{false}}" scroll-into-view="{{scrollAnchor}}">
+      <!-- 收音机面板：一台真正的深夜电台 -->
+      <view class="radio-deck">
+        <view class="rd-row">
+          <view class="rd-led"><text class="freq">FM 92.0</text><text class="st">NOVA 电台 · 植宠夜话 · 陪你到天亮</text></view>
+          <view class="rd-grille"></view>
+        </view>
+        <view class="rd-band">
+          <view class="rd-tape"><text class="rcap">TAPE · A面</text><view class="reels"><view class="reel"></view><view class="reel r2"></view></view></view>
+          <view class="d-onair"><text class="lamp">ON AIR</text></view>
+        </view>
+        <view class="rd-vu">
+          <view class="vbar" style="height:40rpx"></view><view class="vbar" style="height:68rpx"></view><view class="vbar" style="height:52rpx"></view><view class="vbar" style="height:88rpx"></view><view class="vbar" style="height:60rpx"></view><view class="vbar" style="height:44rpx"></view><view class="vbar" style="height:80rpx"></view><view class="vbar" style="height:56rpx"></view><view class="vbar" style="height:92rpx"></view><view class="vbar" style="height:48rpx"></view><view class="vbar" style="height:72rpx"></view><view class="vbar" style="height:36rpx"></view><view class="vbar" style="height:84rpx"></view><view class="vbar" style="height:60rpx"></view><view class="vbar" style="height:48rpx"></view><view class="vbar" style="height:88rpx"></view><view class="vbar" style="height:40rpx"></view><view class="vbar" style="height:76rpx"></view><view class="vbar" style="height:56rpx"></view><view class="vbar" style="height:68rpx"></view><view class="vbar" style="height:44rpx"></view><view class="vbar" style="height:52rpx"></view>
+        </view>
+        <view class="dial">
+          <view class="dtick maj" style="left:4%"></view><view class="dtick" style="left:9%"></view><view class="dtick" style="left:13%"></view><view class="dtick" style="left:18%"></view><view class="dtick maj" style="left:22%"></view><view class="dtick" style="left:27%"></view><view class="dtick" style="left:31%"></view><view class="dtick" style="left:36%"></view><view class="dtick maj" style="left:41%"></view><view class="dtick" style="left:45%"></view><view class="dtick" style="left:50%"></view><view class="dtick" style="left:54%"></view><view class="dtick maj" style="left:59%"></view><view class="dtick" style="left:63%"></view><view class="dtick" style="left:68%"></view><view class="dtick" style="left:72%"></view><view class="dtick maj" style="left:78%"></view><view class="dtick" style="left:82%"></view><view class="dtick" style="left:87%"></view><view class="dtick" style="left:91%"></view><view class="dtick maj" style="left:96%"></view>
+          <text class="dnum" style="left:4%">88</text><text class="dnum" style="left:22%">92</text><text class="dnum" style="left:41%">96</text><text class="dnum" style="left:59%">100</text><text class="dnum" style="left:78%">104</text><text class="dnum" style="left:96%">108</text>
+          <text class="pin" style="left:22%">92.0</text>
+        </view>
+      </view>
+
+      <!-- 设备连线 -->
+      <picker wx:if="{{devices.length > 0}}" range="{{devices}}" range-key="name" bindchange="onDeviceChange">
+        <view class="dev-card">
+          <view class="dot on"></view>
+          <text class="dev-card-txt">正在连线：{{selectedDeviceName}}</text>
+          <text class="dev-card-badge">在线</text>
+          <text class="dev-card-arrow">›</text>
+        </view>
+      </picker>
+      <view wx:else class="dev-card">
+        <view class="dot"></view>
+        <text class="dev-card-txt">{{selectedLogicalKey ? selectedDeviceName : '还没有选择植宠'}}</text>
+        <text class="dev-card-badge off">待连接</text>
+      </view>
+
+      <!-- 知识库参考 -->
+      <view wx:if="{{knowledgeContext && knowledgeContext.title}}" class="kctx dark">
+        <text class="kctx-label">当前参考</text>
+        <text class="kctx-title">{{knowledgeContext.title}}</text>
+      </view>
+
+      <!-- 电台卡流：居中对话 -->
+      <view class="d-radio">
+        <block wx:for="{{messages}}" wx:key="id">
+          <view wx:if="{{index === 1}}" class="timeline-hint">本次陪伴 · {{messages[index].timeLabel}}</view>
+          <view id="msg-{{index}}" class="d-msg {{item.role === 'user' ? 'me' : ''}}">
+            <view class="who">
+              <view wx:if="{{item.role === 'assistant'}}" class="who-leaf ico ico-leaf"></view>
+              <text>{{item.role === 'assistant' ? 'NOVA' : '我'}}{{item.timeLabel ? ' · ' + item.timeLabel : ''}}</text>
+            </view>
+            <view wx:if="{{item.loading}}" class="thinking-block">
+              <view class="thinking-dots"><text class="thinking-dot dot-1"></text><text class="thinking-dot dot-2"></text><text class="thinking-dot dot-3"></text></view>
+              <text class="thinking-text">{{item.text}}</text>
+            </view>
+            <text wx:else class="msg-text">{{item.text}}</text>
+            <text wx:if="{{item.summary}}" class="msg-summary">{{item.summary}}</text>
+            <view wx:if="{{item.suggestions && item.suggestions.length}}" class="suggest">
+              <text wx:for="{{item.suggestions}}" wx:for-item="sug" wx:key="*this" class="sug-chip" data-text="{{sug}}" bindtap="onQuickQuestionTap">{{sug}}</text>
+            </view>
+          </view>
+        </block>
+      </view>
+    </scroll-view>
+
+    <!-- 快捷提问 + 点播输入 -->
+    <view class="a-input dark">
+      <scroll-view scroll-x="true" class="q-row" show-scrollbar="{{false}}">
+        <view class="q-chip dark" data-text="我的植物现在状态怎么样？" bindtap="onQuickQuestionTap"><text>🪴 小绿还好吗</text></view>
+        <view class="q-chip dark" data-text="我现在要不要浇水？" bindtap="onQuickQuestionTap"><text>💧 今天要浇水吗</text></view>
+        <view class="q-chip dark" data-text="最近湿度变化如何？" bindtap="onQuickQuestionTap"><text>📈 湿度怎么样</text></view>
+      </scroll-view>
+      <view class="chat-input">
+        <textarea class="chat-in" placeholder="深夜点播：随便问，比如「小绿今天渴不渴？」" placeholder-class="a-ph" maxlength="300" auto-height="true" cursor-spacing="24" value="{{inputValue}}" bindinput="onInput"></textarea>
+        <view class="send-btn radio {{sending || !canSend ? 'disabled' : ''}}" bindtap="sendMessage"><text class="send-ico">{{sending ? '…' : '↑'}}</text></view>
+      </view>
+    </view>
+  </block>
+</view>

@@ -1,0 +1,231 @@
+/* ================= 我的花园 · 双主题 ================= */
+/* 浅色 · 元气日光 · 窗台视图（窗框场景 / 窗台设备卡 / 虚线添加入口） */
+/* 深色 · 萤火温室 · 温室夜巡（守夜手记 / 萤火虫 / 温室大卡 / 底部添加 CTA） */
+/* 共享变量见 app.wxss（page 默认浅色，.theme-dark 覆盖深色） */
+
+/* ---------- 容器骨架 ---------- */
+.garden-page {
+  position: relative;
+  min-height: 100vh;
+  box-sizing: border-box;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', sans-serif;
+}
+.garden-page.theme-dark { background-color: #0C1410; }
+.ppad { position: relative; z-index: 2; padding: 8rpx 32rpx 0; }
+.garden-page.theme-dark .ppad { padding-top: 24rpx; }
+.hover-dim { opacity: .72; }
+
+/* ---------- 共用：主题切换按钮 ---------- */
+.theme-btn {
+  width: 68rpx; height: 68rpx; flex: none;
+  border: 2rpx solid var(--line); border-radius: 10rpx;
+  background: var(--jelly);
+  box-shadow: 4rpx 4rpx 0 rgba(35, 40, 47, 0.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30rpx;
+}
+.theme-dark .theme-btn { border-color: rgba(245, 217, 139, 0.35); background: rgba(245, 217, 139, 0.08); box-shadow: none; }
+
+/* ---------- 共用：空状态 ---------- */
+.empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14rpx; padding: 64rpx 40rpx; border-radius: 12rpx; }
+.empty-state.light { background: var(--paper); border: 2rpx dashed var(--line); }
+.empty-state.dark { background: var(--surface); border: 2rpx dashed var(--border2); box-shadow: var(--shadow-sm); }
+.empty-icon { font-size: 64rpx; line-height: 1; }
+.empty-state.light .empty-icon { color: var(--matcha-deep); }
+.empty-state.dark .empty-icon { color: var(--gold); }
+.empty-title { font-size: 30rpx; font-weight: 700; color: var(--text); }
+.empty-desc { font-size: 21rpx; line-height: 1.6; color: var(--text2); }
+.empty-btn { margin-top: 8rpx; padding: 14rpx 36rpx; border-radius: 999rpx; }
+.empty-state.light .empty-btn { background: var(--matcha); }
+.empty-state.dark .empty-btn { background: var(--accent); }
+.empty-btn-text { font-size: 24rpx; font-weight: 700; color: #0A2318; }
+
+/* ================= 浅色 · 元气日光 · 窗台视图 ================= */
+
+/* 顶栏：返回 + 标题/摘要 + 主题切换 */
+.l-top { display: flex; align-items: center; gap: 20rpx; padding: 4rpx 4rpx 24rpx; }
+.l-back {
+  width: 72rpx; height: 72rpx; flex: none; border-radius: 24rpx;
+  background: var(--jelly2); color: var(--text);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40rpx; font-weight: 700; line-height: 1;
+}
+.l-top-l { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6rpx; }
+.l-title { font-family: var(--font-serif); font-size: 36rpx; font-weight: 700; color: var(--text); }
+.l-sub { font-size: 21rpx; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* 窗台场景：天色 + 太阳 + 云 + 窗框 + 台面 */
+.window {
+  position: relative; height: 600rpx;
+  border: 3rpx solid var(--line); border-radius: 12rpx;
+  background: linear-gradient(180deg, #C7CFD4 0%, #DEE3E4 60%, #EAE6D9 60.01%);
+  box-shadow: 0 6rpx 20rpx rgba(52, 66, 58, 0.07);
+  overflow: hidden;
+}
+.w-sun {
+  position: absolute; top: 28rpx; right: 36rpx;
+  width: 72rpx; height: 72rpx; border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, #E8DFC4, #CBBF9A);
+  border: 2rpx solid #3A423C;
+  box-shadow: 0 0 24rpx rgba(203, 191, 154, 0.5);
+}
+.w-cloud {
+  position: absolute;
+  background: #F5F3EB; border: 2rpx solid #8A8674; border-radius: 20rpx;
+  animation: drift 24s linear infinite; opacity: .85;
+}
+.w-cloud.c1 { width: 104rpx; height: 36rpx; left: 72rpx; top: 88rpx; }
+.w-cloud.c2 { width: 76rpx; height: 28rpx; left: 500rpx; top: 156rpx; animation-delay: -11s; }
+.w-bar-v { position: absolute; top: 0; bottom: 0; left: 50%; width: 8rpx; margin-left: -4rpx; background: #3A423C; z-index: 2; }
+.w-bar-h { position: absolute; left: 0; right: 0; top: 56%; height: 8rpx; background: #3A423C; z-index: 2; }
+.w-pet { position: absolute; z-index: 1; bottom: 20rpx; border-radius: 20rpx; }
+.w-pet.left { left: 36rpx; width: 240rpx; height: 240rpx; }
+.w-pet.right { right: 48rpx; width: 208rpx; height: 208rpx; opacity: .85; }
+.w-pet.sleep { filter: saturate(.55); opacity: .75; }
+.w-zzz { position: absolute; right: 76rpx; bottom: 132rpx; z-index: 3; font-family: 'DIN Alternate', 'Bahnschrift', sans-serif; font-size: 18rpx; color: var(--text2); }
+.w-ledge {
+  position: absolute; left: -3rpx; right: -3rpx; bottom: -3rpx; height: 32rpx;
+  background: linear-gradient(180deg, #B8AE96, #A2987E);
+  border: 3rpx solid #3A423C; border-radius: 0 0 10rpx 10rpx; z-index: 3;
+}
+
+/* 窗台设备卡 */
+.w-list { display: flex; flex-direction: column; gap: 24rpx; margin-top: 28rpx; }
+.wcard {
+  display: flex; align-items: center; gap: 24rpx;
+  padding: 26rpx 28rpx; box-sizing: border-box;
+  background: var(--paper); border: 2rpx solid var(--line); border-radius: 10rpx;
+  box-shadow: 0 6rpx 20rpx rgba(52, 66, 58, 0.07);
+}
+.w-pot { width: 120rpx; height: 120rpx; flex: none; border-radius: 16rpx; background: var(--jelly2); border: 2rpx solid rgba(58, 66, 60, 0.18); }
+.w-pot.sleep { filter: saturate(.55); opacity: .75; }
+.w-main { flex: 1; min-width: 0; }
+.w-head { display: flex; align-items: center; justify-content: space-between; gap: 10rpx; }
+.w-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-serif); font-size: 30rpx; font-weight: 700; color: var(--text); }
+.w-head-r { display: flex; align-items: center; gap: 10rpx; flex: none; }
+.w-no { font-family: 'DIN Alternate', 'Bahnschrift', sans-serif; font-size: 17rpx; letter-spacing: 2rpx; color: var(--text2); }
+.w-badge { font-family: var(--font-serif); font-size: 19rpx; font-weight: 700; padding: 4rpx 18rpx; border-radius: 4rpx; }
+.w-badge.ok { color: var(--matcha-deep); background: var(--matcha-soft); border: 2rpx solid var(--matcha-deep); }
+.w-badge.off { color: var(--warn); background: var(--peach-soft); border: 2rpx solid var(--warn); }
+.w-meta { display: block; margin-top: 8rpx; font-size: 20rpx; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.w-status { display: flex; align-items: center; justify-content: space-between; gap: 12rpx; margin-top: 16rpx; font-size: 21rpx; }
+.w-status-txt { font-weight: 600; }
+.w-status.s-good .w-status-txt { color: var(--matcha-deep); }
+.w-status.s-warn .w-status-txt { color: var(--warn); }
+.w-status.s-pending .w-status-txt { color: var(--text2); }
+.w-more { flex: none; font-size: 20rpx; color: var(--text2); }
+
+/* 添加设备（虚线入口） */
+.w-add {
+  height: 104rpx;
+  display: flex; align-items: center; justify-content: center; gap: 18rpx;
+  border: 2rpx dashed var(--line); border-radius: 10rpx;
+  color: var(--text2); background: rgba(250, 248, 241, 0.6);
+}
+.w-add-plus { font-size: 30rpx; line-height: 1; }
+.w-add-txt { font-family: var(--font-serif); font-size: 26rpx; font-weight: 600; }
+
+/* ================= 深色 · 萤火温室 · 温室夜巡 ================= */
+
+/* 守夜手记 + 萤火虫 */
+.nw { text-align: center; font-size: 17rpx; letter-spacing: 4rpx; color: rgba(245, 217, 139, 0.45); padding: 10rpx 12rpx 0; font-weight: 600; position: relative; z-index: 2; }
+.ff { position: absolute; width: 10rpx; height: 10rpx; border-radius: 50%; background: var(--gold); box-shadow: 0 0 20rpx 8rpx rgba(245, 217, 139, 0.5); animation: fly 9s ease-in-out infinite; z-index: 1; pointer-events: none; }
+.ff.f1 { left: 14%; top: 24%; }
+.ff.f2 { right: 11%; top: 38%; animation-delay: 3.5s; animation-duration: 11s; }
+
+/* 顶栏：返回 + 夜巡画廊 */
+.pg-top { display: flex; align-items: center; justify-content: space-between; padding: 4rpx 0 28rpx; }
+.pg-back {
+  width: 72rpx; height: 72rpx; flex: none; border-radius: 28rpx;
+  background: var(--jelly2); color: var(--text);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 40rpx; font-weight: 700; line-height: 1;
+}
+.pg-mid { display: flex; flex-direction: column; align-items: center; gap: 4rpx; }
+.pg-t { font-size: 29rpx; font-weight: 800; color: var(--text); }
+.pg-k { font-family: 'DIN Alternate', 'Bahnschrift', sans-serif; font-size: 18rpx; letter-spacing: 4rpx; color: var(--accent); font-weight: 800; }
+.pg-act { min-width: 72rpx; display: flex; justify-content: flex-end; }
+
+/* 夜巡标题 */
+.pg-head { padding: 4rpx 0 32rpx; }
+.pg-kicker { font-family: 'DIN Alternate', 'Bahnschrift', sans-serif; font-size: 20rpx; letter-spacing: 5rpx; color: var(--accent); font-weight: 700; }
+.pg-title { display: block; margin-top: 10rpx; font-family: var(--font-serif); font-size: 46rpx; font-weight: 800; letter-spacing: -0.4rpx; color: var(--text); }
+.pg-sub { display: block; margin-top: 12rpx; font-size: 24rpx; line-height: 1.7; color: var(--text2); }
+
+/* 温室大卡 */
+.d-list { display: flex; flex-direction: column; gap: 24rpx; }
+.plant-card {
+  display: flex; gap: 26rpx; padding: 28rpx;
+  border-radius: 44rpx; border: 2rpx solid var(--border);
+  background: linear-gradient(170deg, rgba(245, 217, 139, 0.04), rgba(245, 217, 139, 0) 40%), var(--jelly);
+  box-shadow: var(--shadow-sm);
+}
+.plant-card.online { border-color: var(--accent); }
+.plant-ava {
+  position: relative; width: 152rpx; height: 152rpx; flex: none;
+  border-radius: 40rpx; background: var(--surface2);
+  display: flex; align-items: center; justify-content: center;
+}
+.ava-img { width: 112rpx; height: 112rpx; border-radius: 24rpx; }
+.sway-anim { animation: sway 5s ease-in-out infinite; transform-origin: 50% 90%; }
+.plant-info { flex: 1; min-width: 0; }
+.pn { display: flex; justify-content: space-between; align-items: center; gap: 12rpx; }
+.pn-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 30rpx; font-weight: 800; color: var(--text); }
+.chip { display: inline-flex; align-items: center; gap: 10rpx; height: 44rpx; padding: 0 24rpx; border-radius: 999rpx; background: var(--surface2); font-size: 20rpx; color: var(--text2); white-space: nowrap; flex: none; }
+.chip.green { background: var(--matcha-soft); border: 2rpx solid rgba(245, 217, 139, 0.28); }
+.chip.green text { color: var(--matcha); font-weight: 700; }
+.chip.warn { background: rgba(232, 160, 95, 0.12); }
+.chip.warn text { color: var(--warn); font-weight: 700; }
+.dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: var(--text2); flex: none; }
+.dot.on { background: var(--gold); box-shadow: 0 0 12rpx rgba(245, 217, 139, 0.6); }
+.dot.off { background: var(--warn); }
+.pd { display: block; margin-top: 8rpx; font-size: 21rpx; color: var(--text2); }
+.plant-status { display: flex; justify-content: space-between; align-items: center; gap: 12rpx; margin-top: 18rpx; font-size: 21rpx; font-weight: 600; }
+.ps-txt { display: flex; align-items: center; gap: 12rpx; min-width: 0; }
+.ps-txt.s-good { color: var(--accent); }
+.ps-txt.s-warn { color: var(--warn); }
+.ps-txt.s-pending { color: var(--text2); }
+.ps-more { flex: none; color: var(--text2); font-size: 20rpx; font-weight: 500; }
+
+/* 睡着的 Zzz */
+.zzz { position: absolute; left: 4rpx; top: -16rpx; z-index: 5; pointer-events: none; }
+.zzz text { position: absolute; font-family: 'DIN Alternate', 'Bahnschrift', sans-serif; font-weight: 800; color: var(--text2); animation: zzfloat 3.2s ease-in-out infinite; opacity: 0; }
+.zzz text:nth-child(1) { font-size: 20rpx; left: 0; top: 0; }
+.zzz text:nth-child(2) { font-size: 26rpx; left: 24rpx; top: -24rpx; animation-delay: 0.9s; }
+.zzz text:nth-child(3) { font-size: 32rpx; left: 54rpx; top: -52rpx; animation-delay: 1.8s; }
+
+/* 添加设备 CTA */
+.cta-btn {
+  position: fixed; left: 32rpx; right: 32rpx; bottom: calc(16rpx + env(safe-area-inset-bottom));
+  height: 104rpx; border-radius: 52rpx;
+  display: flex; align-items: center; justify-content: center; gap: 16rpx;
+  background: var(--accent); color: #0A2318;
+  font-size: 28rpx; font-weight: 800; letter-spacing: 2rpx;
+  box-shadow: 0 20rpx 56rpx rgba(127, 224, 168, 0.25);
+  z-index: 10;
+}
+.cta-plus { font-size: 32rpx; line-height: 1; font-weight: 700; }
+
+/* ================= 动画 ================= */
+@keyframes drift {
+  from { transform: translateX(-180rpx); }
+  to { transform: translateX(920rpx); }
+}
+@keyframes sway {
+  0%, 100% { transform: rotate(-2.5deg); }
+  50% { transform: rotate(2.5deg); }
+}
+@keyframes fly {
+  0%, 100% { transform: translate(0, 0); opacity: 0.1; }
+  30% { opacity: 0.85; }
+  55% { transform: translate(32rpx, -44rpx); opacity: 0.45; }
+  80% { opacity: 0.9; }
+}
+@keyframes zzfloat {
+  0% { opacity: 0; transform: translateY(12rpx) rotate(8deg); }
+  25% { opacity: 0.95; }
+  70% { opacity: 0.5; }
+  100% { opacity: 0; transform: translateY(-36rpx) rotate(-6deg); }
+}
