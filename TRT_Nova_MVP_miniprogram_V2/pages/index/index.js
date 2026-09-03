@@ -7,7 +7,8 @@ const { computeBubbles, computeMoodEmoji } = require('../../services/config/thre
 const themeBehavior = require('../../services/modules/ThemeBehavior');
 const indexState = require('./index-state');
 const {
-  DEFAULT_PLANT_IMAGE,
+  PLANT_IMAGE_LIGHT,
+  PLANT_IMAGE_NIGHT,
   DEFAULT_SENSORS,
   DEFAULT_EXTRA,
   DEFAULT_FAN,
@@ -38,7 +39,7 @@ Page({
     plantName: '请选择设备',
     plantMeta: '未设置植物类型和位置',
     plantImageSource: '',
-    plantImage: DEFAULT_PLANT_IMAGE,
+    plantImage: PLANT_IMAGE_LIGHT,
     dialogue: '植株状态良好。',
     todos: [],
     devices: [],
@@ -63,7 +64,11 @@ Page({
   },
 
   onShow() {
+    const prevTheme = this.data.theme;
     this.syncTheme();
+    if (this.data.theme !== prevTheme) {
+      this.resolvePlantImage();
+    }
     this.refreshHeader();
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 0 });
@@ -157,15 +162,20 @@ Page({
     }
   },
 
+  getPlantImageByTheme() {
+    return this.data.theme === 'dark' ? PLANT_IMAGE_NIGHT : PLANT_IMAGE_LIGHT;
+  },
+
   async resolvePlantImage() {
     this._imageFallbackUsed = false;
-    const primary = this.data.plantImageSource || this.data.plantImage || DEFAULT_PLANT_IMAGE;
+    const fallback = this.getPlantImageByTheme();
+    const primary = this.data.plantImageSource || fallback;
     const primaryUrl = await this.resolveAnySource(primary);
     if (primaryUrl) {
       this.setData({ plantImage: primaryUrl });
       return;
     }
-    const fallbackUrl = await this.resolveAnySource(DEFAULT_PLANT_IMAGE);
+    const fallbackUrl = await this.resolveAnySource(fallback);
     // If both lookups fail, clear the value to avoid repeated binderror loops.
     this.setData({ plantImage: fallbackUrl || '' });
   },
@@ -174,7 +184,7 @@ Page({
     // 闃叉 fallback 鏈韩涔熷け璐ュ鑷存棤闄愰€掑綊锛圓pp 妯″紡鏈湴璺緞鍙兘涓嶅彲鐢級
     if (this._imageFallbackUsed) return;
     this._imageFallbackUsed = true;
-    const fallbackUrl = await this.resolveAnySource(DEFAULT_PLANT_IMAGE);
+    const fallbackUrl = await this.resolveAnySource(this.getPlantImageByTheme());
     this.setData({ plantImage: fallbackUrl || '' });
   },
 

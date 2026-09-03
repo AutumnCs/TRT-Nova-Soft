@@ -1,4 +1,5 @@
-﻿const DEFAULT_PLANT_IMAGE = '/images/plant-default.jpg';
+const PLANT_IMAGE_LIGHT = '/images/plant-light.png';
+const PLANT_IMAGE_NIGHT = '/images/plant-night.jpg';
 
 const DEFAULT_SENSORS = {
   temp: { value: '--', unit: 'C', label: 'temperature' },
@@ -305,7 +306,8 @@ function buildTelemetryState(deviceRows, selectedLogicalKey = '', options = {}) 
 }
 
 module.exports = {
-  DEFAULT_PLANT_IMAGE,
+  PLANT_IMAGE_LIGHT,
+  PLANT_IMAGE_NIGHT,
   DEFAULT_SENSORS,
   DEFAULT_EXTRA,
   DEFAULT_FAN,
