@@ -57,6 +57,106 @@
       {
         "value": ".vscode",
         "type": "folder"
+      },
+      {
+        "value": "firsttry",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram",
+        "type": "folder"
+      },
+      {
+        "value": "miniprogram(wxcloud)",
+        "type": "folder"
+      },
+      {
+        "value": "trt-tech-overview",
+        "type": "folder"
+      },
+      {
+        "value": "xiaochengxu_try",
+        "type": "folder"
+      },
+      {
+        "value": "admin-web",
+        "type": "folder"
+      },
+      {
+        "value": ".workbuddy",
+        "type": "folder"
+      },
+      {
+        "value": ".claude",
+        "type": "folder"
+      },
+      {
+        "value": "design-system",
+        "type": "folder"
+      },
+      {
+        "value": "onenet-http-virtual-signal",
+        "type": "folder"
+      },
+      {
+        "value": "design",
+        "type": "folder"
+      },
+      {
+        "value": "i18n",
+        "type": "folder"
+      },
+      {
+        "value": "onenetWebhookEvt",
+        "type": "folder"
+      },
+      {
+        "value": "TRT_Nova_MVP_miniprogram",
+        "type": "folder"
+      },
+      {
+        "value": "TRT_Nova_MVP_miniprogram - before EXPO UI",
+        "type": "folder"
+      },
+      {
+        "value": "TRT_Nova_MVP_miniprogram - 1.0",
+        "type": "folder"
+      },
+      {
+        "value": "TRT_Nova_MVP_miniprogram - 副本",
+        "type": "folder"
+      },
+      {
+        "value": "TRT_Nova_MVP_miniprogram_LastScf",
+        "type": "folder"
+      },
+      {
+        "value": "TRT_Nova_MVP_miniprogram_V2",
+        "type": "folder"
+      },
+      {
+        "value": "node_modules",
+        "type": "folder"
+      },
+      {
+        "value": ".git",
+        "type": "folder"
+      },
+      {
+        "value": "图片1.png",
+        "type": "file"
+      },
+      {
+        "value": "图片2.jpg",
+        "type": "file"
+      },
+      {
+        "value": "tech-overview.html",
+        "type": "file"
+      },
+      {
+        "value": "AGENTS.md",
+        "type": "file"
       }
     ],
     "include": []

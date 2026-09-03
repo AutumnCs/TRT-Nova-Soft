@@ -1,5 +1,5 @@
 const PLANT_IMAGE_LIGHT = '/images/plant-light.png';
-const PLANT_IMAGE_NIGHT = '/images/plant-night.jpg';
+const PLANT_IMAGE_NIGHT = '/images/plant-night.png';
 
 const DEFAULT_SENSORS = {
   temp: { value: '--', unit: 'C', label: 'temperature' },

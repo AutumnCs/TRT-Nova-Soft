@@ -34,7 +34,7 @@
         <view class="l-stage-wrap">
           <view class="l-bubble">{{bubbles.length > 0 ? bubbles[0].text : '今天也要好好照顾我哦～'}}</view>
           <view class="l-pet-ring">
-            <image src="{{plantImage}}" mode="aspectFill" class="l-pet" binderror="onPlantImageError"></image>
+            <image src="{{plantImage}}" mode="widthFix" class="l-pet" binderror="onPlantImageError"></image>
           </view>
           <view class="l-mood">心情 {{moodEmoji}} · {{plantStatus}}</view>
         </view>

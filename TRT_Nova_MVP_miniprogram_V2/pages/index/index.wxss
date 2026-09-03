@@ -119,9 +119,10 @@
 .rec-chip { position: absolute; top: 32rpx; left: 32rpx; z-index: 3; display: inline-flex; align-items: center; gap: 10rpx; height: 52rpx; padding: 0 22rpx; border-radius: 26rpx; background: rgba(255, 255, 255, 0.88); font-size: 19rpx; font-weight: 700; color: var(--text); }
 .l-stage-wrap { position: absolute; top: 0; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 88rpx; }
 .l-bubble { position: relative; z-index: 3; margin-bottom: 20rpx; padding: 18rpx 32rpx; border-radius: 36rpx 36rpx 36rpx 10rpx; background: #FFFFFF; border: 3rpx solid var(--peach); color: var(--peach-deep); font-size: 25rpx; font-weight: 700; animation: bounce2 3.8s ease-in-out infinite; box-shadow: 0 12rpx 32rpx rgba(255, 146, 104, 0.18); }
-/* 植宠立于草地：底部沉入山丘（z-index 低于山丘），像站在草地上 */
-.l-pet-ring { position: relative; z-index: 1; width: 300rpx; height: 300rpx; border-radius: 56rpx; overflow: hidden; border: 6rpx solid rgba(255, 255, 255, 0.92); box-sizing: border-box; filter: drop-shadow(0 24rpx 32rpx rgba(46, 107, 71, 0.28)); animation: breathe 3.6s ease-in-out infinite; }
-.l-pet { width: 100%; height: 100%; }
+/* 植宠裸眼3D：贴图立于草地，主体底部沉入山丘（z-index 低于山丘），只有一只柔和绿投影 */
+.l-pet-ring { position: relative; z-index: 1; width: 300rpx; height: 320rpx; box-sizing: border-box; animation: breathe3d 4.2s ease-in-out infinite; }
+.l-pet { width: 300rpx; height: auto; display: block; filter: drop-shadow(0 14rpx 16rpx rgba(46, 107, 71, 0.32)); }
+@keyframes breathe3d { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-12rpx) scale(1.02); } }
 .l-mood { position: relative; z-index: 3; margin-top: 20rpx; font-size: 23rpx; color: var(--text2); }
 .l-hearts { position: absolute; bottom: 32rpx; left: 32rpx; z-index: 3; display: inline-flex; align-items: center; gap: 14rpx; height: 64rpx; padding: 0 26rpx; border-radius: 32rpx; background: rgba(255, 255, 255, 0.88); font-size: 22rpx; font-weight: 700; color: var(--matcha-deep); }
 .l-hearts .ico { width: 26rpx; height: 26rpx; }
@@ -269,9 +270,12 @@
 .orbit .ff { width: 12rpx; height: 12rpx; box-shadow: 0 0 24rpx 6rpx rgba(245, 217, 139, 0.75); animation: fly 7s ease-in-out infinite; top: 12%; left: 46%; position: absolute; }
 .orbit .ff.b2 { animation-delay: 2.6s; top: 70%; left: 58%; }
 .orbit .ff.b3 { animation-delay: 5s; top: 30%; left: 70%; }
-/* 植宠立于夜草地：底部沉入山丘剪影，像站在草地上 */
-.d-pet-ring { position: relative; z-index: 1; width: 280rpx; height: 280rpx; border-radius: 52rpx; overflow: hidden; display: flex; align-items: center; justify-content: center; margin: 0 auto; top: 112rpx; border: 4rpx solid rgba(127, 224, 168, 0.4); box-sizing: border-box; animation: float 5s ease-in-out infinite; filter: drop-shadow(0 24rpx 44rpx rgba(0, 0, 0, 0.55)); }
-.d-pet { width: 100%; height: 100%; }
+/* 植宠立于夜草地：裸眼3D（透明贴图 + 夜光投影 + 漂浮） */
+.d-pet-ring { position: relative; z-index: 1; width: 280rpx; height: 280rpx; margin: 0 auto; top: 112rpx; box-sizing: border-box; animation: float3d 5s ease-in-out infinite; }
+.d-pet { width: 100%; height: 100%; display: block; filter: drop-shadow(0 0 28rpx rgba(127, 224, 168, 0.35)) drop-shadow(0 22rpx 20rpx rgba(0, 0, 0, 0.5)); }
+.d-pet-ring::after { content: ''; position: absolute; left: 14%; right: 14%; bottom: -18rpx; height: 34rpx; border-radius: 50%; background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0) 72%); animation: dShadowPulse 5s ease-in-out infinite; }
+@keyframes float3d { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-16rpx) scale(1.03); } }
+@keyframes dShadowPulse { 0%, 100% { transform: scaleX(1); opacity: 1; } 50% { transform: scaleX(0.8); opacity: 0.5; } }
 .d-bubble { position: absolute; left: 32rpx; top: 36rpx; background: rgba(19, 32, 25, 0.88); border: 2rpx solid var(--border2); border-radius: 28rpx 28rpx 28rpx 8rpx; padding: 16rpx 24rpx; font-size: 22rpx; color: var(--text); z-index: 3; max-width: 60%; line-height: 1.6; }
 .d-heart { position: absolute; right: 36rpx; bottom: 32rpx; z-index: 3; text-align: right; }
 .d-heart .hnum { font-size: 60rpx; font-weight: 900; color: var(--gold); line-height: 1; font-family: var(--font-num); }
