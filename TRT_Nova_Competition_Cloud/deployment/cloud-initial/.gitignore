@@ -1,0 +1,21 @@
+# Rendered or executable deployment material must stay outside source control.
+*.rendered.yaml
+*.rendered.yml
+*.local.yaml
+*.local.yml
+*.local.json
+*.env
+*.env.*
+!*.template.yaml
+!*.template.yml
+artifacts/
+build/
+packages/
+state/
+secrets/
+*.zip
+*.tar
+*.tar.gz
+*.tfstate
+*.tfstate.*
+.terraform/

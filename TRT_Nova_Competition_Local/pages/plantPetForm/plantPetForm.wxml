@@ -1,0 +1,73 @@
+<view class="form-page" style="padding-top: {{statusBarHeight}}px;">
+  <view class="topbar">
+    <button class="back-btn" bindtap="goBack">‹</button>
+    <view class="brand-block"><text class="brand">{{pageTitle}}</text><text class="brand-sub">PLANT PET PROFILE</text></view>
+    <view class="top-mark">✦</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state-card"><view class="loading-dot"></view><text>正在准备档案…</text></view>
+  <view wx:elif="{{loadError}}" class="state-card error-state"><text class="state-title">档案没有加载出来</text><text class="state-desc">{{loadError}}</text><button class="retry-btn" bindtap="initialize">重新加载</button></view>
+
+  <block wx:else>
+    <view class="form-card hero-form">
+      <view class="cover-picker" bindtap="onChooseCover">
+        <image class="cover-preview" src="{{coverPreview}}" mode="aspectFill" binderror="onCoverImageError" />
+        <text class="cover-picker-label">更换封面</text>
+      </view>
+      <view class="hero-fields">
+        <text class="field-label">植宠昵称 *</text>
+        <input class="text-input name-input" maxlength="64" value="{{form.nickname}}" placeholder="比如：窗边的小月亮" bindinput="onNicknameInput" />
+        <text class="cover-hint">点击图片可从相册或相机选择；未选时使用品种图片。</text>
+      </view>
+    </view>
+
+    <view class="form-card">
+      <text class="section-kicker">01 · 品种</text>
+      <text class="section-title">它是什么植物？</text>
+      <text class="section-desc">不确定也没关系，选择“未知品种”仍可正常建档。</text>
+      <text wx:if="{{libraryError}}" class="inline-warning">{{libraryError}}</text>
+      <scroll-view scroll-x class="species-scroll" show-scrollbar="{{false}}">
+        <view class="species-row">
+          <view class="species-card unknown {{selectedLibraryId === 0 ? 'selected' : ''}}" data-id="0" bindtap="onSelectSpecies">
+            <view class="unknown-icon">?</view><text class="species-name">未知品种</text>
+          </view>
+          <view wx:for="{{speciesList}}" wx:key="id" class="species-card {{selectedLibraryId === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="onSelectSpecies">
+            <image class="species-image" src="{{item.image}}" mode="aspectFill" />
+            <text class="species-name">{{item.name}}</text>
+          </view>
+        </view>
+      </scroll-view>
+      <view wx:if="{{selectedLibraryId === 0}}" class="field-block">
+        <text class="field-label">手填品种（可选）</text>
+        <input class="text-input" maxlength="128" value="{{form.speciesName}}" placeholder="不知道可留空，将显示为未知品种" bindinput="onSpeciesNameInput" />
+      </view>
+    </view>
+
+    <view class="form-card">
+      <text class="section-kicker">02 · 基础档案</text>
+      <view class="field-block">
+        <text class="field-label">入室日期</text>
+        <picker mode="date" value="{{form.enteredAt}}" bindchange="onEnteredAtChange">
+          <view class="picker-field"><text>{{form.enteredAt || '选择日期'}}</text><text>›</text></view>
+        </picker>
+      </view>
+      <view class="field-block">
+        <text class="field-label">摆放位置</text>
+        <input class="text-input" maxlength="128" value="{{form.location}}" placeholder="比如：南阳台、书房窗台" bindinput="onLocationInput" />
+      </view>
+      <view class="field-block">
+        <text class="field-label">养护备注</text>
+        <textarea class="notes-input" maxlength="1000" value="{{form.careNotes}}" placeholder="记录光照习惯、换盆情况或需要留意的事项" bindinput="onCareNotesInput"></textarea>
+      </view>
+      <view class="field-block">
+        <text class="field-label">自定义封面地址（可选）</text>
+        <input class="text-input" maxlength="1024" value="{{form.coverUrl}}" placeholder="https://…" bindinput="onCoverUrlInput" />
+        <text class="field-help">这里保存持久图片地址；相册照片不会以临时路径冒充永久封面。</text>
+      </view>
+    </view>
+
+    <button class="submit-btn {{submitting ? 'disabled' : ''}}" disabled="{{submitting}}" bindtap="submitForm">
+      {{submitting ? '保存中…' : (mode === 'edit' ? '保存档案' : '建立档案')}}
+    </button>
+  </block>
+</view>

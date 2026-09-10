@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "mode": "real_provider_read_only_shadow_probe",
+  "generatedAt": "2026-09-03T08:03:18.569Z",
+  "model": "deepseek-v4-flash",
+  "persistedBusinessWrites": 0,
+  "scenarios": [
+    {
+      "id": "social-hello-plain",
+      "legacy": {
+        "status": "in_scope",
+        "reason": "social",
+        "callMode": "fixed_response"
+      },
+      "targetResponseMode": "direct",
+      "shadow": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 1,
+        "toolTrace": [
+          {
+            "toolName": "search_published_knowledge",
+            "source": "policy_preflight",
+            "outcome": "success",
+            "hitCount": 0,
+            "unknown": true
+          }
+        ],
+        "elapsedMs": 1217
+      },
+      "expectedPhase2Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": []
+    },
+    {
+      "id": "identity-who-am-i",
+      "legacy": {
+        "status": "in_scope",
+        "reason": "personal_identity",
+        "callMode": "fixed_response"
+      },
+      "targetResponseMode": "tool_assisted",
+      "shadow": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 2,
+        "toolTrace": [
+          {
+            "toolName": "search_published_knowledge",
+            "source": "policy_preflight",
+            "outcome": "success",
+            "hitCount": 0,
+            "unknown": true
+          },
+          {
+            "toolName": "get_account_nickname",
+            "source": "policy_required",
+            "outcome": "success",
+            "available": true,
+            "hasNickname": true
+          }
+        ],
+        "elapsedMs": 2731
+      },
+      "expectedPhase2Tools": [
+        "get_account_nickname"
+      ],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": []
+    },
+    {
+      "id": "knowledge-rose-watering",
+      "legacy": {
+        "status": "in_scope",
+        "reason": "explicit_plant_care",
+        "callMode": "full_llm_path"
+      },
+      "targetResponseMode": "tool_assisted",
+      "shadow": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 1,
+        "toolTrace": [
+          {
+            "toolName": "search_published_knowledge",
+            "source": "policy_preflight",
+            "outcome": "success",
+            "hitCount": 3,
+            "unknown": false
+          }
+        ],
+        "elapsedMs": 3305
+      },
+      "expectedPhase2Tools": [
+        "search_published_knowledge"
+      ],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": []
+    },
+    {
+      "id": "plant-selected-status",
+      "legacy": {
+        "status": "in_scope",
+        "reason": "plant_domain",
+        "callMode": "full_llm_path"
+      },
+      "targetResponseMode": "tool_assisted",
+      "shadow": {
+        "status": "completed",
+        "modelSteps": 2,
+        "toolCalls": 2,
+        "toolTrace": [
+          {
+            "toolName": "search_published_knowledge",
+            "source": "policy_preflight",
+            "outcome": "success",
+            "hitCount": 3,
+            "unknown": false
+          },
+          {
+            "toolName": "get_selected_plant",
+            "source": "model",
+            "outcome": "success",
+            "selected": true,
+            "found": true
+          }
+        ],
+        "elapsedMs": 5533
+      },
+      "expectedPhase2Tools": [
+        "get_selected_plant"
+      ],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": []
+    },
+    {
+      "id": "common-arithmetic",
+      "legacy": {
+        "status": "out_of_scope",
+        "reason": "domain_boundary",
+        "callMode": "fixed_response"
+      },
+      "targetResponseMode": "direct",
+      "shadow": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 1,
+        "toolTrace": [
+          {
+            "toolName": "search_published_knowledge",
+            "source": "policy_preflight",
+            "outcome": "success",
+            "hitCount": 0,
+            "unknown": true
+          }
+        ],
+        "elapsedMs": 1023
+      },
+      "expectedPhase2Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": []
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "completed": 5,
+    "missingExpectedToolCases": 0,
+    "unexpectedPrivateToolCases": 0,
+    "blockedOrFailedToolCalls": 0,
+    "persistedBusinessWrites": 0
+  }
+}

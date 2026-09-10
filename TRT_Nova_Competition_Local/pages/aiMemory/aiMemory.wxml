@@ -1,0 +1,44 @@
+<view class="memory-page" style="padding-top: {{headerTop}}px;">
+  <view class="summary-topbar">
+    <button class="summary-icon-button" bindtap="goBack" aria-label="返回" disabled="{{contextBusy}}"><image src="/images/icons/ui/chevron-left.svg" mode="aspectFit" /></button>
+    <view class="summary-heading"><text class="page-title">记忆摘要</text><text class="summary-updated">{{summaryUpdatedLabel || 'NOVA 对你的了解'}}</text></view>
+    <button class="summary-icon-button" bindtap="openSummaryMenu" aria-label="记忆摘要选项" disabled="{{contextBusy || editingSummary || !contextMemory}}"><image src="/images/icons/ui/ellipsis.svg" mode="aspectFit" /></button>
+  </view>
+  <view class="summary-status">
+    <view><text class="summary-status-label">自动记忆</text><text class="summary-status-note">{{contextMemory.enabled ? '聊天后整理，下次对话也能用上' : '已关闭 · 当前会话仍保留上下文'}}</text></view>
+    <switch checked="{{contextMemory.enabled}}" disabled="{{contextBusy || editingSummary || !contextMemory}}" bindchange="toggleContextMemory" color="#23814b" aria-label="自动跨会话摘要" />
+  </view>
+  <view wx:if="{{contextError}}" class="summary-error"><text>{{contextError}}</text><button bindtap="loadContextMemory">重新加载</button></view>
+  <view wx:if="{{!contextMemory && !contextError}}" class="summary-article summary-empty">正在读取摘要…</view>
+  <view wx:elif="{{editingSummary}}" class="summary-editor-section">
+    <text class="summary-editor-label">编辑整份摘要</text>
+    <text class="summary-editor-hint">可以直接改称呼、补充偏好，或删掉不再适用的内容。</text>
+    <textarea class="summary-editor" value="{{summaryDraft}}" bindinput="onSummaryInput" maxlength="4000" auto-height="{{true}}" disabled="{{contextBusy}}" placeholder="你希望我怎么称呼你？你喜欢哪些植物，习惯怎样交流和养护？" cursor-spacing="100" />
+    <text class="summary-character-count">{{summaryDraft.length}} / 4000</text>
+    <text wx:if="{{summarySaveError}}" class="summary-save-error">{{summarySaveError}}。你的修改仍在这里。</text>
+    <view wx:if="{{summaryConflict}}" class="summary-conflict">
+      <text>聊天期间摘要有了更新，请先对照下面的最新版，再决定是否用你的草稿替换。</text>
+      <text class="summary-conflict-current">{{contextMemory.summary}}</text>
+      <button bindtap="reviewSummaryConflict">已对照，继续编辑草稿</button>
+    </view>
+    <view class="summary-edit-actions">
+      <button class="summary-cancel" disabled="{{contextBusy}}" bindtap="cancelSummaryEdit">取消</button>
+      <button class="summary-save" loading="{{contextBusy}}" disabled="{{contextBusy || summaryConflict}}" bindtap="saveSummary">{{contextBusy ? '正在保存' : '保存摘要'}}</button>
+    </view>
+  </view>
+  <view wx:elif="{{contextMemory}}" class="summary-article">
+    <text class="summary-section-title">关于你</text>
+    <text wx:if="{{contextMemory.summary}}" class="summary-prose" user-select="{{true}}">{{contextMemory.summary}}</text>
+    <view wx:else class="summary-empty"><text>这里还没有记忆。</text><text>开启自动记忆后，聊聊希望我怎么称呼你、喜欢什么植物就好。你也可以直接写下这些偏好。</text></view>
+    <button class="summary-edit-link" bindtap="startSummaryEdit" disabled="{{contextBusy}}"><image src="/images/icons/message/pencil.svg" mode="aspectFit" /><text>{{contextMemory.summary ? '编辑摘要' : '写下你的偏好'}}</text></button>
+  </view>
+  <view wx:if="{{!editingSummary}}" class="summary-footnote"><text>你可以随时修改、清除或关闭记忆。这里不会改变原对话、植宠档案或任务。</text></view>
+  <view wx:if="{{!editingSummary}}" class="legacy-toggle" bindtap="toggleLegacy"><text>档案来源与旧版记忆</text><text>{{showLegacy ? '收起' : '查看'}}</text></view>
+  <block wx:if="{{showLegacy}}">
+  <picker range="{{filterOptions}}" range-key="nickname" value="{{filterIndex}}" bindchange="onFilterChange"><view class="filter-card"><text>查看范围</text><text>{{filterOptions[filterIndex].nickname}} ›</text></view></picker>
+  <view wx:if="{{loading}}" class="state-card">正在整理结构化记忆…</view>
+  <view wx:elif="{{loadError}}" class="state-card error-state"><text>{{loadError}}</text><button bindtap="loadContext">重新加载</button></view>
+  <view wx:elif="{{!memories.length}}" class="state-card"><text>当前范围没有旧版记忆或档案来源副本。</text><text>新的自动摘要显示在上方，不需要在这里手工添加。</text></view>
+  <view wx:else class="memory-groups"><view wx:for="{{memoryGroups}}" wx:for-item="group" wx:key="key" class="memory-group"><text class="memory-group-title">{{group.title}}</text><text class="memory-group-desc">{{group.description}}</text><view class="memory-list"><view wx:for="{{group.items}}" wx:for-item="item" wx:key="id" class="memory-card"><view class="memory-head"><view class="memory-type"><text class="memory-icon">{{item.typeIcon}}</text><view><text class="memory-type-label">{{item.typeLabel}}</text><text wx:if="{{item.plantPetName}}" class="memory-pet">{{item.plantPetName}}</text></view></view><text class="confirm-badge {{item.userConfirmed ? 'confirmed' : ''}}">{{item.userConfirmed ? '你已确认' : item.legacySummary ? '旧版摘要' : '来自原记录'}}</text></view><text class="memory-content">{{item.content}}</text><view class="memory-source"><text>来源：{{item.sourceLabel}}{{item.sourceId ? ' #' + item.sourceId : ''}}</text><text>{{item.timeLabel}}</text></view><view class="memory-actions"><button wx:if="{{item.editable}}" data-id="{{item.id}}" bindtap="editMemory">修正</button><button wx:if="{{item.sourceNavigable}}" data-id="{{item.id}}" bindtap="openMemorySource">去来源查看</button><button class="delete-button" data-id="{{item.id}}" bindtap="deleteMemory">{{item.derived ? '遗忘副本' : '删除'}}</button></view></view></view></view></view>
+  </block>
+</view>

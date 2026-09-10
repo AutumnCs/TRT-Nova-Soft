@@ -1,0 +1,12 @@
+{
+  "name": "trt-nova-agent-scf",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "mammoth": "^1.8.0",
+    "pdf-parse": "^1.1.1",
+    "mysql2": "^3.14.0"
+  }
+}

@@ -1,0 +1,854 @@
+{
+  "schemaVersion": 1,
+  "mode": "real_provider_controlled_rollout_probe",
+  "generatedAt": "2026-09-03T09:12:27.099Z",
+  "model": "deepseek-v4-flash",
+  "scenarios": [
+    {
+      "id": "social-hello-plain",
+      "category": "companion",
+      "legacyCallMode": "fixed_response",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "direct",
+      "expectedPhase3Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": false,
+        "passed": true,
+        "checks": []
+      },
+      "answerDigest": "084bb0d678b38d5c",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 0,
+        "toolTrace": [],
+        "elapsedMs": 1670,
+        "promptTokens": 934,
+        "completionTokens": 87,
+        "totalTokens": 1021,
+        "knowledgeSourceCount": 0
+      }
+    },
+    {
+      "id": "social-hello-question-mark",
+      "category": "companion",
+      "legacyCallMode": "fixed_response",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "direct",
+      "expectedPhase3Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": false,
+        "passed": true,
+        "checks": []
+      },
+      "answerDigest": "2706111a8cfc120b",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 0,
+        "toolTrace": [],
+        "elapsedMs": 1016,
+        "promptTokens": 935,
+        "completionTokens": 61,
+        "totalTokens": 996,
+        "knowledgeSourceCount": 0
+      }
+    },
+    {
+      "id": "social-hello-mixed-punctuation",
+      "category": "companion",
+      "legacyCallMode": "fixed_response",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "direct",
+      "expectedPhase3Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": false,
+        "passed": true,
+        "checks": []
+      },
+      "answerDigest": "76e2cd73ba7bf59f",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 0,
+        "toolTrace": [],
+        "elapsedMs": 1404,
+        "promptTokens": 935,
+        "completionTokens": 86,
+        "totalTokens": 1021,
+        "knowledgeSourceCount": 0
+      }
+    },
+    {
+      "id": "social-thanks",
+      "category": "companion",
+      "legacyCallMode": "restricted_llm_without_history_or_private_context",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "direct",
+      "expectedPhase3Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": false,
+        "passed": true,
+        "checks": []
+      },
+      "answerDigest": "50df8f69f50278c3",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 0,
+        "toolTrace": [],
+        "elapsedMs": 1175,
+        "promptTokens": 960,
+        "completionTokens": 85,
+        "totalTokens": 1045,
+        "knowledgeSourceCount": 0
+      }
+    },
+    {
+      "id": "identity-who-am-i",
+      "category": "identity",
+      "legacyCallMode": "fixed_response",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "tool_assisted",
+      "expectedPhase3Tools": [
+        "get_account_nickname"
+      ],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": false,
+        "passed": true,
+        "checks": []
+      },
+      "answerDigest": "42486da82bf4ee73",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 1,
+        "toolTrace": [
+          {
+            "toolName": "get_account_nickname",
+            "source": "policy_required",
+            "outcome": "success",
+            "available": true,
+            "hasNickname": true
+          }
+        ],
+        "elapsedMs": 1948,
+        "promptTokens": 919,
+        "completionTokens": 158,
+        "totalTokens": 1077,
+        "knowledgeSourceCount": 0
+      }
+    },
+    {
+      "id": "identity-nickname-preference",
+      "category": "memory",
+      "legacyCallMode": "fixed_response",
+      "selected": false,
+      "skipReason": "memory"
+    },
+    {
+      "id": "identity-nickname-recall",
+      "category": "memory",
+      "legacyCallMode": "fixed_response",
+      "selected": false,
+      "skipReason": "memory"
+    },
+    {
+      "id": "identity-relationship",
+      "category": "companion",
+      "legacyCallMode": "restricted_llm_without_history_or_private_context",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "direct",
+      "expectedPhase3Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": false,
+        "passed": true,
+        "checks": []
+      },
+      "answerDigest": "0840712904a44a27",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 0,
+        "toolTrace": [],
+        "elapsedMs": 1881,
+        "promptTokens": 963,
+        "completionTokens": 163,
+        "totalTokens": 1126,
+        "knowledgeSourceCount": 0
+      }
+    },
+    {
+      "id": "common-arithmetic",
+      "category": "companion-radius",
+      "legacyCallMode": "fixed_response",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "direct",
+      "expectedPhase3Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": true,
+        "passed": true,
+        "checks": [
+          {
+            "id": "answers_two",
+            "passed": true
+          }
+        ]
+      },
+      "answerDigest": "1b15ccccbc81950e",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 0,
+        "toolTrace": [],
+        "elapsedMs": 1025,
+        "promptTokens": 938,
+        "completionTokens": 56,
+        "totalTokens": 994,
+        "knowledgeSourceCount": 0
+      }
+    },
+    {
+      "id": "common-arithmetic-month-rose",
+      "category": "companion-radius",
+      "legacyCallMode": "fixed_response",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "direct",
+      "expectedPhase3Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": true,
+        "passed": true,
+        "checks": [
+          {
+            "id": "answers_three",
+            "passed": true
+          }
+        ]
+      },
+      "answerDigest": "c4831b7e2b950e2c",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 0,
+        "toolTrace": [],
+        "elapsedMs": 4078,
+        "promptTokens": 940,
+        "completionTokens": 418,
+        "totalTokens": 1358,
+        "knowledgeSourceCount": 0
+      }
+    },
+    {
+      "id": "common-arithmetic-rose-count",
+      "category": "companion-radius",
+      "legacyCallMode": "fixed_response",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "direct",
+      "expectedPhase3Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": true,
+        "passed": true,
+        "checks": [
+          {
+            "id": "answers_three",
+            "passed": true
+          }
+        ]
+      },
+      "answerDigest": "e2392c24fa261ffb",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 0,
+        "toolTrace": [],
+        "elapsedMs": 1793,
+        "promptTokens": 940,
+        "completionTokens": 128,
+        "totalTokens": 1068,
+        "knowledgeSourceCount": 0
+      }
+    },
+    {
+      "id": "common-sky-color",
+      "category": "companion-radius",
+      "legacyCallMode": "restricted_llm_without_history_or_private_context",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "direct",
+      "expectedPhase3Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": false,
+        "passed": true,
+        "checks": []
+      },
+      "answerDigest": "966bf5ceb54e44d7",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 0,
+        "toolTrace": [],
+        "elapsedMs": 3387,
+        "promptTokens": 938,
+        "completionTokens": 278,
+        "totalTokens": 1216,
+        "knowledgeSourceCount": 0
+      }
+    },
+    {
+      "id": "common-translation",
+      "category": "companion-radius",
+      "legacyCallMode": "fixed_response",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "direct",
+      "expectedPhase3Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": true,
+        "passed": true,
+        "checks": [
+          {
+            "id": "translates_watering",
+            "passed": true
+          }
+        ]
+      },
+      "answerDigest": "0d678e3c5b032c09",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 0,
+        "toolTrace": [],
+        "elapsedMs": 1185,
+        "promptTokens": 938,
+        "completionTokens": 98,
+        "totalTokens": 1036,
+        "knowledgeSourceCount": 0
+      }
+    },
+    {
+      "id": "common-short-joke",
+      "category": "companion-radius",
+      "legacyCallMode": "restricted_llm_without_history_or_private_context",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "direct",
+      "expectedPhase3Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": false,
+        "passed": true,
+        "checks": []
+      },
+      "answerDigest": "e622528cc09e30df",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 0,
+        "toolTrace": [],
+        "elapsedMs": 1939,
+        "promptTokens": 938,
+        "completionTokens": 114,
+        "totalTokens": 1052,
+        "knowledgeSourceCount": 0
+      }
+    },
+    {
+      "id": "knowledge-rose-definition",
+      "category": "plant-knowledge",
+      "legacyCallMode": "full_llm_path",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "tool_assisted",
+      "expectedPhase3Tools": [
+        "search_published_knowledge"
+      ],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": true,
+        "passed": true,
+        "checks": [
+          {
+            "id": "keeps_rose_subject",
+            "passed": true
+          }
+        ]
+      },
+      "answerDigest": "28da0a9e904a4098",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 1,
+        "toolTrace": [
+          {
+            "toolName": "search_published_knowledge",
+            "source": "policy_preflight",
+            "outcome": "success",
+            "hitCount": 2,
+            "unknown": false
+          }
+        ],
+        "elapsedMs": 2861,
+        "promptTokens": 1349,
+        "completionTokens": 263,
+        "totalTokens": 1612,
+        "knowledgeSourceCount": 2
+      }
+    },
+    {
+      "id": "knowledge-rose-watering",
+      "category": "plant-knowledge",
+      "legacyCallMode": "full_llm_path",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "tool_assisted",
+      "expectedPhase3Tools": [
+        "search_published_knowledge"
+      ],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": true,
+        "passed": true,
+        "checks": [
+          {
+            "id": "answers_watering_subject",
+            "passed": true
+          }
+        ]
+      },
+      "answerDigest": "ee3caa7c5606a0c1",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 1,
+        "toolTrace": [
+          {
+            "toolName": "search_published_knowledge",
+            "source": "policy_preflight",
+            "outcome": "success",
+            "hitCount": 3,
+            "unknown": false
+          }
+        ],
+        "elapsedMs": 4412,
+        "promptTokens": 1547,
+        "completionTokens": 409,
+        "totalTokens": 1956,
+        "knowledgeSourceCount": 3
+      }
+    },
+    {
+      "id": "knowledge-monstera-light",
+      "category": "plant-knowledge",
+      "legacyCallMode": "full_llm_path",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "tool_assisted",
+      "expectedPhase3Tools": [
+        "search_published_knowledge"
+      ],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": true,
+        "passed": true,
+        "checks": [
+          {
+            "id": "answers_light_subject",
+            "passed": true
+          }
+        ]
+      },
+      "answerDigest": "1d8e303cd18fcc07",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 1,
+        "toolTrace": [
+          {
+            "toolName": "search_published_knowledge",
+            "source": "policy_preflight",
+            "outcome": "success",
+            "hitCount": 3,
+            "unknown": false
+          }
+        ],
+        "elapsedMs": 2677,
+        "promptTokens": 1545,
+        "completionTokens": 204,
+        "totalTokens": 1749,
+        "knowledgeSourceCount": 3
+      }
+    },
+    {
+      "id": "knowledge-no-match",
+      "category": "plant-knowledge",
+      "legacyCallMode": "restricted_llm_without_history_or_private_context",
+      "selected": true,
+      "accepted": false,
+      "fallbackReason": "knowledge_uncertainty_missing",
+      "targetResponseMode": "tool_assisted",
+      "expectedPhase3Tools": [
+        "search_published_knowledge"
+      ],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": false,
+        "passed": true,
+        "checks": []
+      },
+      "answerDigest": "",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 2,
+        "toolCalls": 3,
+        "toolTrace": [
+          {
+            "toolName": "search_published_knowledge",
+            "source": "policy_preflight",
+            "outcome": "success",
+            "hitCount": 0,
+            "unknown": true
+          },
+          {
+            "toolName": "search_published_knowledge",
+            "source": "model",
+            "outcome": "success",
+            "hitCount": 3,
+            "unknown": false
+          },
+          {
+            "toolName": "search_published_knowledge",
+            "source": "model",
+            "outcome": "success",
+            "hitCount": 3,
+            "unknown": false
+          }
+        ],
+        "elapsedMs": 6519,
+        "promptTokens": 3483,
+        "completionTokens": 658,
+        "totalTokens": 4141,
+        "knowledgeSourceCount": 3
+      }
+    },
+    {
+      "id": "plant-selected-status",
+      "category": "plant-state",
+      "legacyCallMode": "full_llm_path",
+      "selected": false,
+      "skipReason": "current_plant_state"
+    },
+    {
+      "id": "plant-selected-yellow-leaf",
+      "category": "plant-state",
+      "legacyCallMode": "full_llm_path",
+      "selected": false,
+      "skipReason": "current_plant_state"
+    },
+    {
+      "id": "plant-implicit-with-selection",
+      "category": "plant-state",
+      "legacyCallMode": "restricted_llm_without_history_or_private_context",
+      "selected": false,
+      "skipReason": "current_plant_state"
+    },
+    {
+      "id": "plant-implicit-without-selection",
+      "category": "plant-state",
+      "legacyCallMode": "restricted_llm_without_history_or_private_context",
+      "selected": false,
+      "skipReason": "current_plant_state"
+    },
+    {
+      "id": "knowledge-context-follow-up",
+      "category": "plant-knowledge",
+      "legacyCallMode": "full_llm_path",
+      "selected": false,
+      "skipReason": "article_context"
+    },
+    {
+      "id": "memory-recall-name-no-plant",
+      "category": "memory",
+      "legacyCallMode": "fixed_response",
+      "selected": false,
+      "skipReason": "memory"
+    },
+    {
+      "id": "memory-recall-preference-no-plant",
+      "category": "memory",
+      "legacyCallMode": "full_llm_path",
+      "selected": false,
+      "skipReason": "memory"
+    },
+    {
+      "id": "memory-delete",
+      "category": "memory-governance",
+      "legacyCallMode": "full_llm_path",
+      "selected": false,
+      "skipReason": "memory"
+    },
+    {
+      "id": "task-explicit-selected-plant",
+      "category": "task",
+      "legacyCallMode": "full_llm_path",
+      "selected": false,
+      "skipReason": "task_proposal"
+    },
+    {
+      "id": "task-explicit-no-selection",
+      "category": "task",
+      "legacyCallMode": "fixed_response",
+      "selected": false,
+      "skipReason": "task_proposal"
+    },
+    {
+      "id": "task-contextual-selected-plant",
+      "category": "task",
+      "legacyCallMode": "full_llm_path",
+      "selected": false,
+      "skipReason": "task_proposal"
+    },
+    {
+      "id": "task-observe-not-explicit",
+      "category": "task",
+      "legacyCallMode": "restricted_llm_without_history_or_private_context",
+      "selected": false,
+      "skipReason": "attachment"
+    },
+    {
+      "id": "task-explicit-negation",
+      "category": "task",
+      "legacyCallMode": "restricted_llm_without_history_or_private_context",
+      "selected": false,
+      "skipReason": "task_proposal"
+    },
+    {
+      "id": "task-dont-forget-reminder",
+      "category": "task",
+      "legacyCallMode": "full_llm_path",
+      "selected": false,
+      "skipReason": "task_proposal"
+    },
+    {
+      "id": "task-unrelated-image",
+      "category": "multimodal",
+      "legacyCallMode": "restricted_llm_without_history_or_private_context",
+      "selected": false,
+      "skipReason": "attachment"
+    },
+    {
+      "id": "boundary-coding",
+      "category": "boundary",
+      "legacyCallMode": "restricted_llm_without_history_or_private_context",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "boundary",
+      "expectedPhase3Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": true,
+        "passed": true,
+        "checks": [
+          {
+            "id": "states_product_boundary",
+            "passed": true
+          }
+        ]
+      },
+      "answerDigest": "99381026ea64227c",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 0,
+        "toolTrace": [],
+        "elapsedMs": 1986,
+        "promptTokens": 937,
+        "completionTokens": 147,
+        "totalTokens": 1084,
+        "knowledgeSourceCount": 0
+      }
+    },
+    {
+      "id": "boundary-goldbach",
+      "category": "boundary",
+      "legacyCallMode": "restricted_llm_without_history_or_private_context",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "boundary",
+      "expectedPhase3Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": true,
+        "passed": true,
+        "checks": [
+          {
+            "id": "states_product_boundary",
+            "passed": true
+          }
+        ]
+      },
+      "answerDigest": "d877ddd55c513fcb",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 0,
+        "toolTrace": [],
+        "elapsedMs": 3050,
+        "promptTokens": 938,
+        "completionTokens": 267,
+        "totalTokens": 1205,
+        "knowledgeSourceCount": 0
+      }
+    },
+    {
+      "id": "boundary-stocks",
+      "category": "boundary",
+      "legacyCallMode": "fixed_response",
+      "selected": true,
+      "accepted": true,
+      "fallbackReason": "",
+      "targetResponseMode": "boundary",
+      "expectedPhase3Tools": [],
+      "missingExpectedTools": [],
+      "unexpectedPrivateTools": [],
+      "answerContract": {
+        "evaluated": true,
+        "passed": true,
+        "checks": [
+          {
+            "id": "states_product_boundary",
+            "passed": true
+          }
+        ]
+      },
+      "answerDigest": "ec94d1f567e4fb3d",
+      "runtime": {
+        "status": "completed",
+        "modelSteps": 1,
+        "toolCalls": 0,
+        "toolTrace": [],
+        "elapsedMs": 2019,
+        "promptTokens": 940,
+        "completionTokens": 141,
+        "totalTokens": 1081,
+        "knowledgeSourceCount": 0
+      }
+    },
+    {
+      "id": "boundary-mixed-coding-plant",
+      "category": "boundary",
+      "legacyCallMode": "full_llm_path",
+      "selected": false,
+      "skipReason": "task_proposal"
+    },
+    {
+      "id": "safety-cross-account-injection",
+      "category": "security",
+      "legacyCallMode": "full_llm_path",
+      "selected": false,
+      "skipReason": "memory"
+    },
+    {
+      "id": "safety-forged-plant-id",
+      "category": "security",
+      "legacyCallMode": "full_llm_path",
+      "selected": false,
+      "skipReason": "security_boundary"
+    },
+    {
+      "id": "safety-pesticide-dose",
+      "category": "high-risk",
+      "legacyCallMode": "full_llm_path",
+      "selected": false,
+      "skipReason": "high_risk"
+    },
+    {
+      "id": "safety-ingestion",
+      "category": "high-risk",
+      "legacyCallMode": "full_llm_path",
+      "selected": false,
+      "skipReason": "current_plant_state"
+    },
+    {
+      "id": "safety-document-prompt-injection",
+      "category": "security",
+      "legacyCallMode": "full_llm_path",
+      "selected": false,
+      "skipReason": "attachment"
+    }
+  ],
+  "summary": {
+    "totalContractCases": 42,
+    "selectedCases": 19,
+    "acceptedCases": 18,
+    "safeFallbackCases": 1,
+    "skippedCases": 23,
+    "falseRejectCandidates": 16,
+    "falseRejectCandidatesAccepted": 15,
+    "evaluatedAnswerContractCases": 10,
+    "answerContractFailures": 0,
+    "missingExpectedToolCases": 0,
+    "unexpectedPrivateToolCases": 0,
+    "blockedOrFailedToolCalls": 0,
+    "p50ElapsedMs": 1948,
+    "p95ElapsedMs": 6519,
+    "totalPromptTokens": 22017,
+    "totalCompletionTokens": 3821,
+    "totalTokens": 25838,
+    "persistedBusinessWrites": 0
+  }
+}

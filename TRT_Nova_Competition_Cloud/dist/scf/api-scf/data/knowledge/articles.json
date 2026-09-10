@@ -1,0 +1,374 @@
+[
+  {
+    "id": 101,
+    "slug": "watering-by-observation",
+    "title": "浇水先看盆土和植株，不按固定天数",
+    "summary": "浇水频率会随植物、盆器、光照和季节变化，日历只能提醒检查，不能替代当次判断。",
+    "content": "先摸表层盆土并观察盆器重量、叶片状态和排水情况。多数常见室内植物适合在需要水时一次浇透，再倒掉托盘积水；但多肉、蕨类等植物的干湿偏好不同，应回到具体植物档案。\n\n浇水过多和浇水不足都可能造成萎蔫。若盆土仍湿却持续萎蔫，应先检查排水和根系，不要因为叶片下垂就连续补水。季节、光照、温度和盆径变化后，要重新观察实际干燥速度。",
+    "category": "plant-care",
+    "tags": [
+      "浇水",
+      "盆土",
+      "排水"
+    ],
+    "aliases": [
+      "多久浇一次",
+      "要不要浇水"
+    ],
+    "plantTypes": [],
+    "problemTypes": [
+      "萎蔫",
+      "积水"
+    ],
+    "sourceType": "external-reference",
+    "sourceRef": "UMN-SHPC-2026",
+    "sourceTitle": "Spring houseplant care",
+    "sourcePublisher": "University of Minnesota Extension",
+    "sourceUpdatedAt": "Reviewed in 2026",
+    "sourceUrl": "https://extension.umn.edu/garden-and-home/yard-and-garden/gardening-in-minnesota/houseplants/spring-houseplant-care",
+    "sourceId": "UMN-SHPC-2026",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 1
+  },
+  {
+    "id": 102,
+    "slug": "light-change-gradually",
+    "title": "增加光照要循序渐进，避免突然暴晒",
+    "summary": "室内明亮和室外直射不是同一强度，换位置时需要逐步适应并观察灼伤迹象。",
+    "content": "先依据植物档案确认它偏好直射光、散射光还是耐阴环境。把长期室内养护的植物移到更亮位置时，应从较短时长、较柔和的早晨光开始，避免直接放到正午或午后强光下。\n\n叶片出现漂白、干脆斑块或焦边，可能与突然增强的光照有关；长期缺光则常见徒长、节间拉长或斑叶褪色。光照判断需要同时考虑强度、时长、窗户方向和季节，不把一个固定照度值套给所有植物。",
+    "category": "plant-care",
+    "tags": [
+      "光照",
+      "暴晒",
+      "适应"
+    ],
+    "aliases": [
+      "叶片晒伤",
+      "缺光"
+    ],
+    "plantTypes": [],
+    "problemTypes": [
+      "焦边",
+      "徒长",
+      "晒伤"
+    ],
+    "sourceType": "external-reference",
+    "sourceRef": "UMN-HOUSEPLANTS-OUTSIDE-2026",
+    "sourceTitle": "When houseplants go outside",
+    "sourcePublisher": "University of Minnesota Extension",
+    "sourceUpdatedAt": "2026-05-21",
+    "sourceUrl": "https://extension.umn.edu/about/our-stories/news/yard-and-garden-news/when-houseplants-go-outside",
+    "sourceId": "UMN-HOUSEPLANTS-OUTSIDE-2026",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 2
+  },
+  {
+    "id": 103,
+    "slug": "humidity-with-airflow",
+    "title": "提高湿度时也要保留空气流动",
+    "summary": "空气干燥会影响部分植物，但叶面长期潮湿、植株拥挤和通风不足也会增加问题。",
+    "content": "先确认具体植物是否真的需要较高空气湿度。需要增湿时，可使用加湿器或水盘等稳定方法，并让植株之间留有空间；不要把频繁喷湿叶片等同于提高空气湿度。\n\n若叶片和花朵长时间潮湿、植株过密或空气不流动，叶斑和灰霉等问题更容易扩展。出现异常时应同时查看空气湿度、叶面是否久湿、温度和通风，而不是只追求一个湿度数字。",
+    "category": "plant-care",
+    "tags": [
+      "湿度",
+      "通风",
+      "叶面"
+    ],
+    "aliases": [
+      "空气太干",
+      "要不要喷雾"
+    ],
+    "plantTypes": [
+      "龟背竹",
+      "波士顿蕨",
+      "白掌"
+    ],
+    "problemTypes": [
+      "焦边",
+      "叶斑",
+      "灰霉"
+    ],
+    "sourceType": "external-reference",
+    "sourceRef": "CLEMSON-HGIC-2251",
+    "sourceTitle": "Houseplant Diseases & Disorders",
+    "sourcePublisher": "Clemson Cooperative Extension Home & Garden Information Center",
+    "sourceUpdatedAt": "2025-02-28",
+    "sourceUrl": "https://hgic.clemson.edu/factsheet/houseplant-diseases-disorders/",
+    "sourceId": "CLEMSON-HGIC-2251",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 3
+  },
+  {
+    "id": 104,
+    "slug": "repot-only-when-needed",
+    "title": "换盆先确认根系和排水，不盲目换大盆",
+    "summary": "根系挤满、排水变差或盆土异常快干，才是常见的换盆信号。",
+    "content": "可从排水孔见根、根系在盆内紧密盘绕、盆土比以往异常快干或植株明显头重脚轻等现象判断是否需要换盆。仅因表面不好看，不一定要立即整盆更换。\n\n换盆通常只增加一个盆号，并使用适合该植物、排水良好的新基质。过大的盆会保留更多湿土，反而增加根部长期潮湿的风险。操作后先观察恢复，不要同时大幅增加施肥和浇水。",
+    "category": "plant-care",
+    "tags": [
+      "换盆",
+      "根系",
+      "基质"
+    ],
+    "aliases": [
+      "什么时候换盆",
+      "盆太小"
+    ],
+    "plantTypes": [],
+    "problemTypes": [
+      "盘根",
+      "排水变差"
+    ],
+    "sourceType": "external-reference",
+    "sourceRef": "UMN-SHPC-2026",
+    "sourceTitle": "Spring houseplant care",
+    "sourcePublisher": "University of Minnesota Extension",
+    "sourceUpdatedAt": "Reviewed in 2026",
+    "sourceUrl": "https://extension.umn.edu/garden-and-home/yard-and-garden/gardening-in-minnesota/houseplants/spring-houseplant-care",
+    "sourceId": "UMN-SHPC-2026",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 4
+  },
+  {
+    "id": 105,
+    "slug": "yellow-leaves-need-context",
+    "title": "黄叶是现象，不是单一诊断",
+    "summary": "浇水、光照、根系、虫害、肥盐和自然老化都可能导致叶片发黄。",
+    "content": "先记录黄叶发生在老叶还是新叶、是整株还是局部、盆土当前干湿、最近是否换盆或移动位置，并查看叶背和根系。整株发黄常与浇水过多有关，但光照不足、根部受损、害虫或养分问题也可能出现相似表现。\n\n一次只调整最有证据的一到两个条件，并记录新叶变化。仅凭一张照片或一个症状无法确定原因；若根系大面积变黑变软、病斑持续扩散或植株快速衰弱，应停止反复试药并寻求本地园艺或植保人员帮助。",
+    "category": "visible-problem",
+    "tags": [
+      "黄叶",
+      "诊断",
+      "观察"
+    ],
+    "aliases": [
+      "叶子变黄",
+      "整株发黄"
+    ],
+    "plantTypes": [],
+    "problemTypes": [
+      "黄叶"
+    ],
+    "sourceType": "external-reference",
+    "sourceRef": "CLEMSON-HGIC-2251",
+    "sourceTitle": "Houseplant Diseases & Disorders",
+    "sourcePublisher": "Clemson Cooperative Extension Home & Garden Information Center",
+    "sourceUpdatedAt": "2025-02-28",
+    "sourceUrl": "https://hgic.clemson.edu/factsheet/houseplant-diseases-disorders/",
+    "sourceId": "CLEMSON-HGIC-2251",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 5
+  },
+  {
+    "id": 106,
+    "slug": "wilt-and-root-check",
+    "title": "盆土湿却萎蔫时，先检查根系",
+    "summary": "萎蔫既可能缺水，也可能是积水、根腐、肥盐或低温伤害，继续浇水可能加重问题。",
+    "content": "如果盆土已经偏干且根系正常，可按植物需求补水；如果盆土仍湿、托盘有积水或浇水后长期不干，应先暂停追加浇水并检查排水。健康根通常较坚实，异常根可能颜色变深、发软或外层脱落。\n\n发现少量受损根时，可移除腐烂部分并换入干净、排水良好的基质；受损严重时可考虑保留健康枝叶扦插。根部异常不能只凭地上叶片确诊，处理前应结合气味、根系触感和近期养护记录。",
+    "category": "visible-problem",
+    "tags": [
+      "萎蔫",
+      "根系",
+      "烂根"
+    ],
+    "aliases": [
+      "盆土湿还打蔫",
+      "根腐"
+    ],
+    "plantTypes": [],
+    "problemTypes": [
+      "萎蔫",
+      "根腐"
+    ],
+    "sourceType": "external-reference",
+    "sourceRef": "UMD-DIAGNOSE-INDOOR-2025",
+    "sourceTitle": "Diagnose Indoor Plant Problems",
+    "sourcePublisher": "University of Maryland Extension",
+    "sourceUpdatedAt": "2025-02-05",
+    "sourceUrl": "https://extension.umd.edu/resource/diagnose-indoor-plant-problems",
+    "sourceId": "UMD-DIAGNOSE-INDOOR-2025",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 6
+  },
+  {
+    "id": 107,
+    "slug": "fertilize-during-active-growth",
+    "title": "施肥配合生长状态，少量开始",
+    "summary": "肥料不能替代光照、浇水和健康根系；生长停滞或根部异常时先排查环境。",
+    "content": "在植物有稳定新生长、光照和根系状态正常时，再按产品标签从较低浓度开始施肥。低光、休眠或刚换盆恢复期通常不需要照搬旺盛生长期的频率。\n\n施肥过多可能造成盐分积累、叶尖受损或根部伤害。若怀疑肥害，应先停止加肥并检查盆土和排水；不要用更多肥料去修复黄叶或萎蔫。不同植物需求差异明显，具体频率以植物档案和肥料标签为准。",
+    "category": "plant-care",
+    "tags": [
+      "施肥",
+      "生长期",
+      "肥害"
+    ],
+    "aliases": [
+      "多久施肥",
+      "叶尖焦"
+    ],
+    "plantTypes": [],
+    "problemTypes": [
+      "肥害",
+      "盐分积累"
+    ],
+    "sourceType": "external-reference",
+    "sourceRef": "UMN-SHPC-2026",
+    "sourceTitle": "Spring houseplant care",
+    "sourcePublisher": "University of Minnesota Extension",
+    "sourceUpdatedAt": "Reviewed in 2026",
+    "sourceUrl": "https://extension.umn.edu/garden-and-home/yard-and-garden/gardening-in-minnesota/houseplants/spring-houseplant-care",
+    "sourceId": "UMN-SHPC-2026",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 7
+  },
+  {
+    "id": 108,
+    "slug": "inspect-and-isolate-pests",
+    "title": "发现虫害先隔离、观察和确认",
+    "summary": "叶背、嫩梢、叶腋和盆缘是常见检查位置，先确认对象再选择处理方法。",
+    "content": "新购或从室外搬回的植物应与原有植物分开放置并定期检查。观察叶背、叶腋和新芽是否有虫体、蜡质物、黏液、网丝或异常斑点，同时检查相邻植株。\n\n发现异常后先隔离并记录扩散范围。小规模虫害可优先采用清洗、擦除和修剪等物理措施；如需使用药剂，应确认虫种、植物耐受性和当地标签要求，先在小范围测试。不要因叶片发黄就直接假定是虫害。",
+    "category": "visible-problem",
+    "tags": [
+      "虫害",
+      "隔离",
+      "叶背检查"
+    ],
+    "aliases": [
+      "介壳虫",
+      "红蜘蛛",
+      "粉蚧"
+    ],
+    "plantTypes": [],
+    "problemTypes": [
+      "虫害",
+      "黏液",
+      "网丝"
+    ],
+    "sourceType": "external-reference",
+    "sourceRef": "CLEMSON-HGIC-2252",
+    "sourceTitle": "Common Houseplant Insects & Related Pests",
+    "sourcePublisher": "Clemson Cooperative Extension Home & Garden Information Center",
+    "sourceUpdatedAt": "2021-09-10",
+    "sourceUrl": "https://hgic.clemson.edu/factsheet/common-houseplant-insects-related-pests/",
+    "sourceId": "CLEMSON-HGIC-2252",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 8
+  },
+  {
+    "id": 109,
+    "slug": "leaf-spots-observe-before-treatment",
+    "title": "叶斑先记录形态和扩散，再决定处理",
+    "summary": "褐斑、湿斑、白粉和虫咬可能外观相近，清洁、通风和隔离是低风险起点。",
+    "content": "记录斑点首次出现时间、是否有黄色晕圈或灰白粉层、是否跨叶扩散，以及叶面是否长期潮湿。先移开受影响植株，清理严重受损叶片，并保持工具和盆器清洁。\n\n改善空气流动、避免植株过密和不必要的叶面久湿，有助于降低多种叶部问题的扩散风险。是否需要针对性药剂取决于病原或虫害确认结果；图片观察只能描述可见迹象，不能把所有斑点都定为同一种病。",
+    "category": "visible-problem",
+    "tags": [
+      "叶斑",
+      "白粉",
+      "隔离"
+    ],
+    "aliases": [
+      "叶子有斑",
+      "褐色斑点"
+    ],
+    "plantTypes": [],
+    "problemTypes": [
+      "叶斑",
+      "白粉",
+      "褐斑"
+    ],
+    "sourceType": "external-reference",
+    "sourceRef": "PENNSTATE-INDOOR-PESTS-DISEASES",
+    "sourceTitle": "Pest and Disease Problems of Indoor Plants",
+    "sourcePublisher": "Penn State Extension",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://extension.psu.edu/pest-and-disease-problems-of-indoor-plants",
+    "sourceId": "PENNSTATE-INDOOR-PESTS-DISEASES",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 9
+  },
+  {
+    "id": 110,
+    "slug": "rose-container-care",
+    "title": "月季盆栽养护先抓光照、排水和巡检",
+    "summary": "月季通常需要充足光照、富含有机质且排水良好的基质，并持续观察叶片与花芽。",
+    "content": "月季适合放在日照较充足、空气流动良好的位置，盆器必须有可靠排水。浇水时观察盆土实际干湿，避免根部长期积水；生长和开花期再结合植株状态合理补充养分。\n\n及时清理残花和严重病叶，并检查叶片正反面是否有虫体、斑点或异常褪色。黑斑、白粉、螨类和蓟马等都可能影响月季，但仅凭一个症状不能确定原因；记录光照、浇水和扩散情况后再做针对性处理。",
+    "category": "plant-care",
+    "tags": [
+      "月季",
+      "光照",
+      "排水",
+      "巡检"
+    ],
+    "aliases": [
+      "玫瑰养护",
+      "月季怎么养"
+    ],
+    "plantTypes": [
+      "月季"
+    ],
+    "problemTypes": [
+      "黑斑",
+      "白粉",
+      "虫害"
+    ],
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-ROSA",
+    "sourceTitle": "Rose - Rosa",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/rosa/common-name/rose/",
+    "sourceId": "NCSU-PLANT-ROSA",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 10
+  }
+]

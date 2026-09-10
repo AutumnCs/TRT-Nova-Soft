@@ -1,0 +1,42 @@
+<view class="settings-page" style="padding-top: {{statusBarHeight}}px;">
+  <view class="topbar">
+    <button class="back-btn" bindtap="goBack">‹</button>
+    <view class="title-block"><text class="page-title">系统设置</text><text class="page-subtitle">SETTINGS · 可见、可控、可退出</text></view>
+    <view class="top-spacer"></view>
+  </view>
+
+  <view class="intro-card">
+    <text class="intro-kicker">ACCOUNT & PRIVACY</text>
+    <text class="intro-title">账号和服务边界集中在这里</text>
+    <text class="intro-desc">所有会改变任务、资料或记忆的操作仍需由你主动确认；当前本地阶段不会写入已过期的云开发环境。</text>
+  </view>
+
+  <view class="setting-group">
+    <text class="group-title">账号与位置</text>
+    <view class="setting-row" bindtap="openProfile"><view><text class="row-title">个人资料</text><text class="row-desc">头像、昵称和基础资料</text></view><text class="row-arrow">›</text></view>
+    <view class="setting-row" bindtap="openWeather"><view><text class="row-title">城市 / 位置</text><text class="row-desc">天气默认城市；不长期保存精确坐标</text></view><text class="row-arrow">›</text></view>
+  </view>
+
+  <view class="setting-group notice-group {{noticeFocused ? 'focused' : ''}}">
+    <text class="group-title">通知</text>
+    <view class="notice-state"><view><text class="row-title">小程序内任务提醒</text><text class="row-desc">任务日期和提醒时间会显示在首页、日历与任务详情。</text></view><text class="status-pill ready">可用</text></view>
+    <view class="notice-state"><view><text class="row-title">微信订阅消息</text><text class="row-desc">当前没有养护提醒模板 ID，暂不能发送微信外部订阅通知。</text></view><text class="status-pill blocked">待依赖</text></view>
+    <button class="inline-btn" bindtap="openCalendar">管理养护任务</button>
+  </view>
+
+  <view class="setting-group">
+    <text class="group-title">AI 记忆与数据</text>
+    <view class="setting-row" bindtap="openAiMemory"><view><text class="row-title">AI 伙伴记忆与隐私</text><text class="row-desc">查看来源、修正或删除结构化记忆</text></view><text class="row-arrow">›</text></view>
+    <view class="setting-row" bindtap="showDataUse"><view><text class="row-title">图片与数据使用</text><text class="row-desc">照片、文档、第三方 AI 与保存范围</text></view><text class="row-arrow">›</text></view>
+    <view class="setting-row" bindtap="clearCache"><view><text class="row-title">清理图片缓存</text><text class="row-desc">不删除账号内已保存媒体</text></view><text class="row-tail">{{clearingCache ? '清理中' : '清理'}}</text></view>
+  </view>
+
+  <view class="setting-group">
+    <text class="group-title">关于</text>
+    <view class="version-row"><view><text class="row-title">版本信息</text><text class="row-desc">{{versionView.environment}} · {{versionView.version}}</text></view></view>
+    <view class="setting-row" bindtap="openAbout"><view><text class="row-title">关于植宠</text><text class="row-desc">产品说明与团队信息</text></view><text class="row-arrow">›</text></view>
+  </view>
+
+  <button class="logout-btn" bindtap="logout">退出当前账号</button>
+  <view class="bottom-space"></view>
+</view>

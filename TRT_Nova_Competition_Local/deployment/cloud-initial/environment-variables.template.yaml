@@ -1,0 +1,90 @@
+schemaVersion: "nova.cloud-candidate/v1"
+kind: "ScfEnvironmentAndSecretInjectionContract"
+metadata:
+  status: "RUNTIME_SSM_IMPLEMENTED_REAL_ROLE_ACCEPTANCE_PENDING"
+  containsSecrets: false
+  instruction: "Use tools/render-config.mjs; it emits logical refs only, never fetches secret values."
+secretResolutionContract:
+  implemented: true
+  strategy: "runtime-ssm-sdk"
+  entryOrder: "cloud-secrets.initialize -> validated env -> require index.js"
+  credentials: "SCF role temporary TENCENTCLOUD_SECRETID/SECRETKEY/SESSIONTOKEN; no static keys"
+  sdk: "tencentcloud-sdk-nodejs-ssm@4.1.298"
+  logicalReference: "secret://<SSM secret name>#<JSON field>; GetSecretValue VersionId=SSM_Current"
+  runtimeEnvironment:
+    NOVA_SECRET_STRATEGY: "runtime-ssm-sdk"
+    NOVA_SECRET_REFS: '{"DB_USER":"secret://nova-staging/mysql#username","DB_PASSWORD":"secret://nova-staging/mysql#password"}'
+    NOVA_REGION: "__FILL_TENCENT_REGION__"
+  note: "Secret name/field text is metadata. Runtime values are never persisted by the renderer."
+environmentBudgetContract:
+  finalPerFunctionUtf8BytesMaxInclusive: 4096
+  countingRule: "Count rendered plain values plus NOVA_SECRET_REFS; role-fetched values are not SCF control-plane environment configuration."
+  releaseEvidenceRequired: true
+commonDatabase:
+  plain:
+    DB_HOST: "__FILL_PRIVATE_MYSQL_HOST__"
+    DB_PORT: "3306"
+    DB_NAME: "__FILL_DATABASE_NAME__"
+    DB_CONN_LIMIT: "5"
+    DB_TLS_MODE: "required"
+  secretTargets: ["DB_USER", "DB_PASSWORD", "DB_SSL_CA"]
+  constraints: ["Private MySQL", "TLS certificate verification", "Least-privilege DB account"]
+media:
+  functions: ["api-scf", "agent-scf", "history-cleanup-scf"]
+  adapter: "cloud-media.js"
+  sdk: "cos-nodejs-sdk-v5@3.0.0"
+  plain:
+    MEDIA_STORAGE_PROVIDER: "cos"
+    LOCAL_MEDIA_ENABLED: "false"
+    COS_BUCKET: "__FILL_PRIVATE_STAGING_BUCKET_APPID__"
+    COS_REGION: "__FILL_COS_REGION__"
+    COS_PREFIX: "nova-staging/staging/"
+  access: "Private COS via owner-authenticated API proxy; no public ACL, client secret or BLOB fallback."
+functions:
+  auth-scf:
+    secretTargets: ["WECHAT_SECRET", "JWT_SECRET"]
+    plain: { WECHAT_APPID: "__FILL_WECHAT_APPID__", TOKEN_EXPIRES_IN_SECONDS: "604800" }
+  api-scf:
+    secretTargets: ["JWT_SECRET", "QWEATHER_PRIVATE_KEY if weather enabled"]
+    plain: { ALLOW_LEGACY_OPENID_FALLBACK: "false", NOVA_DEVICE_COMMANDS_ENABLED: "false" }
+    optionalWeather: ["QWEATHER_ENABLED", "QWEATHER_API_HOST", "QWEATHER_PROJECT_ID", "QWEATHER_CREDENTIAL_ID", "QWEATHER_TIMEOUT_MS"]
+  agent-scf:
+    secretTargets: ["JWT_SECRET", "LLM_API_KEY"]
+    plain:
+      ALLOW_LEGACY_OPENID_FALLBACK: "false"
+      DEBUG_OPENID: ""
+      AGENT_SHADOW_ENABLED: "false"
+      AGENT_ROLLOUT_ENABLED: "true"
+      AGENT_ROLLOUT_SAMPLE_RATE: "1"
+      AGENT_ROLLOUT_MAX_STEPS: "3"
+      AGENT_ROLLOUT_MAX_TOOL_CALLS: "5"
+      AGENT_ROLLOUT_TIMEOUT_MS: "12000"
+      AGENT_ROLLOUT_MAX_TOKENS: "700"
+      LLM_API_ENABLED: "true"
+      LLM_API_BASE_URL: "__FILL_HTTPS_LLM_BASE_URL__"
+      LLM_API_PATH: "/chat/completions"
+      LLM_MODEL: "__FILL_VERIFIED_TEXT_MODEL__"
+      VISION_MODEL: "__FILL_VERIFIED_VISION_MODEL__"
+      LLM_TIMEOUT_MS: "30000"
+      LLM_MAX_TOKENS: "700"
+      VISION_TIMEOUT_MS: "30000"
+      VISION_MAX_TOKENS: "1800"
+      VISION_IMAGE_DETAIL: "low"
+    context: "Session context enabled by authenticated entry; cross-session opt-in remains per-user database state, not an env flag."
+    budgetNote: "SCF server timeout 90s; client stays within 60s. Cold-start/slow-model acceptance is pending, not guaranteed by larger server budget."
+  ingest-scf:
+    enabledByDefault: false
+    secretTargets: ["ONE_NET_TOKEN or EMQX_WEBHOOK_TOKEN", "ONE_NET_AES_KEY if encrypted"]
+  history-cleanup-scf:
+    plain: { NOVA_HISTORY_CLEANUP_ENABLED: "true", RAW_RETENTION_DAYS: "7", AGG_5M_RETENTION_DAYS: "7", AGG_1H_RETENTION_DAYS: "30", AGG_1D_RETENTION_DAYS: "365" }
+    trigger: "SCF timer every minute, at most 2 unreferenced/expired COS objects per invocation"
+    preserved: "Full saved conversation and attachments have no automatic 20-turn/30-day deletion."
+globalForbidden:
+  - "DEBUG_OPENID, LOCAL_DEV_AUTH_ENABLED, legacy openid fallback"
+  - "LOCAL_MEDIA_ENABLED=true or loopback database"
+  - "Local key files, static Tencent credentials or secret values in frontend/config/ZIP/log"
+releaseEvidence:
+  - "Real SSM role least privilege and rotation"
+  - "Cloud MySQL TLS, migrations and private network"
+  - "Private COS ownership, upload/read/delete compensation"
+  - "Function URL, HTTPS custom domain, legal domains and physical WeChat client"

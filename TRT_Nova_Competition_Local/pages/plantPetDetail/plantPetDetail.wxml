@@ -1,0 +1,76 @@
+<view class="detail-page" style="padding-top: {{statusBarHeight}}px;">
+  <view class="topbar">
+    <button class="back-btn" bindtap="goBack">‹</button>
+    <view class="brand-block"><text class="brand">植宠档案</text><text class="brand-sub">PLANT PET</text></view>
+    <button wx:if="{{pet && pet.status === 'active'}}" class="edit-btn" bindtap="editPlantPet">编辑</button>
+    <view wx:else class="top-mark">✦</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state-card"><view class="loading-dot"></view><text>正在读取档案…</text></view>
+  <view wx:elif="{{loadError}}" class="state-card error-state"><text class="state-title">档案没有加载出来</text><text class="state-desc">{{loadError}}</text><button class="retry-btn" bindtap="loadPlantPet">重新加载</button></view>
+
+  <block wx:elif="{{pet}}">
+    <view class="hero-card">
+      <image class="hero-image" src="{{pet.coverUrl}}" mode="aspectFill" binderror="onPlantImageError" />
+      <view class="hero-overlay"></view>
+      <view class="hero-copy">
+        <text class="species-pill">{{pet.speciesName}}</text>
+        <text class="pet-name">{{pet.nickname}}</text>
+        <text class="pet-location">⌖ {{pet.locationLabel}}</text>
+      </view>
+    </view>
+
+    <view class="status-card {{pet.careStatus.key}}">
+      <view class="status-head"><text class="status-label">{{pet.careStatus.label}}</text><text class="status-mark">●</text></view>
+      <text class="status-reason">{{pet.careStatus.reason}}</text>
+    </view>
+
+    <view class="info-card">
+      <text class="section-kicker">PROFILE · 基础信息</text>
+      <view class="info-row"><text class="info-label">品种</text><text class="info-value">{{pet.speciesName}}</text></view>
+      <view class="info-row"><text class="info-label">入室日期</text><text class="info-value">{{pet.enteredAtLabel}}</text></view>
+      <view class="info-row"><text class="info-label">摆放位置</text><text class="info-value">{{pet.locationLabel}}</text></view>
+      <view class="info-row notes-row"><text class="info-label">养护备注</text><text class="info-value notes-value">{{pet.careNotesLabel}}</text></view>
+    </view>
+
+    <view class="journal-card">
+      <view class="journal-head"><view><text class="section-kicker">GROWTH · 成长记录</text><text class="journal-title">{{recentJournal.length ? '最近成长' : '还没有日记'}}</text></view><view class="journal-head-actions"><view class="journal-more" bindtap="openJournal">全部</view><view wx:if="{{pet.status === 'active'}}" class="journal-add" bindtap="addJournalRecord">＋ 记录</view></view></view>
+      <view wx:if="{{journalError}}" class="journal-empty">{{journalError}}</view>
+      <view wx:elif="{{!recentJournal.length}}" class="journal-empty">用文字或照片，记下它的第一次变化。</view>
+      <view wx:else class="journal-preview-list">
+        <view wx:for="{{recentJournal}}" wx:key="id" class="journal-preview" bindtap="openJournal">
+          <image wx:if="{{item.coverPhoto}}" class="journal-preview-photo" src="{{item.coverPhoto}}" mode="aspectFill" />
+          <view class="journal-preview-copy"><text class="journal-preview-date">{{item.dateLabel}}</text><text class="journal-preview-title">{{item.title}}</text><text wx:if="{{item.content}}" class="journal-preview-content">{{item.content}}</text></view><text class="journal-preview-arrow">›</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="care-card">
+      <view class="care-head"><view><text class="section-kicker">CARE PLAN · 养护计划</text><text class="care-title">{{careTasks.length ? careTasks.length + ' 项任务' : '还没有任务'}}</text></view><button wx:if="{{pet.status === 'active'}}" class="care-add" bindtap="addCareTask">＋ 新任务</button></view>
+      <view wx:if="{{careTaskError}}" class="care-error"><text>{{careTaskError}}</text><button bindtap="loadPlantPet">重试</button></view>
+      <view wx:elif="{{!careTasks.length}}" class="care-empty"><text>为这盆植宠安排第一项养护；保存前会先展示确认预览。</text></view>
+      <view wx:else class="care-list">
+        <view wx:for="{{careTasks}}" wx:key="id" class="care-task {{item.status}} {{item.overdue ? 'overdue' : ''}}">
+          <view class="care-task-main"><view class="care-task-icon">{{item.typeIcon}}</view><view class="care-task-copy"><view class="care-task-line"><text class="care-task-title">{{item.title}}</text><text class="care-task-status">{{item.statusLabel}}</text></view><text class="care-task-meta">{{item.dateLabel}} · {{item.reminderLabel}} · {{item.recurrenceLabel}}</text><text wx:if="{{item.description}}" class="care-task-desc">{{item.description}}</text></view></view>
+          <view class="care-task-actions">
+            <button wx:if="{{pet.status === 'active' && item.status === 'pending'}}" class="care-task-action complete" data-id="{{item.id}}" disabled="{{taskOperatingId}}" bindtap="completeCareTask">完成</button>
+            <button wx:if="{{pet.status === 'active' && item.status === 'pending'}}" class="care-task-action postpone" data-id="{{item.id}}" disabled="{{taskOperatingId}}" bindtap="postponeCareTask">顺延 1 天</button>
+            <button wx:if="{{pet.status === 'active' && item.status === 'pending'}}" class="care-task-action edit" data-id="{{item.id}}" disabled="{{taskOperatingId}}" bindtap="editCareTask">编辑</button>
+            <button class="care-task-action delete" data-id="{{item.id}}" disabled="{{taskOperatingId}}" bindtap="deleteCareTask">删除</button>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{pet.status === 'active'}}" class="action-card">
+      <button class="secondary-action" disabled="{{operating}}" bindtap="archivePlantPet">归档植宠</button>
+      <text class="action-help">归档会保留档案，之后仍可在首页查看。</text>
+    </view>
+
+    <view class="danger-card">
+      <text class="danger-title">永久删除</text>
+      <text class="danger-desc">删除当前档案及其任务、养护事件、成长日记和图片，且不可恢复。</text>
+      <button class="danger-action" disabled="{{operating}}" bindtap="deletePlantPet">永久删除档案</button>
+    </view>
+  </block>
+</view>

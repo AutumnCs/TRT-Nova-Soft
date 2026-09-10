@@ -1,0 +1,66 @@
+<view class="page">
+  <view class="page-glow glow-one"></view><view class="page-glow glow-two"></view>
+  <view class="topbar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="icon-btn" bindtap="goBack">‹</view>
+    <view class="brand-block"><text class="brand-kicker">GROWTH TIMELINE</text><text class="brand-title">成长时间线</text></view>
+  </view>
+
+  <scroll-view class="content" scroll-y>
+    <view class="hero-card">
+      <text class="hero-kicker">私人成长档案</text>
+      <text class="hero-title">每一片新叶，都值得记下来。</text>
+      <view class="filter-row" bindtap="onChoosePlantPetFilter">
+        <view><text class="filter-label">当前范围</text><text class="filter-value">{{selectedPlantPetLabel}}</text></view>
+        <text class="filter-action">切换 ›</text>
+      </view>
+      <view class="hero-record" bindtap="showComposer">＋ 新增成长记录</view>
+    </view>
+
+    <view wx:if="{{loading}}" class="state-card"><view class="loading-dot"></view><text>正在整理成长记录…</text></view>
+    <view wx:elif="{{loadError}}" class="state-card error"><text class="state-title">时间线没有加载出来</text><text class="state-desc">{{loadError}}</text><button class="retry-btn" bindtap="loadPage">重新加载</button></view>
+    <view wx:elif="{{!records.length}}" class="state-card empty"><text class="empty-icon">🌱</text><text class="state-title">还没有成长记录</text><text class="state-desc">从一句观察或一张照片开始，建立它的成长轨迹。</text><button class="primary-btn" bindtap="showComposer">记录第一篇</button></view>
+
+    <view wx:else class="timeline">
+      <view class="timeline-rail"></view>
+      <view wx:for="{{records}}" wx:key="id" class="timeline-item">
+        <view class="timeline-date"><text>{{item.dateLabel}}</text></view>
+        <view class="timeline-dot"></view>
+        <view class="record-card">
+          <view class="record-head">
+            <view class="record-icon">{{item.icon}}</view>
+            <view class="record-heading"><text class="record-title">{{item.title}}</text><text class="record-meta">{{item.plantPetName}} · {{item.typeLabel}}</text></view>
+            <text wx:if="{{item.plantPetStatus === 'archived'}}" class="archive-pill">已归档</text>
+          </view>
+          <text wx:if="{{item.content}}" class="record-content">{{item.content}}</text>
+          <view wx:if="{{item.photos.length}}" class="photo-grid count-{{item.photos.length}}">
+            <image wx:for="{{item.photos}}" wx:for-item="photo" wx:for-index="photoIndex" wx:key="*this" class="record-photo" src="{{photo}}" mode="aspectFill" data-id="{{item.id}}" data-url="{{photo}}" bindtap="previewRecordPhoto" />
+          </view>
+          <view class="record-actions">
+            <view wx:if="{{item.canEdit}}" class="text-action edit" data-id="{{item.id}}" bindtap="editRecord">编辑</view>
+            <view class="text-action delete {{deletingId ? 'disabled' : ''}}" data-id="{{item.id}}" bindtap="deleteRecord">删除</view>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="bottom-space"></view>
+  </scroll-view>
+
+  <view wx:if="{{showComposer}}" class="composer-mask" bindtap="hideComposer">
+    <view class="composer" catchtap="noop">
+      <view class="composer-top"><view><text class="composer-kicker">{{editingJournalId ? 'EDIT ENTRY' : 'NEW ENTRY'}}</text><text class="composer-title">{{editingJournalId ? '编辑成长记录' : '新增成长记录'}}</text></view><view class="close-btn" bindtap="hideComposer">×</view></view>
+      <scroll-view class="composer-scroll" scroll-y>
+        <picker mode="selector" range="{{activePlantPets}}" range-key="nickname" value="{{draftPlantPetIndex}}" disabled="{{editingJournalId > 0}}" bindchange="onDraftPlantPetChange">
+          <view class="field picker-field"><view><text class="field-label">所属植宠</text><text class="field-value">{{activePlantPets[draftPlantPetIndex].nickname}}</text></view><text class="field-arrow">›</text></view>
+        </picker>
+        <view class="two-fields">
+          <picker class="half-field" mode="selector" range="{{eventTypeOptions}}" range-key="label" value="{{draft.eventTypeIndex}}" bindchange="onTypeChange"><view class="field picker-field"><view><text class="field-label">记录类型</text><text class="field-value">{{eventTypeOptions[draft.eventTypeIndex].label}}</text></view><text class="field-arrow">›</text></view></picker>
+          <picker class="half-field" mode="date" value="{{draft.eventDate}}" bindchange="onDateChange"><view class="field picker-field"><view><text class="field-label">记录日期</text><text class="field-value">{{draft.eventDate}}</text></view></view></picker>
+        </view>
+        <view class="field input-field"><text class="field-label">标题（可选）</text><input class="text-input" maxlength="128" value="{{draft.title}}" placeholder="例如：长出第三片新叶" bindinput="onTitleInput" /></view>
+        <view class="field input-field"><text class="field-label">记录内容</text><textarea class="text-area" maxlength="2000" value="{{draft.content}}" placeholder="写下今天的变化、养护或心情…" bindinput="onContentInput"></textarea></view>
+        <view class="photo-section"><view class="photo-section-head"><view><text class="field-label">成长照片</text><text class="photo-help">最多 3 张，单张不超过 2 MB</text></view><view wx:if="{{draft.photos.length < 3}}" class="choose-photo-btn" bindtap="choosePhotos">＋ 添加</view></view><view wx:if="{{draft.photos.length}}" class="draft-photo-row"><view wx:for="{{draft.photos}}" wx:key="key" class="draft-photo-wrap"><image class="draft-photo" src="{{item.displayUrl}}" mode="aspectFill" data-url="{{item.displayUrl}}" bindtap="previewPhoto" /><view class="remove-photo" data-index="{{index}}" bindtap="removePhoto">×</view></view></view></view>
+      </scroll-view>
+      <view class="composer-actions"><button class="cancel-btn" disabled="{{saving}}" bindtap="hideComposer">取消</button><button class="save-btn" loading="{{saving}}" disabled="{{saving}}" bindtap="submitRecord">{{editingJournalId ? '保存修改' : '保存记录'}}</button></view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,66 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/assistant/assistant",
+    "pages/calendar/calendar",
+    "pages/device/device",
+    "pages/deviceDetail/deviceDetail",
+    "pages/deviceSettings/deviceSettings",
+    "pages/garden/garden",
+    "pages/plantPetForm/plantPetForm",
+    "pages/plantPetDetail/plantPetDetail",
+    "pages/taskForm/taskForm",
+    "pages/auth/auth",
+    "pages/profileEdit/profileEdit",
+    "pages/wiki/wiki",
+    "pages/wikiDetail/wikiDetail",
+    "pages/weatherSettings/weatherSettings",
+    "pages/plantJournal/plantJournal",
+    "pages/aiMemory/aiMemory",
+    "pages/settings/settings",
+    "pages/profile/profile",
+    "pages/about/about"
+  ],
+  "permission": {
+    "scope.userLocation": {
+      "desc": "仅在你主动选择时将当前位置解析为天气城市，长期不保存精确经纬度"
+    }
+  },
+  "requiredPrivateInfos": [
+    "getLocation"
+  ],
+  "window": {
+    "backgroundColor": "#F6F6F6",
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#F6F6F6",
+    "navigationBarTitleText": "植宠",
+    "navigationBarTextStyle": "black"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#9CA3AF",
+    "selectedColor": "#10B981",
+    "backgroundColor": "#ffffff",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/assistant/assistant",
+        "text": "AI助手"
+      },
+      {
+        "pagePath": "pages/calendar/calendar",
+        "text": "日历"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "sitemapLocation": "sitemap.json",
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents"
+}

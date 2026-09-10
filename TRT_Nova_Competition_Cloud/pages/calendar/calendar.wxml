@@ -1,0 +1,56 @@
+<view class="calendar-page" style="padding-top: {{statusBarHeight}}px;">
+  <view class="page-head">
+    <view><text class="kicker">CARE CALENDAR</text><text class="title">养护日历</text><text class="subtitle">同一份真实任务，在花园、日历与植宠档案中同步</text></view>
+    <button class="today-btn" bindtap="goToday">今天</button>
+  </view>
+
+  <view class="summary-strip">
+    <view class="summary-item"><text class="summary-number">{{summary.todayTasks.length}}</text><text class="summary-label">今日任务</text></view>
+    <view class="summary-item overdue"><text class="summary-number">{{summary.overdueTasks.length}}</text><text class="summary-label">待补养护</text></view>
+    <view class="summary-item streak"><text class="summary-number">{{summary.streak}}</text><text class="summary-label">连续计划日</text></view>
+  </view>
+
+  <view class="calendar-shell">
+    <view class="view-switch">
+      <view class="switch-item {{viewMode === 'week' ? 'active' : ''}}" data-mode="week" bindtap="switchViewMode">周</view>
+      <view class="switch-item {{viewMode === 'month' ? 'active' : ''}}" data-mode="month" bindtap="switchViewMode">月</view>
+    </view>
+    <view class="period-head">
+      <button class="period-btn" data-direction="-1" bindtap="changePeriod">‹</button>
+      <text class="range-label">{{rangeLabel}}</text>
+      <button class="period-btn" data-direction="1" bindtap="changePeriod">›</button>
+    </view>
+
+    <view class="week-row"><text wx:for="{{weekLabels}}" wx:key="*this" class="week-label">{{item}}</text></view>
+    <view wx:if="{{loading}}" class="calendar-loading"><view class="loading-dot"></view><text>正在同步养护日程…</text></view>
+    <view wx:elif="{{loadError}}" class="calendar-error"><text>{{loadError}}</text><button class="retry-btn" bindtap="loadCalendar">重新加载</button></view>
+    <view wx:else class="day-grid {{viewMode}}">
+      <view wx:for="{{calendarDays}}" wx:key="key" class="day-cell {{item.inMonth ? '' : 'muted'}} {{item.selected ? 'selected' : ''}} {{item.today ? 'today' : ''}} {{item.overdue ? 'overdue' : ''}}" data-date="{{item.date}}" bindtap="selectDate">
+        <text class="day-number">{{item.day}}</text>
+        <view wx:if="{{item.totalCount}}" class="task-dots"><view wx:if="{{item.pendingCount}}" class="task-dot pending"></view><view wx:if="{{item.completedCount}}" class="task-dot completed"></view><text wx:if="{{item.totalCount > 2}}" class="task-count">{{item.totalCount}}</text></view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && !loadError}}" class="timeline-card">
+    <view class="timeline-head"><view><text class="timeline-kicker">DAY TIMELINE</text><text class="timeline-title">{{selectedDate === today ? '今天' : selectedDate}} · {{selectedTasks.length}} 项</text></view><button class="small-add" bindtap="addTask">＋ 新任务</button></view>
+    <view wx:if="{{!selectedTasks.length}}" class="empty-state"><text class="empty-icon">☘</text><text class="empty-title">这一天没有养护任务</text><text class="empty-desc">无任务日不会打断连续记录。你也可以为任一植宠添加计划。</text><button class="garden-btn" bindtap="addTask">添加任务</button></view>
+    <view wx:else class="task-list">
+      <view wx:for="{{selectedTasks}}" wx:key="id" class="task-card {{item.status}} {{item.overdue ? 'overdue' : ''}}">
+        <view class="task-main"><view class="task-icon">{{item.typeIcon}}</view><view class="task-copy"><view class="task-line"><text class="task-title">{{item.title}}</text><text class="status-pill">{{item.statusLabel}}</text></view><text class="task-meta">{{item.plantPetName}} · {{item.typeLabel}} · {{item.reminderLabel}}</text><text wx:if="{{item.description}}" class="task-desc">{{item.description}}</text><text class="task-rule">{{item.recurrenceLabel}} · {{item.sourceLabel}}</text></view></view>
+        <view class="task-actions">
+          <button wx:if="{{item.status === 'pending'}}" class="task-action complete" data-id="{{item.id}}" disabled="{{operatingTaskId}}" bindtap="completeTask">完成</button>
+          <button wx:if="{{item.status === 'pending'}}" class="task-action postpone" data-id="{{item.id}}" disabled="{{operatingTaskId}}" bindtap="postponeTask">稍后</button>
+          <button wx:if="{{item.status === 'pending'}}" class="task-action edit" data-id="{{item.id}}" disabled="{{operatingTaskId}}" bindtap="editTask">编辑</button>
+          <button class="task-action delete" data-id="{{item.id}}" disabled="{{operatingTaskId}}" bindtap="deleteTask">删除</button>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && !loadError}}" class="badge-card">
+    <view class="badge-head"><text class="badge-kicker">CARE BADGES</text><text class="badge-title">养护徽章</text></view>
+    <view class="badge-grid"><view wx:for="{{summary.badges}}" wx:key="key" class="badge-item {{item.earned ? 'earned' : 'locked'}}"><view class="badge-icon">{{item.earned ? item.icon : '·'}}</view><text class="badge-name">{{item.title}}</text><text class="badge-desc">{{item.description}}</text></view></view>
+  </view>
+
+</view>

@@ -1,0 +1,17 @@
+{
+  "name": "trt-nova-history-cleanup-scf",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.js",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "mysql2": "^3.14.0",
+    "tencentcloud-sdk-nodejs-ssm": "4.1.298",
+    "cos-nodejs-sdk-v5": "3.0.0"
+  },
+  "overrides": {
+    "tencentcloud-sdk-nodejs-common": {
+      "uuid": "11.1.1"
+    }
+  }
+}

@@ -1,0 +1,46 @@
+<view class="page">
+  <view class="intro-card">
+    <text class="kicker">WEATHER LOCATION</text>
+    <text class="title">天气城市</text>
+    <text class="desc">默认手动选择城市。只有你主动点击时才会申请定位权限。</text>
+  </view>
+
+  <view class="current-card">
+    <view>
+      <text class="section-kicker">CURRENT · 当前城市</text>
+      <text class="current-city">{{currentCityLabel}}</text>
+    </view>
+    <button wx:if="{{currentPreference}}" class="clear-btn" bindtap="clearCity">清除</button>
+  </view>
+
+  <view class="search-card">
+    <text class="section-title">手动搜索</text>
+    <text class="section-desc">输入城市或区县名称，再从和风天气返回的候选中选择。</text>
+    <view class="search-row">
+      <input class="search-input" value="{{query}}" placeholder="例如：北京、深圳、余杭" bindinput="onQueryInput" confirm-type="search" bindconfirm="submitSearch" />
+      <button class="search-btn" loading="{{searching && resultSource === 'manual'}}" bindtap="submitSearch">搜索</button>
+    </view>
+    <view class="divider"><text>或</text></view>
+    <button class="location-btn" loading="{{locating}}" bindtap="useCurrentLocation">使用当前位置解析城市</button>
+    <text class="privacy-note">定位坐标会先缩减到小数点后两位，仅用于当次城市解析；长期只保存 LocationID、城市和行政区，不保存精确经纬度。</text>
+  </view>
+
+  <view wx:if="{{searchError}}" class="error-card">{{searchError}}</view>
+  <view wx:if="{{results.length}}" class="result-card">
+    <text class="section-title">选择城市</text>
+    <view class="result-list">
+      <button wx:for="{{results}}" wx:key="locationId" class="city-row" data-index="{{index}}" loading="{{savingIndex === index}}" bindtap="chooseCity">
+        <view class="city-copy">
+          <text class="city-name">{{item.city}}</text>
+          <text class="city-meta">{{item.meta || '中国'}}</text>
+        </view>
+        <text class="city-id">{{item.locationId}} ›</text>
+      </button>
+    </view>
+  </view>
+
+  <view class="source-card">
+    <text>城市解析与天气数据来源：和风天气</text>
+    <text>天气失败时只显示上次真实数据及更新时间；没有真实缓存时不会显示示例数值。</text>
+  </view>
+</view>

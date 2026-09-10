@@ -1,0 +1,147 @@
+<view class="garden-page" style="padding-top: {{statusBarHeight}}px;">
+  <view class="page-head">
+    <view class="head-copy">
+      <text class="kicker">TRT NOVA · MY GARDEN</text>
+      <text class="title">我的花园</text>
+      <text class="subtitle">每一盆植物，都有一份独立档案</text>
+    </view>
+    <button class="knowledge-btn" bindtap="openKnowledge">
+      <text class="knowledge-icon">⌕</text>
+      <text class="knowledge-text">知识库</text>
+    </button>
+  </view>
+
+  <view class="summary-card">
+    <view class="summary-main">
+      <text class="summary-number">{{activePets.length}}</text>
+      <view class="summary-copy">
+        <text class="summary-title">盆植宠正在陪伴你</text>
+        <text class="summary-desc">状态只依据真实档案，不用数字猜测健康</text>
+      </view>
+    </view>
+    <view class="summary-sprout">✦</view>
+  </view>
+
+  <view class="weather-card {{weather.isStale ? 'stale' : ''}}" bindtap="openWeatherSettings">
+    <view class="weather-head">
+      <view>
+        <text class="weather-kicker">LOCAL WEATHER · 节气养护</text>
+        <text class="weather-city">{{weather.cityLabel}}</text>
+      </view>
+      <text class="weather-setting">设置城市 ›</text>
+    </view>
+    <view wx:if="{{weather.loading}}" class="weather-loading">
+      <view class="weather-loading-dot"></view>
+      <text>正在读取真实天气…</text>
+    </view>
+    <view wx:elif="{{weather.available}}" class="weather-facts">
+      <text class="weather-icon">{{weather.icon}}</text>
+      <view class="weather-primary">
+        <text class="weather-temp">{{weather.temp}}</text>
+        <text class="weather-desc">{{weather.desc}}</text>
+      </view>
+      <view class="weather-secondary">
+        <text>湿度 {{weather.humidity}}</text>
+        <text wx:if="{{weather.wind}}">{{weather.wind}}</text>
+      </view>
+    </view>
+    <view wx:else class="weather-unavailable">
+      <text class="weather-unavailable-icon">○</text>
+      <view>
+        <text class="weather-unavailable-title">暂不显示天气数值</text>
+        <text class="weather-unavailable-desc">{{weather.msg}}</text>
+      </view>
+    </view>
+    <view wx:if="{{weather.available}}" class="weather-proof">
+      <text class="weather-cache-state">{{weather.isStale ? '上次真实天气' : '真实天气'}}</text>
+      <text wx:if="{{weather.updatedLabel}}">更新于 {{weather.updatedLabel}}</text>
+      <text>数据来源：{{weather.sourceName}}</text>
+    </view>
+    <view class="solar-term-block">
+      <view class="solar-term-head">
+        <text class="solar-term-name">{{solarTerm.name}}</text>
+        <text class="solar-term-next">距{{solarTerm.nextName}} {{solarTerm.daysUntilNext}} 天</text>
+      </view>
+      <text class="solar-term-tip">{{solarTerm.tip}}</text>
+      <text class="solar-term-boundary">{{solarTerm.disclaimer}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && !loadError}}" class="today-card">
+    <view class="today-head">
+      <view><text class="today-kicker">TODAY · 今日养护</text><text class="today-title">{{homeTasks.length ? homeTasks.length + ' 项需要留意' : '今天没有到期任务'}}</text></view>
+      <view class="streak-chip"><text class="streak-number">{{careStreak}}</text><text class="streak-label">连续计划日</text></view>
+    </view>
+    <view wx:if="{{careLoadError}}" class="task-error"><text>{{careLoadError}}</text><button catchtap="loadPlantPets">重试</button></view>
+    <view wx:if="{{homeTasks.length}}" class="home-task-list">
+      <view wx:for="{{homeTasks}}" wx:key="id" class="home-task {{item.overdue ? 'overdue' : ''}}">
+        <view class="home-task-icon">{{item.typeIcon}}</view>
+        <view class="home-task-copy"><view class="home-task-line"><text class="home-task-title">{{item.title}}</text><text class="home-task-status">{{item.statusLabel}}</text></view><text class="home-task-meta">{{item.plantPetName}} · {{item.dateLabel}} {{item.reminderLabel}}</text></view>
+        <button class="check-btn" data-id="{{item.id}}" disabled="{{operatingTaskId}}" catchtap="completeCareTask">完成</button>
+      </view>
+    </view>
+    <view wx:if="{{!homeTasks.length}}" class="today-empty"><text>无任务日不会打断连续记录。</text><button wx:if="{{activePets.length}}" catchtap="addCareTask">添加养护任务</button></view>
+    <view class="today-footer"><text bindtap="openCalendar">查看周/月日历 ›</text><text wx:if="{{activePets.length}}" bindtap="addCareTask">＋ 新任务</text></view>
+  </view>
+
+  <view class="view-tabs">
+    <view class="view-tab {{viewMode === 'active' ? 'active' : ''}}" data-mode="active" bindtap="switchViewMode">
+      <text>在养</text><text class="tab-count">{{activePets.length}}</text>
+    </view>
+    <view class="view-tab {{viewMode === 'archived' ? 'active' : ''}}" data-mode="archived" bindtap="switchViewMode">
+      <text>已归档</text><text class="tab-count">{{archivedPets.length}}</text>
+    </view>
+  </view>
+
+  <view class="content-area">
+    <view wx:if="{{loading}}" class="state-card">
+      <view class="loading-dot"></view>
+      <text class="state-title">正在整理你的花园</text>
+      <text class="state-desc">从本地数据库读取植宠档案…</text>
+    </view>
+
+    <view wx:elif="{{loadError}}" class="state-card error-state">
+      <text class="state-icon">!</text>
+      <text class="state-title">花园暂时没有加载出来</text>
+      <text class="state-desc">{{loadError}}</text>
+      <button class="state-btn" bindtap="loadPlantPets">重新加载</button>
+    </view>
+
+    <view wx:elif="{{!visiblePets.length}}" class="state-card empty-state">
+      <text class="state-icon">{{viewMode === 'active' ? '🌱' : '📦'}}</text>
+      <text class="state-title">{{viewMode === 'active' ? '还没有植宠档案' : '还没有归档植宠'}}</text>
+      <text class="state-desc">{{viewMode === 'active' ? '可以拍照识别后建档，也可以直接手动填写；未知品种也能保存。' : '归档后的档案会保留在这里。'}}</text>
+      <button wx:if="{{viewMode === 'active'}}" class="state-btn" bindtap="addPlantPet">建立第一份档案</button>
+    </view>
+
+    <view wx:else class="pet-list">
+      <view
+        wx:for="{{visiblePets}}"
+        wx:key="id"
+        class="pet-card"
+        data-id="{{item.id}}"
+        bindtap="openPlantPet"
+      >
+        <image class="pet-image" src="{{item.coverUrl}}" mode="aspectFill" data-id="{{item.id}}" binderror="onPlantImageError" />
+        <view class="pet-main">
+          <view class="pet-topline">
+            <text class="pet-name">{{item.nickname}}</text>
+            <text class="status-pill {{item.careStatus.key}}">{{item.careStatus.label}}</text>
+          </view>
+          <text class="species-name">{{item.speciesName}}</text>
+          <view class="pet-meta">
+            <text>⌖ {{item.location}}</text>
+            <text>入室 {{item.enteredAtLabel}}</text>
+          </view>
+          <text class="status-reason">{{item.careStatus.reason}}</text>
+          <view class="detail-link"><text>查看档案</text><text>›</text></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <button wx:if="{{viewMode === 'active'}}" class="add-fab" bindtap="addPlantPet">
+    <text class="fab-plus">＋</text>
+    <text class="fab-label">添加植宠</text>
+  </button>
+</view>

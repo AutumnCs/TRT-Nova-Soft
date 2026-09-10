@@ -1,0 +1,113 @@
+<view class="page">
+  <view class="topbar" style="padding-top: {{statusBarHeight}}px;">
+    <view class="header-row">
+      <button class="back-btn" bindtap="goBack">‹</button>
+      <view class="header-title-block">
+        <text class="eyebrow">植宠百科</text>
+        <text class="page-title">知识库</text>
+      </view>
+      <view class="count-pill">{{countText}}</view>
+    </view>
+  </view>
+
+  <scroll-view scroll-y="true" class="content" show-scrollbar="{{false}}">
+    <view class="content-controls">
+      <view class="search-box">
+        <text class="search-icon">⌕</text>
+        <input class="search-input" placeholder="{{searchPlaceholder}}" placeholder-class="placeholder" value="{{searchKeyword}}" bindinput="onSearch" />
+        <view wx:if="{{searchKeyword}}" class="clear-btn" bindtap="clearFilters">清除</view>
+      </view>
+
+      <view class="mode-grid">
+        <view class="mode-card {{currentMode === 'articles' ? 'active' : ''}}" bindtap="switchToArticles">
+          <text class="mode-title">知识文章</text>
+          <text class="mode-desc">仅展示人工复核并发布的养护内容</text>
+        </view>
+        <view class="mode-card {{currentMode === 'plants' ? 'active' : ''}}" bindtap="switchToPlants">
+          <text class="mode-title">植物图鉴</text>
+          <text class="mode-desc">可追溯的植物资料、养护参数和常见问题</text>
+        </view>
+      </view>
+
+      <view wx:if="{{currentMode === 'articles'}}" class="filter-strip">
+        <scroll-view scroll-x="true" show-scrollbar="{{false}}" class="chip-scroll">
+          <view class="chip-row nowrap">
+            <view wx:for="{{categories}}" wx:key="value" class="chip {{activeCategory === item.value ? 'active' : ''}}" bindtap="setCategory" data-category="{{item.value}}">{{item.label}}</view>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+
+    <view wx:if="{{currentMode === 'articles'}}">
+      <view wx:if="{{loading && filteredArticles.length === 0}}" class="loading-panel">
+        <view class="loading-line loading-line-lg"></view>
+        <view class="loading-line loading-line-md"></view>
+        <view class="loading-card" wx:for="{{[1,2,3]}}" wx:key="*this"></view>
+      </view>
+      <view wx:elif="{{filteredArticles.length > 0}}" class="article-list">
+        <view wx:for="{{filteredArticles}}" wx:key="id" class="article-card" bindtap="openArticle" data-id="{{item.id}}">
+          <view class="article-topline">
+            <text class="article-category">{{item.displayCategory || item.category}}</text>
+            <text class="article-more">阅读 ›</text>
+          </view>
+          <text class="article-title">{{item.title}}</text>
+          <text class="article-summary">{{item.summary}}</text>
+          <text class="source-line">{{item.sourcePublisher}} · 内容更新 {{item.contentUpdatedAt}}</text>
+          <view class="meta-row">
+            <text wx:for="{{item.tags}}" wx:key="*this" class="meta-chip">{{item}}</text>
+          </view>
+        </view>
+      </view>
+      <view wx:else class="empty-panel">
+        <text class="empty-title">暂无已发布知识文章</text>
+        <text class="empty-desc">草稿和待审核内容不会显示；若已输入关键词，也可清除筛选后重试。</text>
+      </view>
+    </view>
+
+    <view wx:else>
+      <view wx:if="{{plantLoading && filteredPlants.length === 0}}" class="loading-panel">
+        <view class="loading-line loading-line-lg"></view>
+        <view class="loading-line loading-line-md"></view>
+        <view class="loading-card" wx:for="{{[1,2,3]}}" wx:key="*this"></view>
+      </view>
+      <view wx:elif="{{filteredPlants.length > 0}}" class="plant-list">
+        <view wx:for="{{filteredPlants}}" wx:key="viewId" class="plant-card {{expandedPlantId === item.viewId ? 'expanded' : ''}}">
+          <view class="plant-main" bindtap="togglePlant" data-id="{{item.viewId}}">
+            <image class="plant-thumb" src="{{item.displayImage}}" mode="aspectFill"></image>
+            <view class="plant-info">
+              <view class="plant-title-row">
+                <text class="plant-name">{{item.name}}</text>
+                <text class="difficulty">{{item.difficulty || '通用'}}</text>
+              </view>
+              <text class="plant-family">{{item.family}} · {{item.scientificName}}</text>
+              <text class="plant-desc">{{item.featureText || item.description}}</text>
+              <text class="source-line">{{item.sourcePublisher}} · {{item.sourceId}}</text>
+              <text class="expand-hint">{{expandedPlantId === item.viewId ? '收起详情 ↑' : '查看详情 ↓'}}</text>
+            </view>
+          </view>
+          <view wx:if="{{expandedPlantId === item.viewId}}" class="plant-details">
+            <view class="care-row">
+              <text wx:if="{{item.care.light}}" class="care-chip">光照 {{item.care.light}}</text>
+              <text wx:if="{{item.care.water}}" class="care-chip">浇水 {{item.care.water}}</text>
+              <text wx:if="{{item.care.soil}}" class="care-chip">基质 {{item.care.soil}}</text>
+            </view>
+            <view wx:if="{{item.firstIssue}}" class="issue-box">
+              <text class="issue-title">常见问题：{{item.firstIssue.issue}}</text>
+              <text class="issue-text">可能原因：{{item.firstIssue.possibleCausesText}}</text>
+              <text class="issue-text">建议：{{item.firstIssue.actionsText}}</text>
+            </view>
+            <view class="source-box">
+              <text>内容更新：{{item.contentUpdatedAt}}</text>
+              <text>来源标识：{{item.sourceId}}</text>
+              <button class="source-btn" size="mini" bindtap="copySource" data-url="{{item.sourceUrl}}">复制来源链接</button>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view wx:else class="empty-panel">
+        <text class="empty-title">暂无已发布植物档案</text>
+        <text class="empty-desc">草稿和待审核内容不会显示；若已输入关键词，可更换植物名称或清除筛选。</text>
+      </view>
+    </view>
+  </scroll-view>
+</view>

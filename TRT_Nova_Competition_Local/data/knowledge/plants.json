@@ -1,0 +1,1261 @@
+[
+  {
+    "name": "龟背竹",
+    "aliases": [
+      "蓬莱蕉",
+      "裂叶喜林芋",
+      "Monstera deliciosa"
+    ],
+    "family": "天南星科",
+    "scientificName": "Monstera deliciosa",
+    "feature": "partial-shade",
+    "featureText": "明亮散射光",
+    "category": "foliage",
+    "difficulty": "易养护",
+    "imageUrl": "",
+    "tags": [
+      "观叶",
+      "攀援",
+      "室内"
+    ],
+    "description": "热带常绿攀援植物，成熟叶片会形成裂口和孔洞；室内养护需要支撑，并避免长期强光直晒。",
+    "care": {
+      "light": "明亮散射光或部分遮阴，斑叶品种需要更明亮的位置",
+      "water": "浇透后让上部约四分之一至三分之一基质变干再浇",
+      "temperature": "温暖环境，避免低温和冷风",
+      "humidity": "偏好较高空气湿度，但叶面不宜长期潮湿",
+      "soil": "富含有机质、排水良好的基质",
+      "fertilizer": "生长期按标签低浓度补肥，低光或休眠期减少",
+      "ventilation": "保持空气流动并提供稳固支撑"
+    },
+    "seasonalTips": [
+      "春季可按根系状态换盆或修剪",
+      "冬季根据干燥速度减少浇水"
+    ],
+    "commonIssues": [
+      {
+        "issue": "黄叶或根部异常",
+        "possibleCauses": [
+          "浇水过多",
+          "排水不良",
+          "低温"
+        ],
+        "actions": [
+          "检查盆土和根系",
+          "倒掉托盘积水",
+          "稳定温度"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "叶片为什么不开裂？",
+        "answer": "幼叶本来可能完整；长期缺光或缺少攀爬支撑也会影响成熟叶形。"
+      }
+    ],
+    "recommendQuestions": [
+      "龟背竹现在要不要浇水？",
+      "龟背竹适合什么光照？"
+    ],
+    "agentNotes": "回答应区分幼叶自然完整与缺光，不把开裂程度直接当健康分。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-MONSTERA-DELICIOSA",
+    "sourceTitle": "Monstera deliciosa",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/monstera-deliciosa/",
+    "sourceId": "NCSU-PLANT-MONSTERA-DELICIOSA",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 1
+  },
+  {
+    "name": "多肉・玉露",
+    "aliases": [
+      "玉露",
+      "Haworthia cooperi",
+      "Haworthia"
+    ],
+    "family": "阿福花科",
+    "scientificName": "Haworthia cooperi",
+    "feature": "succulent",
+    "featureText": "耐旱怕积水",
+    "category": "succulent",
+    "difficulty": "中等",
+    "imageUrl": "",
+    "tags": [
+      "多肉",
+      "小型",
+      "窗状叶"
+    ],
+    "description": "小型莲座状多肉，叶端有半透明“窗”；需要排水良好的颗粒基质，并让盆土在两次浇水间干燥。",
+    "care": {
+      "light": "明亮散射光到柔和日照，突然暴晒前要逐步适应",
+      "water": "基质干燥后再浇透，避免叶心和盆底长期积水",
+      "temperature": "一般室温可养护，注意霜冻和持续高温闷湿",
+      "humidity": "普通室内湿度即可，不需要闷养",
+      "soil": "颗粒比例较高、排水快速的多肉基质",
+      "fertilizer": "生长期少量低浓度补肥",
+      "ventilation": "保持空气流动，尤其在高温和浇水后"
+    },
+    "seasonalTips": [
+      "高温或低温生长变慢时减少浇水",
+      "换盆时检查根系是否软腐"
+    ],
+    "commonIssues": [
+      {
+        "issue": "叶片发软",
+        "possibleCauses": [
+          "缺水",
+          "根腐",
+          "高温闷湿"
+        ],
+        "actions": [
+          "先检查盆土干湿",
+          "查看根系",
+          "改善通风"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "玉露能不能暴晒？",
+        "answer": "更适合明亮光照；长期室内后突然强光直晒可能灼伤，应循序渐进。"
+      }
+    ],
+    "recommendQuestions": [
+      "玉露现在要不要浇水？",
+      "玉露叶片发软怎么办？"
+    ],
+    "agentNotes": "先区分缺水和湿土烂根，不因叶片发软就直接建议浇水。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-HAWORTHIA",
+    "sourceTitle": "Haworthia",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/haworthia/",
+    "sourceId": "NCSU-PLANT-HAWORTHIA",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 2
+  },
+  {
+    "name": "天堂鸟",
+    "aliases": [
+      "鹤望兰",
+      "Strelitzia reginae"
+    ],
+    "family": "鹤望兰科",
+    "scientificName": "Strelitzia reginae",
+    "feature": "sun-loving",
+    "featureText": "喜充足光照",
+    "category": "flowering",
+    "difficulty": "中等",
+    "imageUrl": "",
+    "tags": [
+      "大型盆栽",
+      "观花",
+      "喜光"
+    ],
+    "description": "丛生热带植物，以大型灰绿色叶片和鸟形花序著称；室内开花依赖充足光照和稳定养护。",
+    "care": {
+      "light": "室内放在光照充足的位置，移到直射光前逐步适应",
+      "water": "春夏生长时保持适度水分，冬季让基质稍干",
+      "temperature": "温暖环境，避免低温",
+      "humidity": "普通到中等湿度",
+      "soil": "肥沃、排水良好的壤质基质",
+      "fertilizer": "春夏生长期按标签定期薄肥",
+      "ventilation": "提供良好空气流动，避免闷湿"
+    },
+    "seasonalTips": [
+      "春夏是主要生长期",
+      "冬季减少浇水并远离冷风"
+    ],
+    "commonIssues": [
+      {
+        "issue": "叶片黄褐斑或根腐",
+        "possibleCauses": [
+          "浇水过多",
+          "排水不良",
+          "叶斑"
+        ],
+        "actions": [
+          "检查排水",
+          "减少叶面久湿",
+          "观察斑点是否扩散"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "天堂鸟为什么不开花？",
+        "answer": "室内光照不足、植株未成熟或养护不稳定都可能影响开花，不能只靠加肥解决。"
+      }
+    ],
+    "recommendQuestions": [
+      "天堂鸟需要多少光？",
+      "天堂鸟叶片开裂正常吗？"
+    ],
+    "agentNotes": "不要承诺室内一定开花；叶片开裂还可能与风和机械损伤有关。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-STRELITZIA-REGINAE",
+    "sourceTitle": "Strelitzia reginae",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/strelitzia-reginae/",
+    "sourceId": "NCSU-PLANT-STRELITZIA-REGINAE",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 3
+  },
+  {
+    "name": "银斑葛",
+    "aliases": [
+      "银斑藤芋",
+      "Satin pothos",
+      "Scindapsus pictus"
+    ],
+    "family": "天南星科",
+    "scientificName": "Scindapsus pictus",
+    "feature": "partial-shade",
+    "featureText": "明亮散射光",
+    "category": "foliage",
+    "difficulty": "易养护",
+    "imageUrl": "",
+    "tags": [
+      "藤本",
+      "斑叶",
+      "垂吊"
+    ],
+    "description": "热带常绿攀援藤本，深绿色叶面带银灰斑；室内适合垂吊或提供支架生长。",
+    "care": {
+      "light": "明亮散射光，避免强烈直射",
+      "water": "基质表层干后浇透，避免长期湿土",
+      "temperature": "温暖环境，避免冷空气",
+      "humidity": "中等湿度即可",
+      "soil": "富含有机质且排水良好的基质",
+      "fertilizer": "生长期少量薄肥",
+      "ventilation": "保持空气流动，避免闷湿"
+    },
+    "seasonalTips": [
+      "春夏可修剪促分枝",
+      "冬季按干燥速度减少浇水"
+    ],
+    "commonIssues": [
+      {
+        "issue": "黄叶或卷叶",
+        "possibleCauses": [
+          "浇水过多",
+          "缺水",
+          "低温"
+        ],
+        "actions": [
+          "检查盆土",
+          "避免冷风",
+          "观察新叶"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "银斑葛和绿萝一样吗？",
+        "answer": "两者同属天南星科但不是同一种植物，叶色和养护细节有差别。"
+      }
+    ],
+    "recommendQuestions": [
+      "银斑葛叶片卷曲怎么办？",
+      "银斑葛适合垂吊吗？"
+    ],
+    "agentNotes": "黄叶常与过湿相关，卷叶也可能缺水，先看盆土。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-SCINDAPSUS-PICTUS",
+    "sourceTitle": "Satin Pothos - Scindapsus pictus",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/scindapsus-pictus/common-name/satin-pothos/",
+    "sourceId": "NCSU-PLANT-SCINDAPSUS-PICTUS",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 4
+  },
+  {
+    "name": "月季",
+    "aliases": [
+      "玫瑰",
+      "蔷薇",
+      "Rose",
+      "Rosa"
+    ],
+    "family": "蔷薇科",
+    "scientificName": "Rosa",
+    "feature": "full-sun",
+    "featureText": "喜充足日照",
+    "category": "flowering",
+    "difficulty": "中等",
+    "imageUrl": "",
+    "tags": [
+      "演示植物",
+      "观花",
+      "阳台"
+    ],
+    "description": "蔷薇属木本多年生植物，园艺品种众多；多数月季在充足日照、排水良好和定期巡检下表现更稳定。",
+    "care": {
+      "light": "多数品种需要充足日照，炎热环境注意盆土干燥速度",
+      "water": "根据盆土干湿浇透，避免长期积水和反复只浇表层",
+      "temperature": "品种差异较大，极端高温或严寒时需要保护",
+      "humidity": "避免叶片长期潮湿和植株过密",
+      "soil": "富含有机质、排水良好的微酸至中性基质",
+      "fertilizer": "生长和开花期按标签薄肥，根系异常时暂停",
+      "ventilation": "保持良好空气流动并留出株间空间"
+    },
+    "seasonalTips": [
+      "花后及时清理残花",
+      "修剪时间和强度随品种及地区调整"
+    ],
+    "commonIssues": [
+      {
+        "issue": "叶片斑点或白粉",
+        "possibleCauses": [
+          "真菌性叶部问题",
+          "通风不足",
+          "叶面久湿"
+        ],
+        "actions": [
+          "隔离观察",
+          "清理严重病叶",
+          "改善通风并咨询本地植保建议"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "月季每天都要浇水吗？",
+        "answer": "不按固定天数；盆径、天气、光照和生长阶段都会改变干燥速度。"
+      }
+    ],
+    "recommendQuestions": [
+      "月季现在要不要浇水？",
+      "月季叶片有黑斑怎么办？"
+    ],
+    "agentNotes": "月季是演示核心植物；图片诊断只能描述迹象，不能仅凭斑点确诊病害。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-ROSA",
+    "sourceTitle": "Rose - Rosa",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/rosa/common-name/rose/",
+    "sourceId": "NCSU-PLANT-ROSA",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 5
+  },
+  {
+    "name": "绿萝",
+    "aliases": [
+      "黄金葛",
+      "Pothos",
+      "Epipremnum aureum"
+    ],
+    "family": "天南星科",
+    "scientificName": "Epipremnum aureum",
+    "feature": "low-light-tolerant",
+    "featureText": "耐阴不喜暗",
+    "category": "foliage",
+    "difficulty": "易养护",
+    "imageUrl": "",
+    "tags": [
+      "藤本",
+      "垂吊",
+      "新手"
+    ],
+    "description": "常见常绿藤本，适合垂吊或攀援；能耐较低光照，但明亮散射光更有利于紧凑生长和保持斑纹。",
+    "care": {
+      "light": "明亮散射光最佳，也能耐较低光照",
+      "water": "让排水良好的基质在两次浇水间适度变干",
+      "temperature": "温暖环境，避开冷风",
+      "humidity": "普通到中等湿度",
+      "soil": "疏松、排水良好的室内植物基质",
+      "fertilizer": "生长期按标签少量补肥",
+      "ventilation": "避免闷湿，定期清洁叶片"
+    },
+    "seasonalTips": [
+      "可修剪过长藤蔓促分枝",
+      "冬季低光时减少浇水和施肥"
+    ],
+    "commonIssues": [
+      {
+        "issue": "叶缘发黑或黄叶",
+        "possibleCauses": [
+          "浇水过多",
+          "根腐",
+          "长期缺光"
+        ],
+        "actions": [
+          "检查排水",
+          "调整光照",
+          "查看根系"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "绿萝能一直放在暗处吗？",
+        "answer": "能耐低光不等于不需要光，长期过暗会影响生长和斑纹。"
+      }
+    ],
+    "recommendQuestions": [
+      "绿萝黄叶怎么办？",
+      "绿萝适合什么位置？"
+    ],
+    "agentNotes": "提醒天南星科植物误食和汁液刺激风险，不宣称净化空气治疗效果。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-EPIPREMNUM-AUREUM",
+    "sourceTitle": "Epipremnum aureum",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/epipremnum-aureum/",
+    "sourceId": "NCSU-PLANT-EPIPREMNUM-AUREUM",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 6
+  },
+  {
+    "name": "吊兰",
+    "aliases": [
+      "蜘蛛抱蛋吊兰",
+      "Spider plant",
+      "Chlorophytum comosum"
+    ],
+    "family": "天门冬科",
+    "scientificName": "Chlorophytum comosum",
+    "feature": "adaptable",
+    "featureText": "适应性较强",
+    "category": "foliage",
+    "difficulty": "易养护",
+    "imageUrl": "",
+    "tags": [
+      "垂吊",
+      "匍匐茎",
+      "新手"
+    ],
+    "description": "适应性较强的多年生室内植物，常形成带小植株的匍匐茎；适合中等光照和排水良好的盆土。",
+    "care": {
+      "light": "中等到明亮散射光，避免强烈直射",
+      "water": "保持适度湿润但不积水，也能短期耐旱",
+      "temperature": "避免低温，普通室温适宜",
+      "humidity": "中等空气湿度",
+      "soil": "排水良好的通用盆栽基质",
+      "fertilizer": "生长期少量薄肥",
+      "ventilation": "普通室内空气流动即可"
+    },
+    "seasonalTips": [
+      "生长期可分株或利用小植株繁殖",
+      "冬季降低浇水频率"
+    ],
+    "commonIssues": [
+      {
+        "issue": "叶尖焦枯",
+        "possibleCauses": [
+          "空气干燥",
+          "水中盐分",
+          "浇水不稳定"
+        ],
+        "actions": [
+          "检查水质和浇水记录",
+          "避免积水",
+          "修剪严重焦尖"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "吊兰能放在直射阳光下吗？",
+        "answer": "更适合中等或散射光，强烈直射可能灼伤叶片。"
+      }
+    ],
+    "recommendQuestions": [
+      "吊兰叶尖发焦怎么办？",
+      "吊兰小苗怎么繁殖？"
+    ],
+    "agentNotes": "叶尖焦枯原因不唯一，先问水质、干湿和光照。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-CHLOROPHYTUM-COMOSUM",
+    "sourceTitle": "Spider Plant - Chlorophytum comosum",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/chlorophytum-comosum/common-name/spider-plant/",
+    "sourceId": "NCSU-PLANT-CHLOROPHYTUM-COMOSUM",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 7
+  },
+  {
+    "name": "虎尾兰",
+    "aliases": [
+      "虎皮兰",
+      "Snake plant",
+      "Sansevieria trifasciata",
+      "Dracaena trifasciata"
+    ],
+    "family": "天门冬科",
+    "scientificName": "Dracaena trifasciata",
+    "feature": "drought-tolerant",
+    "featureText": "耐旱怕涝",
+    "category": "succulent",
+    "difficulty": "易养护",
+    "imageUrl": "",
+    "tags": [
+      "耐旱",
+      "直立叶",
+      "低光耐受"
+    ],
+    "description": "直立丛生的常绿多年生植物，根茎和叶片能储水；能耐低光，但排水和克制浇水更关键。",
+    "care": {
+      "light": "部分日照到较低光照均可，明亮位置生长更稳",
+      "water": "春秋让盆土干后再浇，冬季显著减少",
+      "temperature": "耐普通室温，避免寒冷和霜冻",
+      "humidity": "耐较低空气湿度",
+      "soil": "排水良好的砂质或多肉基质",
+      "fertilizer": "生长期少量即可",
+      "ventilation": "避免低温闷湿"
+    },
+    "seasonalTips": [
+      "冬季可间隔更久再浇水",
+      "分株可保留斑纹特征"
+    ],
+    "commonIssues": [
+      {
+        "issue": "基部发软",
+        "possibleCauses": [
+          "浇水过多",
+          "低温湿土",
+          "根腐"
+        ],
+        "actions": [
+          "停止补水",
+          "检查根茎",
+          "移除腐烂部分"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "虎尾兰耐阴就不用光吗？",
+        "answer": "耐低光不等于无光，明亮位置通常生长更稳定。"
+      }
+    ],
+    "recommendQuestions": [
+      "虎尾兰多久浇水？",
+      "虎尾兰基部发软怎么办？"
+    ],
+    "agentNotes": "对湿土中的软叶优先排查根腐，不建议继续浇水。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-DRACAENA-TRIFASCIATA",
+    "sourceTitle": "Dracaena trifasciata",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/dracaena-trifasciata/",
+    "sourceId": "NCSU-PLANT-DRACAENA-TRIFASCIATA",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 8
+  },
+  {
+    "name": "橡皮树",
+    "aliases": [
+      "印度橡皮树",
+      "Rubber plant",
+      "Ficus elastica"
+    ],
+    "family": "桑科",
+    "scientificName": "Ficus elastica",
+    "feature": "bright-indirect",
+    "featureText": "明亮散射光",
+    "category": "foliage",
+    "difficulty": "易养护",
+    "imageUrl": "",
+    "tags": [
+      "大型观叶",
+      "木本",
+      "亮叶"
+    ],
+    "description": "常见大型观叶植物，叶片厚而有光泽；室内宜固定在明亮散射光处，避免冷风和过度浇水。",
+    "care": {
+      "light": "明亮散射光或部分遮阴，避开强烈午后直射",
+      "water": "规律浇水但避免过量，休眠期减少",
+      "temperature": "保持温暖，避免低温和穿堂风",
+      "humidity": "中等空气湿度",
+      "soil": "排水良好的盆栽基质",
+      "fertilizer": "生长期按标签少量补肥",
+      "ventilation": "避免冷风，定期擦拭叶面"
+    },
+    "seasonalTips": [
+      "秋冬降低浇水频率",
+      "春季可修剪促分枝"
+    ],
+    "commonIssues": [
+      {
+        "issue": "落叶",
+        "possibleCauses": [
+          "浇水过多",
+          "温度骤降",
+          "冷风"
+        ],
+        "actions": [
+          "稳定位置和温度",
+          "检查盆土",
+          "观察新生长"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "橡皮树能经常搬动吗？",
+        "answer": "更适合环境稳定的位置，突然改变光照或温度可能引起落叶。"
+      }
+    ],
+    "recommendQuestions": [
+      "橡皮树落叶怎么办？",
+      "橡皮树如何促分枝？"
+    ],
+    "agentNotes": "汁液可能刺激皮肤，修剪时提示防护并远离宠物。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-FICUS-ELASTICA",
+    "sourceTitle": "Ficus elastica",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/ficus-elastica/",
+    "sourceId": "NCSU-PLANT-FICUS-ELASTICA",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 9
+  },
+  {
+    "name": "白掌",
+    "aliases": [
+      "一帆风顺",
+      "Peace lily",
+      "Spathiphyllum"
+    ],
+    "family": "天南星科",
+    "scientificName": "Spathiphyllum",
+    "feature": "shade-tolerant",
+    "featureText": "耐半阴",
+    "category": "flowering",
+    "difficulty": "中等",
+    "imageUrl": "",
+    "tags": [
+      "室内观花",
+      "耐阴",
+      "高湿偏好"
+    ],
+    "description": "常见室内观叶观花植物，白色佛焰苞醒目；适合散射光、较稳定水分和较高空气湿度。",
+    "care": {
+      "light": "散射光或部分遮阴，避免强烈直晒",
+      "water": "保持适度湿润但不让根部长时间泡水",
+      "temperature": "温暖稳定，避开冷风",
+      "humidity": "偏好较高空气湿度",
+      "soil": "富含有机质且排水良好的基质",
+      "fertilizer": "生长期少量薄肥",
+      "ventilation": "高湿环境下更要保持空气流动"
+    },
+    "seasonalTips": [
+      "低温低光时减少浇水",
+      "花后清理衰败花序"
+    ],
+    "commonIssues": [
+      {
+        "issue": "萎蔫或焦边",
+        "possibleCauses": [
+          "缺水",
+          "积水伤根",
+          "空气干燥",
+          "盐分"
+        ],
+        "actions": [
+          "先检查盆土",
+          "确认排水",
+          "查看根系和水质"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "白掌萎蔫就一定缺水吗？",
+        "answer": "不一定；湿土中的萎蔫可能与根部缺氧或受损有关。"
+      }
+    ],
+    "recommendQuestions": [
+      "白掌萎蔫怎么办？",
+      "白掌为什么不开花？"
+    ],
+    "agentNotes": "避免把萎蔫自动映射为浇水任务；先读取盆土和历史。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-SPATHIPHYLLUM",
+    "sourceTitle": "Peace Lily - Spathiphyllum",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/spathiphyllum/common-name/peace-lily/",
+    "sourceId": "NCSU-PLANT-SPATHIPHYLLUM",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 10
+  },
+  {
+    "name": "金钱树",
+    "aliases": [
+      "雪铁芋",
+      "ZZ plant",
+      "Zamioculcas zamiifolia"
+    ],
+    "family": "天南星科",
+    "scientificName": "Zamioculcas zamiifolia",
+    "feature": "drought-tolerant",
+    "featureText": "耐旱耐半阴",
+    "category": "foliage",
+    "difficulty": "易养护",
+    "imageUrl": "",
+    "tags": [
+      "根茎储水",
+      "低光耐受",
+      "慢生"
+    ],
+    "description": "地下根茎储水、叶片厚而有光泽的常绿植物；生长较慢，耐旱但怕长期湿土。",
+    "care": {
+      "light": "散射光到较低光照，避免强烈直射",
+      "water": "基质明显变干后再浇，避免频繁少量浇水",
+      "temperature": "温暖环境，避免寒冷",
+      "humidity": "普通室内湿度",
+      "soil": "疏松、排水良好的基质",
+      "fertilizer": "生长期少量即可",
+      "ventilation": "保持普通空气流动，湿土时尤其重要"
+    },
+    "seasonalTips": [
+      "冬季减少浇水",
+      "换盆时不要损伤肉质根茎"
+    ],
+    "commonIssues": [
+      {
+        "issue": "黄叶或基部软腐",
+        "possibleCauses": [
+          "浇水过多",
+          "排水不良",
+          "低温"
+        ],
+        "actions": [
+          "暂停浇水",
+          "检查根茎",
+          "改善排水"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "金钱树很久不长正常吗？",
+        "answer": "它本来生长较慢；同时可检查光照、温度和根系状态。"
+      }
+    ],
+    "recommendQuestions": [
+      "金钱树黄叶怎么办？",
+      "金钱树要多久浇水？"
+    ],
+    "agentNotes": "耐旱不等于永不浇水，但湿土黄叶应先排查根部。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-ZAMIOCULCAS",
+    "sourceTitle": "Zamioculcas zamiifolia",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/zamioculcas-zamiifolia/",
+    "sourceId": "NCSU-PLANT-ZAMIOCULCAS",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 11
+  },
+  {
+    "name": "玉树",
+    "aliases": [
+      "燕子掌",
+      "Jade plant",
+      "Crassula ovata"
+    ],
+    "family": "景天科",
+    "scientificName": "Crassula ovata",
+    "feature": "succulent",
+    "featureText": "喜光耐旱",
+    "category": "succulent",
+    "difficulty": "易养护",
+    "imageUrl": "",
+    "tags": [
+      "多肉灌木",
+      "耐旱",
+      "盆景"
+    ],
+    "description": "叶片厚实的多肉灌木，成熟后呈小树形；需要明亮光照和排水良好的基质。",
+    "care": {
+      "light": "明亮光照到柔和直射，突然增加强光时逐步适应",
+      "water": "基质干燥后浇透，避免长期潮湿",
+      "temperature": "普通到偏凉室温，避免霜冻",
+      "humidity": "不需要高湿环境",
+      "soil": "排水良好的壤质或多肉基质",
+      "fertilizer": "生长期少量薄肥",
+      "ventilation": "保持空气流动"
+    },
+    "seasonalTips": [
+      "冬季生长慢时减少浇水",
+      "可用枝叶扦插繁殖"
+    ],
+    "commonIssues": [
+      {
+        "issue": "落叶或茎基部软",
+        "possibleCauses": [
+          "积水",
+          "低温",
+          "突然环境变化"
+        ],
+        "actions": [
+          "检查根系",
+          "稳定温度",
+          "减少浇水"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "玉树叶子皱了就浇水吗？",
+        "answer": "先检查盆土；湿土中的皱叶可能与根系受损有关。"
+      }
+    ],
+    "recommendQuestions": [
+      "玉树如何控水？",
+      "玉树叶片发软怎么办？"
+    ],
+    "agentNotes": "提示对猫狗有潜在危害，不给食用或药用建议。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-CRASSULA-OVATA",
+    "sourceTitle": "Crassula ovata",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/crassula-ovata/",
+    "sourceId": "NCSU-PLANT-CRASSULA-OVATA",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 12
+  },
+  {
+    "name": "芦荟",
+    "aliases": [
+      "库拉索芦荟",
+      "Aloe vera"
+    ],
+    "family": "阿福花科",
+    "scientificName": "Aloe vera",
+    "feature": "succulent",
+    "featureText": "喜光耐旱",
+    "category": "succulent",
+    "difficulty": "易养护",
+    "imageUrl": "",
+    "tags": [
+      "多肉",
+      "莲座",
+      "耐旱"
+    ],
+    "description": "叶片肉质、莲座状生长的常见多肉；室内需要充足光照、粗颗粒排水基质和有节制的浇水。",
+    "care": {
+      "light": "充足光照或明亮散射光，强光变化时逐步适应",
+      "water": "基质干燥后浇透并完全排水",
+      "temperature": "喜温暖，不耐霜冻",
+      "humidity": "普通或偏低湿度",
+      "soil": "粗颗粒、排水快速的多肉基质",
+      "fertilizer": "生长期少量即可",
+      "ventilation": "避免高温闷湿"
+    },
+    "seasonalTips": [
+      "冬季减少浇水",
+      "利用侧芽分株时让伤口适当干燥"
+    ],
+    "commonIssues": [
+      {
+        "issue": "叶片水渍状或基部软腐",
+        "possibleCauses": [
+          "过度浇水",
+          "低温",
+          "排水差"
+        ],
+        "actions": [
+          "暂停浇水",
+          "检查根系",
+          "改善基质"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "芦荟可以放在暗处吗？",
+        "answer": "长期光照不足会徒长，更适合明亮位置。"
+      }
+    ],
+    "recommendQuestions": [
+      "芦荟现在要浇水吗？",
+      "芦荟叶片发软怎么办？"
+    ],
+    "agentNotes": "本产品只提供园艺养护信息，不给芦荟食用或医疗用途建议。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-ALOE-VERA",
+    "sourceTitle": "Aloe Vera - Aloe vera",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/aloe-vera/common-name/aloe-vera/",
+    "sourceId": "NCSU-PLANT-ALOE-VERA",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 13
+  },
+  {
+    "name": "绣球",
+    "aliases": [
+      "大叶绣球",
+      "八仙花",
+      "Hydrangea macrophylla"
+    ],
+    "family": "绣球花科",
+    "scientificName": "Hydrangea macrophylla",
+    "feature": "partial-shade",
+    "featureText": "半阴喜湿润",
+    "category": "flowering",
+    "difficulty": "中等",
+    "imageUrl": "",
+    "tags": [
+      "观花灌木",
+      "半阴",
+      "盆栽"
+    ],
+    "description": "落叶观花灌木，花色会受品种和土壤条件影响；适合早晨光或半阴、富含有机质且排水良好的环境。",
+    "care": {
+      "light": "斑驳光或半阴，避开炎热午后暴晒",
+      "water": "保持较稳定水分并保证排水，盆栽高温时勤观察",
+      "temperature": "耐受范围随品种而异，极端高温需遮护",
+      "humidity": "普通到中等湿度",
+      "soil": "富含有机质、排水良好的基质",
+      "fertilizer": "按品种和生长阶段施用，不盲目改花色",
+      "ventilation": "留出株间空间，减少叶面久湿"
+    },
+    "seasonalTips": [
+      "多数大叶绣球在老枝开花，修剪时间要谨慎",
+      "高温期关注盆土失水"
+    ],
+    "commonIssues": [
+      {
+        "issue": "叶片萎蔫或叶斑",
+        "possibleCauses": [
+          "缺水",
+          "午后暴晒",
+          "叶部病害"
+        ],
+        "actions": [
+          "检查盆土",
+          "调整遮阴",
+          "观察斑点扩散"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "绣球花色只由酸碱度决定吗？",
+        "answer": "不是；品种和铝离子可利用性等因素也会影响花色。"
+      }
+    ],
+    "recommendQuestions": [
+      "绣球什么时候修剪？",
+      "绣球中午萎蔫怎么办？"
+    ],
+    "agentNotes": "不要建议用户随意大量加入硫酸铝或石灰；花色调整需考虑基质检测和标签。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-HYDRANGEA-MACROPHYLLA",
+    "sourceTitle": "Hydrangea macrophylla",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/hydrangea-macrophylla/",
+    "sourceId": "NCSU-PLANT-HYDRANGEA-MACROPHYLLA",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 14
+  },
+  {
+    "name": "薰衣草",
+    "aliases": [
+      "英国薰衣草",
+      "English lavender",
+      "Lavandula angustifolia"
+    ],
+    "family": "唇形科",
+    "scientificName": "Lavandula angustifolia",
+    "feature": "full-sun",
+    "featureText": "全日照怕积水",
+    "category": "herb",
+    "difficulty": "较难",
+    "imageUrl": "",
+    "tags": [
+      "芳香",
+      "全日照",
+      "耐旱"
+    ],
+    "description": "地中海型常绿小灌木，芳香花叶具有观赏价值；成功养护的关键是充足日照、快速排水和空气流动。",
+    "care": {
+      "light": "全日照或尽可能充足的直射光",
+      "water": "偏干养护，浇透后让基质充分变干",
+      "temperature": "耐凉能力随品种和环境而异，怕持续湿热",
+      "humidity": "偏好较低湿度",
+      "soil": "排水极佳、偏中性至碱性的基质",
+      "fertilizer": "少量即可，避免过肥徒长",
+      "ventilation": "需要良好空气流动"
+    },
+    "seasonalTips": [
+      "花后清理花序并适度修剪",
+      "梅雨或高湿季重点防根腐"
+    ],
+    "commonIssues": [
+      {
+        "issue": "整株衰弱或根腐",
+        "possibleCauses": [
+          "基质排水差",
+          "高温高湿",
+          "光照不足"
+        ],
+        "actions": [
+          "增加日照和通风",
+          "检查根系",
+          "更换排水基质"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "薰衣草适合长期放室内吗？",
+        "answer": "多数情况下室内光照和通风不足，能提供强光和良好空气流动才更合适。"
+      }
+    ],
+    "recommendQuestions": [
+      "薰衣草为什么枯萎？",
+      "薰衣草需要多少光？"
+    ],
+    "agentNotes": "不要把喷雾当增湿措施；高湿闷热通常是主要风险。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-LAVANDULA-ANGUSTIFOLIA",
+    "sourceTitle": "Lavandula angustifolia",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/lavandula-angustifolia/",
+    "sourceId": "NCSU-PLANT-LAVANDULA-ANGUSTIFOLIA",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 15
+  },
+  {
+    "name": "常春藤",
+    "aliases": [
+      "英国常春藤",
+      "English ivy",
+      "Hedera helix"
+    ],
+    "family": "五加科",
+    "scientificName": "Hedera helix",
+    "feature": "shade-tolerant",
+    "featureText": "耐阴喜凉爽",
+    "category": "foliage",
+    "difficulty": "中等",
+    "imageUrl": "",
+    "tags": [
+      "藤本",
+      "垂吊",
+      "室内"
+    ],
+    "description": "常绿木质藤本，可作室内垂吊植物；在部分地区属于入侵植物，因此不建议随意栽入户外自然环境。",
+    "care": {
+      "light": "散射光到半阴，斑叶品种需要更明亮的位置",
+      "water": "保持适度湿润并保证排水，避免长期积水",
+      "temperature": "偏好较凉爽环境，避开高温闷热",
+      "humidity": "中等湿度",
+      "soil": "排水良好的通用基质",
+      "fertilizer": "生长期少量薄肥",
+      "ventilation": "保持空气流动并定期检查叶背"
+    },
+    "seasonalTips": [
+      "高温季重点防螨和闷热",
+      "修剪可控制藤蔓长度"
+    ],
+    "commonIssues": [
+      {
+        "issue": "叶片斑驳或网丝",
+        "possibleCauses": [
+          "螨类",
+          "高温干燥",
+          "病斑"
+        ],
+        "actions": [
+          "隔离检查叶背",
+          "清洗叶片",
+          "确认对象后处理"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "常春藤可以种到户外吗？",
+        "answer": "需先查当地入侵植物规定；部分地区不建议种入开放环境。"
+      }
+    ],
+    "recommendQuestions": [
+      "常春藤叶片有网丝怎么办？",
+      "常春藤适合什么温度？"
+    ],
+    "agentNotes": "提醒误食和汁液刺激风险，并提示地区入侵性差异。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-HEDERA-HELIX",
+    "sourceTitle": "English Ivy - Hedera helix",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/hedera-helix/common-name/english-ivy/",
+    "sourceId": "NCSU-PLANT-HEDERA-HELIX",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 16
+  },
+  {
+    "name": "波士顿蕨",
+    "aliases": [
+      "肾蕨",
+      "Boston fern",
+      "Nephrolepis exaltata"
+    ],
+    "family": "肾蕨科",
+    "scientificName": "Nephrolepis exaltata",
+    "feature": "humid-shade",
+    "featureText": "散射光喜湿润",
+    "category": "fern",
+    "difficulty": "中等",
+    "imageUrl": "",
+    "tags": [
+      "蕨类",
+      "垂吊",
+      "高湿偏好"
+    ],
+    "description": "叶片羽状、常作垂吊栽培的蕨类；偏好明亮散射光、较高空气湿度和持续但不积水的盆土水分。",
+    "care": {
+      "light": "明亮散射光，避免强烈直射",
+      "water": "保持均匀湿润，不让基质完全干透，也避免积水",
+      "temperature": "偏好温暖稳定，避免冷风",
+      "humidity": "偏好较高空气湿度",
+      "soil": "保水但排水良好的有机质基质",
+      "fertilizer": "生长期低浓度补肥",
+      "ventilation": "高湿环境下保持温和空气流动"
+    },
+    "seasonalTips": [
+      "冬季生长慢时适当减少浇水",
+      "干燥季可用加湿器提高环境湿度"
+    ],
+    "commonIssues": [
+      {
+        "issue": "叶尖干枯",
+        "possibleCauses": [
+          "空气干燥",
+          "盆土过干",
+          "盐分积累"
+        ],
+        "actions": [
+          "检查盆土",
+          "提高环境湿度",
+          "避免过量施肥"
+        ]
+      }
+    ],
+    "faq": [
+      {
+        "question": "叶背褐色小点是虫吗？",
+        "answer": "蕨类叶背可能形成规则排列的孢子囊群，需先观察形态，不能一概当虫害。"
+      }
+    ],
+    "recommendQuestions": [
+      "波士顿蕨叶尖干怎么办？",
+      "叶背褐点是不是虫害？"
+    ],
+    "agentNotes": "优先区分正常孢子囊群和虫害；不要直接建议用药。",
+    "sourceType": "external-reference",
+    "sourceRef": "NCSU-PLANT-NEPHROLEPIS-EXALTATA",
+    "sourceTitle": "Nephrolepis exaltata",
+    "sourcePublisher": "North Carolina Extension Gardener Plant Toolbox",
+    "sourceUpdatedAt": "页面持续维护；检索于 2026-08-27",
+    "sourceUrl": "https://plants.ces.ncsu.edu/plants/nephrolepis-exaltata/",
+    "sourceId": "NCSU-PLANT-NEPHROLEPIS-EXALTATA",
+    "contentUpdatedAt": "2026-08-27",
+    "reviewedAt": "2026-08-27 18:23:54",
+    "reviewedBy": "dola",
+    "imageLicense": "未使用外部图片；界面使用仓库内默认占位图",
+    "imageSourceUrl": "",
+    "status": "published",
+    "sortOrder": 17
+  }
+]

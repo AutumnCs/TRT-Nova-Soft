@@ -1,0 +1,4 @@
+interface:
+  display_name: "Evolving TRT Nova Skill"
+  short_description: "Project skill for safe repo evolution"
+  default_prompt: "Use $evolving-trt-nova to inspect the TRT Nova repo and classify the change impact."

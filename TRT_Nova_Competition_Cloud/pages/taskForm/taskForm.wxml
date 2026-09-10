@@ -1,0 +1,70 @@
+<view class="task-form-page" style="padding-top: {{headerTop}}px;">
+  <view class="topbar">
+    <button class="back-btn" bindtap="goBack">‹</button>
+    <view class="title-block"><text class="page-title">{{pageTitle}}</text><text class="page-subtitle">{{suggestionSource ? '建议不会自动写入；可先逐项修改' : '先预览，再写入真实日程'}}</text></view>
+    <view class="top-mark">✓</view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state-card"><view class="loading-dot"></view><text>正在准备任务表单…</text></view>
+  <view wx:elif="{{loadError}}" class="state-card error-state">
+    <text class="state-title">暂时不能建立任务</text><text class="state-desc">{{loadError}}</text>
+    <button wx:if="{{proposalStatus}}" class="state-btn" bindtap="goBack">返回对话</button>
+    <button wx:elif="{{!plantPets.length}}" class="state-btn" bindtap="goCreatePlantPet">先建立植宠档案</button>
+    <button wx:else class="state-btn" bindtap="loadContext">重新加载</button>
+  </view>
+
+  <view wx:else class="form-card">
+    <view wx:if="{{suggestionSource}}" class="rule-note"><text class="rule-note-title">来自 NOVA 的待确认候选</text><text class="rule-note-desc">当前只是预填内容。只有你检查并点击“预览并确认”后，才会以 {{suggestionSource}} 来源写入日历。</text></view>
+    <text class="section-kicker">CARE TASK · 任务内容</text>
+    <view class="field-row">
+      <text class="field-label">植宠</text>
+      <picker class="field-control" disabled="{{mode === 'proposal'}}" range="{{plantPets}}" range-key="nickname" value="{{plantPetIndex}}" bindchange="onPlantPetChange">
+        <view class="picker-value {{mode === 'proposal' ? 'picker-locked' : ''}}">{{plantPets[plantPetIndex].nickname}} <text>{{mode === 'proposal' ? '已锁定' : '›'}}</text></view>
+      </picker>
+    </view>
+    <view class="field-row">
+      <text class="field-label">类型</text>
+      <picker class="field-control" range="{{taskTypeOptions}}" range-key="label" value="{{taskTypeIndex}}" bindchange="onTaskTypeChange">
+        <view class="picker-value">{{taskTypeOptions[taskTypeIndex].icon}} {{taskTypeOptions[taskTypeIndex].label}} <text>›</text></view>
+      </picker>
+    </view>
+    <view class="field-block">
+      <text class="field-label">标题</text>
+      <input class="text-input" maxlength="128" placeholder="例如：检查盆土后浇水" value="{{form.title}}" bindinput="onTitleInput" />
+    </view>
+    <view class="field-block">
+      <text class="field-label">说明（可选）</text>
+      <textarea class="text-area" maxlength="1000" auto-height placeholder="记录判断标准或养护注意事项" value="{{form.description}}" bindinput="onDescriptionInput" />
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && !loadError}}" class="form-card">
+    <text class="section-kicker">SCHEDULE · 排程</text>
+    <view class="field-row">
+      <text class="field-label">到期日期</text>
+      <picker class="field-control" mode="date" value="{{form.scheduledFor}}" start="2020-01-01" end="2099-12-31" bindchange="onDateChange"><view class="picker-value">{{form.scheduledFor}} <text>›</text></view></picker>
+    </view>
+    <view class="field-row">
+      <view class="label-copy"><text class="field-label">站内提醒</text><text class="field-help">新任务默认 09:00</text></view>
+      <switch checked="{{form.reminderEnabled}}" color="#15803d" bindchange="onReminderToggle" />
+    </view>
+    <view wx:if="{{form.reminderEnabled}}" class="field-row sub-row">
+      <text class="field-label">提醒时间</text>
+      <picker class="field-control" mode="time" value="{{form.reminderTime}}" bindchange="onReminderTimeChange"><view class="picker-value">{{form.reminderTime}} <text>›</text></view></picker>
+    </view>
+    <view class="field-row">
+      <text class="field-label">重复规则</text>
+      <picker class="field-control" range="{{recurrenceOptions}}" range-key="label" value="{{recurrenceIndex}}" bindchange="onRecurrenceChange"><view class="picker-value">{{recurrenceOptions[recurrenceIndex].label}} <text>›</text></view></picker>
+    </view>
+    <view wx:if="{{form.recurrenceType !== 'none'}}" class="field-row sub-row">
+      <text class="field-label">间隔 N</text>
+      <input class="interval-input" type="number" maxlength="3" value="{{form.recurrenceInterval}}" bindinput="onRecurrenceIntervalInput" />
+    </view>
+    <view class="rule-note"><text class="rule-note-title">重复从实际完成日计算</text><text class="rule-note-desc">逾期任务完成后不会连续补发；下一次从你的真实打卡日期重新排程。</text></view>
+  </view>
+
+  <view wx:if="{{!loading && !loadError}}" class="submit-bar">
+    <button wx:if="{{mode === 'proposal'}}" class="cancel-proposal-btn" disabled="{{submitting}}" bindtap="cancelProposal">放弃建议</button>
+    <button class="submit-btn" loading="{{submitting}}" disabled="{{submitting}}" bindtap="previewAndSubmit">{{mode === 'edit' ? '预览修改' : '预览并确认'}}</button>
+  </view>
+</view>

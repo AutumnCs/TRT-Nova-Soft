@@ -1,0 +1,29 @@
+# AI-skill junctions (recreated from canonical .claude/skills/)
+.codex/
+.agents/
+
+# Local secrets and machine-specific configuration
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Installed dependencies are restored from package manifests
+node_modules/
+**/node_modules/
+
+# Local deployment output
+*.zip
+.scf_tmp/
+**/.scf_tmp/
+
+# Persistent local manual-acceptance runtime state and logs
+.runtime/
+
+# Local editor and OS files
+.DS_Store
+Thumbs.db
+project.private.config.json
+services/config/local-runtime.js
+*.local.json
+.vscode/*.local.json

@@ -1,0 +1,5 @@
+{
+  "navigationStyle": "custom",
+  "backgroundColor": "#0C1116",
+  "usingComponents": { "conversation-composer": "/components/conversation-composer/index" }
+}

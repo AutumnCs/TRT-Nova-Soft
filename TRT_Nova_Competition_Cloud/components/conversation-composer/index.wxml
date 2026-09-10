@@ -1,0 +1,2 @@
+<editor id="document-editor" class="document-editor" read-only="{{disabled}}" placeholder="{{functionItem ? '' : '问 NOVA…'}}" show-img-size="{{false}}" show-img-toolbar="{{false}}" show-img-resize="{{false}}" enterkeyhint="enter" bindready="onEditorReady" bindinput="onEditorInput" bindblur="rememberSelection" bindstatuschange="rememberSelection">
+</editor>

@@ -1,0 +1,121 @@
+{
+  "schemaVersion": "nova.cloud-candidate/v1",
+  "environment": "staging",
+  "region": "__FILL_TENCENT_REGION__",
+  "namespace": "__FILL_SCF_NAMESPACE__",
+  "functionRuntime": {
+    "functionType": "Event",
+    "handler": "index.main_handler"
+  },
+  "ingress": {
+    "mode": "scf-function-url",
+    "functionUrls": {
+      "auth-scf": "__FILL_AUTH_SCF_FUNCTION_URL__",
+      "api-scf": "__FILL_API_SCF_FUNCTION_URL__",
+      "agent-scf": "__FILL_AGENT_SCF_FUNCTION_URL__",
+      "ingest-scf": ""
+    },
+    "routeTemplate": "function-url-routes.template.yaml"
+  },
+  "network": {
+    "mode": "reuse-lastscf",
+    "vpcId": "",
+    "subnetId": "",
+    "note": "Current compatibility route: legacy-direct reuses the verified LastScf endpoint without TLS. private-network and required are retained but not selected. Put the actual endpoint in candidate.config.local.json; cloud connectivity still requires separate verification."
+  },
+  "database": {
+    "host": "__FILL_MYSQL_HOST__",
+    "port": 28245,
+    "name": "__FILL_DATABASE_NAME__",
+    "connectionLimit": 5,
+    "tlsMode": "legacy-direct"
+  },
+  "plainEnvironment": {
+    "common": {
+      "DB_PORT": "28245",
+      "DB_CONN_LIMIT": "5",
+      "DB_TLS_MODE": "legacy-direct"
+    },
+    "auth-scf": {
+      "WECHAT_APPID": "__FILL_WECHAT_APPID__",
+      "TOKEN_EXPIRES_IN_SECONDS": "604800"
+    },
+    "api-scf": {
+      "ALLOW_LEGACY_OPENID_FALLBACK": "false",
+      "LOCAL_MEDIA_ENABLED": "false",
+      "NOVA_DEVICE_COMMANDS_ENABLED": "false",
+      "QWEATHER_ENABLED": "false",
+      "QWEATHER_API_HOST": "",
+      "QWEATHER_PROJECT_ID": "",
+      "QWEATHER_CREDENTIAL_ID": "",
+      "QWEATHER_TIMEOUT_MS": "8000"
+    },
+    "ingest-scf": {
+      "NOVA_INGEST_ENABLED": "false",
+      "EMQX_PRODUCT_ID": "emqx"
+    },
+    "agent-scf": {
+      "ALLOW_LEGACY_OPENID_FALLBACK": "false",
+      "DEBUG_OPENID": "",
+      "LLM_API_ENABLED": "true",
+      "LLM_API_BASE_URL": "__FILL_HTTPS_LLM_BASE_URL__",
+      "LLM_API_PATH": "/chat/completions",
+      "LLM_MODEL": "__FILL_VERIFIED_TEXT_MODEL__",
+      "VISION_MODEL": "__FILL_VERIFIED_VISION_MODEL__",
+      "AGENT_SHADOW_ENABLED": "false",
+      "AGENT_ROLLOUT_ENABLED": "true",
+      "AGENT_ROLLOUT_SAMPLE_RATE": "1",
+      "AGENT_ROLLOUT_MAX_STEPS": "3",
+      "AGENT_ROLLOUT_MAX_TOOL_CALLS": "5",
+      "AGENT_ROLLOUT_TIMEOUT_MS": "12000",
+      "AGENT_ROLLOUT_MAX_TOKENS": "700",
+      "LLM_TIMEOUT_MS": "30000",
+      "LLM_MAX_TOKENS": "700",
+      "VISION_TIMEOUT_MS": "30000",
+      "VISION_MAX_TOKENS": "1800",
+      "VISION_IMAGE_DETAIL": "low"
+    },
+    "history-cleanup-scf": {
+      "NOVA_HISTORY_CLEANUP_ENABLED": "true",
+      "RAW_RETENTION_DAYS": "7",
+      "AGG_5M_RETENTION_DAYS": "7",
+      "AGG_1H_RETENTION_DAYS": "30",
+      "AGG_1D_RETENTION_DAYS": "365"
+    }
+  },
+  "media": {
+    "mode": "cloudbase",
+    "envId": "__FILL_THIS_PROJECT_CLOUDBASE_ENV_ID__",
+    "region": "__FILL_CLOUDBASE_REGION__",
+    "prefix": "nova-staging/staging/media/"
+  },
+  "frontend": {
+    "requestTimeoutMs": 60000
+  },
+  "artifactAndInterfaceBudgets": {
+    "zipBytesMaxExclusive": 52428800,
+    "codeAndLayersBytesMaxInclusive": 524288000,
+    "layerInventory": {
+      "mode": "none",
+      "layerBytes": 0,
+      "verifiedAgainstTargetFunctionVersions": false
+    },
+    "environmentUtf8BytesMaxInclusive": 4096,
+    "finalRenderedEnvironmentVerified": false,
+    "synchronousPayloadBytesMaxInclusive": 6291456,
+    "asynchronousPayloadBytesMaxInclusive": 131072,
+    "payloadLimitsVerifiedInStaging": false
+  },
+  "acknowledgements": {
+    "deploymentCredentialSourcesVerified": false,
+    "databaseMigrationVerified": false,
+    "cloudMediaLifecycleVerified": false,
+    "functionUrlEventCompatibilityVerified": false,
+    "timerTimezoneSemanticsVerified": false,
+    "stagingOnly": true,
+    "databaseAndProviderConnectivityVerified": false,
+    "scfEnvironmentConfigured": false
+  },
+  "environmentSource": "scf-environment",
+  "verifiedEnvironmentUtf8BytesByFunction": null
+}

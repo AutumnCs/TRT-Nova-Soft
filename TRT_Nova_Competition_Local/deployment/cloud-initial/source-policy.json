@@ -1,0 +1,213 @@
+{
+  "schemaVersion": "nova.cloud-candidate/v1",
+  "candidateName": "nova-tencent-scf-node20-staging-v0",
+  "runtime": "Nodejs20.19",
+  "functionType": "Event",
+  "regionExample": "ap-guangzhou",
+  "handler": "cloud-entry.main_handler",
+  "artifactLimits": {
+    "zipMaxBytesExclusive": 52428800,
+    "codeAndLayersMaxBytesInclusive": 524288000,
+    "candidateLayerBytes": 0,
+    "candidateLayerInventory": "EXPLICIT_NONE_FOR_THIS_LOCAL_CANDIDATE"
+  },
+  "interfaceLimits": {
+    "environmentUtf8MaxBytesInclusive": 4096,
+    "syncInvocationPayloadMaxBytesInclusive": 6291456,
+    "asyncInvocationPayloadMaxBytesInclusive": 131072,
+    "staticPackageCanVerifyRuntimePayloads": false
+  },
+  "sourceRoot": "dist/scf",
+  "artifactRoot": "deployment/cloud-initial/artifacts",
+  "buildRoot": "deployment/cloud-initial/build",
+  "functions": [
+    {
+      "name": "auth-scf",
+      "sourceEntries": ["index.js", "package.json"],
+      "requiredEnvironment": [
+        "DB_HOST",
+        "DB_NAME",
+        "DB_USER",
+        "DB_PASSWORD",
+        "WECHAT_APPID",
+        "WECHAT_SECRET",
+        "JWT_SECRET"
+      ],
+      "memorySize": 256,
+      "timeoutSeconds": 30,
+      "functionType": "Event",
+      "trigger": "function-url-custom-domain"
+    },
+    {
+      "name": "api-scf",
+      "sourceEntries": [
+        "index.js",
+        "knowledge.js",
+        "lib",
+        "data/knowledge/articles.json",
+        "data/knowledge/plants.json",
+        "package.json"
+      ],
+      "requiredEnvironment": [
+        "DB_HOST",
+        "DB_NAME",
+        "DB_USER",
+        "DB_PASSWORD",
+        "JWT_SECRET",
+        "ALLOW_LEGACY_OPENID_FALLBACK",
+        "LOCAL_MEDIA_ENABLED"
+      ],
+      "memorySize": 512,
+      "timeoutSeconds": 45,
+      "functionType": "Event",
+      "trigger": "function-url-custom-domain"
+    },
+    {
+      "name": "ingest-scf",
+      "sourceEntries": ["index.js", "package.json"],
+      "requiredEnvironment": [
+        "DB_HOST",
+        "DB_NAME",
+        "DB_USER",
+        "DB_PASSWORD",
+        "NOVA_INGEST_ENABLED"
+      ],
+      "oneOfEnvironment": [["ONE_NET_TOKEN", "EMQX_WEBHOOK_TOKEN"]],
+      "memorySize": 256,
+      "timeoutSeconds": 15,
+      "functionType": "Event",
+      "trigger": "function-url-custom-domain-webhook"
+    },
+    {
+      "name": "agent-scf",
+      "sourceEntries": [
+        "index.js",
+        "agent",
+        "lib",
+        "rag",
+        "rules",
+        "runtime",
+        "tools",
+        "data/knowledge/articles.json",
+        "data/knowledge/plants.json",
+        "package.json"
+      ],
+      "requiredEnvironment": [
+        "DB_HOST",
+        "DB_NAME",
+        "DB_USER",
+        "DB_PASSWORD",
+        "JWT_SECRET",
+        "ALLOW_LEGACY_OPENID_FALLBACK",
+        "LLM_API_ENABLED"
+      ],
+      "memorySize": 1024,
+      "timeoutSeconds": 90,
+      "functionType": "Event",
+      "trigger": "function-url-custom-domain"
+    },
+    {
+      "name": "history-cleanup-scf",
+      "sourceEntries": ["index.js", "package.json"],
+      "requiredEnvironment": [
+        "DB_HOST",
+        "DB_NAME",
+        "DB_USER",
+        "DB_PASSWORD",
+        "NOVA_HISTORY_CLEANUP_ENABLED"
+      ],
+      "memorySize": 256,
+      "timeoutSeconds": 60,
+      "functionType": "Event",
+      "trigger": "timer"
+    }
+  ],
+  "forbiddenFirstPartyArtifactSegments": [
+    ".env",
+    "test",
+    "tests",
+    "__tests__",
+    "spec",
+    "specs",
+    "fixture",
+    "fixtures",
+    "sample",
+    "samples",
+    "example",
+    "examples",
+    "coverage",
+    ".git",
+    "scripts/local-server",
+    "scripts/local-db"
+  ],
+  "dependencyPrunePolicy": {
+    "removeSourceMaps": true,
+    "removeTypeDeclarations": true,
+    "documentationFiles": ["http_signing.md"],
+    "documentationBasenames": [
+      "readme",
+      "changelog",
+      "changes",
+      "history",
+      "contributing",
+      "authors"
+    ],
+    "developmentOnlyDirectorySegments": [
+      "test",
+      "tests",
+      "__tests__",
+      "spec",
+      "specs",
+      "fixture",
+      "fixtures",
+      "sample",
+      "samples",
+      "example",
+      "examples",
+      "coverage"
+    ],
+    "developmentOnlyFilenameTokens": [
+      "test",
+      "tests",
+      "spec",
+      "specs",
+      "fixture",
+      "fixtures",
+      "sample",
+      "samples",
+      "example",
+      "examples"
+    ],
+    "runtimeSensitiveExtensions": [
+      ".wasm",
+      ".node",
+      ".pem",
+      ".crt",
+      ".cer",
+      ".der",
+      ".pfx",
+      ".p12",
+      ".dic",
+      ".dict",
+      ".aff",
+      ".dat",
+      ".bin"
+    ],
+    "firstPartyLocalMediaExtensions": [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".webp",
+      ".gif",
+      ".bmp",
+      ".heic",
+      ".mp3",
+      ".wav",
+      ".mp4",
+      ".mov",
+      ".pdf",
+      ".doc",
+      ".docx"
+    ]
+  }
+}

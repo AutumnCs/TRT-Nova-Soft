@@ -1,0 +1,133 @@
+schemaVersion: "nova.cloud-candidate/v1"
+kind: "TencentScfStagingUploadContract"
+metadata:
+  candidate: "nova-tencent-scf-node20-staging-v0"
+  status: "ARTIFACTS_BUILDABLE_NOT_DEPLOYED"
+  containsSecrets: false
+  createsCloudResources: false
+
+global:
+  functionType: "Event"
+  runtime: "Nodejs20.19"
+  handler: "cloud-entry.main_handler"
+  codeSource: "artifacts/<function>.zip"
+  packageRootContains:
+    - "index.js"
+    - "cloud-entry.js"
+    - "cloud-secrets.js"
+    - "package.json"
+    - "package-lock.json"
+    - "NOVA_PACKAGE_MANIFEST.json"
+  network:
+    vpcId: "__FILL_APPROVED_VPC__"
+    subnetId: "__FILL_APPROVED_SUBNET__"
+    outboundHttpsRequired: true
+    mysqlPrivateConnectivityRequired: true
+    publicProviderEgress:
+      mode: "__FILL_vpc-nat_OR_scf-public-network__"
+      natGatewayId: "" # Required only for vpc-nat; verify the selected route in staging.
+      routeTableVerified: false
+      stagingConnectivityVerified: false
+  artifactLimits:
+    zipBytesMustBeLessThan: 52428800
+    uncompressedCodePlusLayersBytesMustBeAtMost: 524288000
+    candidateLayers: []
+    candidateLayerBytes: 0
+  interfaceLimits:
+    finalEnvironmentUtf8BytesMustBeAtMost: 4096
+    synchronousInvocationPayloadBytesMustBeAtMost: 6291456
+    asynchronousInvocationPayloadBytesMustBeAtMost: 131072
+    runtimePayloadVerification: "STAGING_REQUIRED_STATIC_ZIP_CANNOT_PROVE"
+  logging:
+    logsetId: "__FILL_APPROVED_LOGSET__"
+    topicId: "__FILL_APPROVED_TOPIC__"
+    secretsAndRequestBodiesForbidden: true
+  safeDefaults:
+    ALLOW_LEGACY_OPENID_FALLBACK: "false"
+    LOCAL_MEDIA_ENABLED: "false"
+    AGENT_SHADOW_ENABLED: "false"
+    AGENT_ROLLOUT_ENABLED: "true"
+    AGENT_ROLLOUT_SAMPLE_RATE: "1"
+    DB_TLS_MODE: "required"
+    MEDIA_STORAGE_PROVIDER: "cos"
+    NOVA_DEVICE_COMMANDS_ENABLED: "false"
+    NOVA_INGEST_ENABLED: "false"
+    NOVA_HISTORY_CLEANUP_ENABLED: "true"
+
+functions:
+  - name: "auth-scf"
+    functionType: "Event"
+    artifact: "artifacts/auth-scf.zip"
+    NOVA_FUNCTION_NAME: "auth-scf"
+    memorySizeMB: 256
+    timeoutSeconds: 30
+    trigger: "function-url-custom-domain"
+
+  - name: "api-scf"
+    functionType: "Event"
+    artifact: "artifacts/api-scf.zip"
+    NOVA_FUNCTION_NAME: "api-scf"
+    memorySizeMB: 512
+    timeoutSeconds: 45
+    trigger: "function-url-custom-domain"
+    mediaAdapter: "cloud-media.js; private COS via authenticated API"
+    conditionalDisabledByDefault:
+      - "/device/cmd"
+
+  - name: "ingest-scf"
+    functionType: "Event"
+    artifact: "artifacts/ingest-scf.zip"
+    NOVA_FUNCTION_NAME: "ingest-scf"
+    memorySizeMB: 256
+    timeoutSeconds: 15
+    trigger: "function-url-custom-domain-webhook"
+    enabledByDefault: false
+    productionBlockers:
+      - "redact raw webhook payload and headers from source error logging"
+      - "define alert semantics for caught failures returned as HTTP 200"
+
+  - name: "agent-scf"
+    functionType: "Event"
+    artifact: "artifacts/agent-scf.zip"
+    NOVA_FUNCTION_NAME: "agent-scf"
+    memorySizeMB: 1024
+    timeoutSeconds: 90
+    trigger: "function-url-custom-domain"
+    disclosure: "PI-semantic-compatible internal runtime; not official pi-agent-core"
+
+  - name: "history-cleanup-scf"
+    functionType: "Event"
+    artifact: "artifacts/history-cleanup-scf.zip"
+    NOVA_FUNCTION_NAME: "history-cleanup-scf"
+    memorySizeMB: 256
+    timeoutSeconds: 60
+    trigger: "timer"
+    enabledByDefault: true
+    timerSchedule: "0 * * * * * *"
+    mediaCleanupBound: "At most 2 expired/unreferenced objects per invocation; no saved conversation TTL"
+    businessTimezone: "Asia/Shanghai"
+    timerTimezoneSemanticsStatus: "PENDING_STAGING_VERIFICATION"
+
+excluded:
+  - "admin-scf and admin-web"
+  - "scripts/local-server and scripts/local-db"
+  - "dev token, fixture users, first-party tests and acceptance evidence"
+  - "source .env files and source node_modules"
+  - "multi-agent, handoff, subagent and durable background autonomy"
+
+claimBoundary:
+  locallyBuilt: true
+  deployedToTencentCloud: false
+  verifiedLocallyOnNode20_20_2: true
+  verifiedOnTencentScfNode20_19: false
+  verifiedAgainstCloudMysql: false
+  verifiedThroughFunctionUrl: false
+  verifiedThroughScfCustomDomain: false
+  functionUrlEventCompatibilityVerified: false
+  finalEnvironmentUtf8BudgetVerified: false
+  runtimePayloadLimitsVerified: false
+  vpcPublicProviderEgressVerified: false
+  timerTimezoneSemanticsVerified: false
+  verifiedOnRealWechatDevice: false
+  cloudMediaAdapterImplemented: true
+  fullCloudMediaVerified: false

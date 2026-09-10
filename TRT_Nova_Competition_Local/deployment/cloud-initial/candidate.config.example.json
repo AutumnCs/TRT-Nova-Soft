@@ -1,0 +1,134 @@
+{
+  "schemaVersion": "nova.cloud-candidate/v1",
+  "environment": "staging",
+  "region": "__FILL_TENCENT_REGION__",
+  "namespace": "__FILL_SCF_NAMESPACE__",
+  "functionRuntime": {
+    "functionType": "Event",
+    "handler": "cloud-entry.main_handler"
+  },
+  "ingress": {
+    "mode": "scf-function-url-custom-domain",
+    "httpsCustomDomain": "__FILL_HTTPS_CUSTOM_DOMAIN__",
+    "routeTemplate": "function-url-routes.template.yaml",
+    "preserveOriginalPath": true
+  },
+  "network": {
+    "vpcId": "__FILL_APPROVED_VPC__",
+    "subnetId": "__FILL_APPROVED_SUBNET__",
+    "publicProviderEgress": {
+      "mode": "__FILL_vpc-nat_OR_scf-public-network__",
+      "natGatewayId": ""
+    }
+  },
+  "secretResolution": {
+    "logicalReferenceScheme": "secret://",
+    "strategy": "runtime-ssm-sdk",
+    "implementationVerified": true,
+    "leastPrivilegeAccessVerified": false
+  },
+  "database": {
+    "host": "__FILL_PRIVATE_MYSQL_HOST__",
+    "port": 3306,
+    "name": "__FILL_DATABASE_NAME__",
+    "userSecretRef": "__FILL_SECRET_MANAGER_REFERENCE__",
+    "passwordSecretRef": "__FILL_SECRET_MANAGER_REFERENCE__",
+    "connectionLimit": 5,
+    "tlsMode": "required",
+    "tlsCaSecretRef": "__FILL_MYSQL_CA_SECRET_REFERENCE__"
+  },
+  "secrets": {
+    "jwtSecretRef": "__FILL_SECRET_MANAGER_REFERENCE__",
+    "wechatSecretRef": "__FILL_SECRET_MANAGER_REFERENCE__",
+    "llmApiKeySecretRef": "__FILL_SECRET_MANAGER_REFERENCE__",
+    "qweatherPrivateKeySecretRef": "__FILL_IF_WEATHER_ENABLED__",
+    "oneNetTokenSecretRef": "__FILL_IF_INGEST_ENABLED__",
+    "oneNetAesKeySecretRef": "__FILL_IF_ONENET_ENCRYPTION_ENABLED__",
+    "emqxWebhookTokenSecretRef": "__FILL_IF_INGEST_ENABLED__"
+  },
+  "plainEnvironment": {
+    "common": {
+      "DB_PORT": "3306",
+      "DB_CONN_LIMIT": "5",
+      "DB_TLS_MODE": "required"
+    },
+    "auth-scf": {
+      "WECHAT_APPID": "__FILL_WECHAT_APPID__",
+      "TOKEN_EXPIRES_IN_SECONDS": "604800"
+    },
+    "api-scf": {
+      "ALLOW_LEGACY_OPENID_FALLBACK": "false",
+      "LOCAL_MEDIA_ENABLED": "false",
+      "NOVA_DEVICE_COMMANDS_ENABLED": "false",
+      "QWEATHER_ENABLED": "false",
+      "QWEATHER_API_HOST": "",
+      "QWEATHER_PROJECT_ID": "",
+      "QWEATHER_CREDENTIAL_ID": "",
+      "QWEATHER_TIMEOUT_MS": "8000"
+    },
+    "ingest-scf": {
+      "NOVA_INGEST_ENABLED": "false",
+      "EMQX_PRODUCT_ID": "emqx"
+    },
+    "agent-scf": {
+      "ALLOW_LEGACY_OPENID_FALLBACK": "false",
+      "DEBUG_OPENID": "",
+      "LLM_API_ENABLED": "true",
+      "LLM_API_BASE_URL": "__FILL_HTTPS_LLM_BASE_URL__",
+      "LLM_API_PATH": "/chat/completions",
+      "LLM_MODEL": "__FILL_VERIFIED_TEXT_MODEL__",
+      "VISION_MODEL": "__FILL_VERIFIED_VISION_MODEL__",
+      "AGENT_SHADOW_ENABLED": "false",
+      "AGENT_ROLLOUT_ENABLED": "true",
+      "AGENT_ROLLOUT_SAMPLE_RATE": "1",
+      "AGENT_ROLLOUT_MAX_STEPS": "3",
+      "AGENT_ROLLOUT_MAX_TOOL_CALLS": "5",
+      "AGENT_ROLLOUT_TIMEOUT_MS": "12000",
+      "AGENT_ROLLOUT_MAX_TOKENS": "700",
+      "LLM_TIMEOUT_MS": "30000",
+      "LLM_MAX_TOKENS": "700",
+      "VISION_TIMEOUT_MS": "30000",
+      "VISION_MAX_TOKENS": "1800",
+      "VISION_IMAGE_DETAIL": "low"
+    },
+    "history-cleanup-scf": {
+      "NOVA_HISTORY_CLEANUP_ENABLED": "true",
+      "RAW_RETENTION_DAYS": "7",
+      "AGG_5M_RETENTION_DAYS": "7",
+      "AGG_1H_RETENTION_DAYS": "30",
+      "AGG_1D_RETENTION_DAYS": "365"
+    }
+  },
+  "finalEnvironmentByFunction": null,
+  "media": {
+    "mode": "cos-proxy",
+    "cosBucket": "__FILL_PRIVATE_STAGING_BUCKET_APPID__",
+    "cosRegion": "__FILL_COS_REGION__",
+    "cosPrefix": "nova-staging/staging/"
+  },
+  "frontend": { "requestTimeoutMs": 60000 },
+  "artifactAndInterfaceBudgets": {
+    "zipBytesMaxExclusive": 52428800,
+    "codeAndLayersBytesMaxInclusive": 524288000,
+    "layerInventory": {
+      "mode": "none",
+      "layerBytes": 0,
+      "verifiedAgainstTargetFunctionVersions": false
+    },
+    "environmentUtf8BytesMaxInclusive": 4096,
+    "finalRenderedEnvironmentVerified": false,
+    "synchronousPayloadBytesMaxInclusive": 6291456,
+    "asynchronousPayloadBytesMaxInclusive": 131072,
+    "payloadLimitsVerifiedInStaging": false
+  },
+  "acknowledgements": {
+    "deploymentCredentialSourcesVerified": false,
+    "databaseMigrationVerified": false,
+    "cloudMediaLifecycleVerified": false,
+    "functionUrlEventCompatibilityVerified": false,
+    "customDomainPathMappingVerified": false,
+    "vpcPrivateDatabaseAndPublicProviderEgressVerified": false,
+    "timerTimezoneSemanticsVerified": false,
+    "stagingOnly": true
+  }
+}

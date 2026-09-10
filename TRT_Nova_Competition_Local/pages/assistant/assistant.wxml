@@ -1,0 +1,130 @@
+<view class="assistant-page">
+  <view class="assistant-shell {{pendingImage || pendingDocument || rewriteSourceMessageId || selectedFunction ? 'has-pending-image' : ''}}">
+    <view class="assistant-header" style="padding-top: {{headerTop}}px;">
+      <view class="header-topbar">
+        <view class="header-title-wrap"><view class="header-brand"><text class="header-brand-icon">🌱</text><text class="header-brand-text">NOVA</text></view><text class="header-subtitle">温和、诚实的植宠养护伙伴</text></view>
+        <view class="memory-entry" bindtap="openAiMemory"><text>记忆</text><text>›</text></view>
+      </view>
+      <picker wx:if="{{plantPets.length}}" range="{{plantPets}}" range-key="nickname" value="{{plantPetIndex}}" disabled="{{sending || loadingSession || visionBusy || documentBusy || savingDiagnosis || rewriteBusy || proposalBusyKey}}" bindchange="onPlantPetChange">
+        <view class="assistant-context-bar">
+          <view class="assistant-context-main"><view class="assistant-status-led"></view><text class="assistant-context-label">当前植宠</text><text class="assistant-context-name">{{selectedPlantPet.nickname}}</text><text class="assistant-context-switch">切换 ›</text></view>
+          <text wx:if="{{quota}}" class="assistant-status-badge">Chat ∞ · 图 ∞</text>
+        </view>
+      </picker>
+      <view wx:else class="empty-pet-strip"><view><text class="empty-pet-title">还没有植宠档案</text><text class="empty-pet-meta">仍可咨询通用养护与使用图片观察</text></view><button bindtap="goManualPlantPet">手动建档</button></view>
+      <view wx:if="{{conversations.length}}" class="conversation-strip">
+        <picker class="conversation-picker" range="{{conversations}}" range-key="title" value="{{conversationIndex}}" disabled="{{sending || loadingSession || visionBusy || documentBusy || savingDiagnosis || rewriteBusy || proposalBusyKey}}" bindchange="onConversationChange"><view class="conversation-current"><text class="conversation-label">对话</text><text class="conversation-title">{{conversations[conversationIndex].title}}</text><text class="conversation-switch">切换 ›</text></view></picker>
+        <button class="new-conversation-button" disabled="{{sending || loadingSession || visionBusy || documentBusy || savingDiagnosis || rewriteBusy || proposalBusyKey}}" bindtap="createNewConversation">＋ 新对话</button>
+      </view>
+      <view wx:if="{{knowledgeContext && knowledgeContext.title}}" class="knowledge-context-chip"><text class="knowledge-context-label">当前参考</text><text class="knowledge-context-title">{{knowledgeContext.title}}</text></view>
+    </view>
+
+    <view wx:if="{{loadError}}" class="assistant-error"><text>{{loadError}}</text><button bindtap="loadPlantsAndSession">重新加载</button></view>
+
+    <scroll-view scroll-y class="message-scroll" show-scrollbar="{{false}}" scroll-into-view="{{scrollAnchor}}" bindscroll="closeMessageActionMenu">
+      <view wx:if="{{loadingSession}}" class="session-loading">正在加载对话…</view>
+      <view wx:if="{{hasOlderMessages}}" class="session-loading" bindtap="loadOlderMessages">{{loadingOlder ? '正在读取原话…' : '查看更早的对话'}}</view>
+      <view class="message-list">
+        <block wx:for="{{messages}}" wx:for-item="message" wx:for-index="messageIndex" wx:key="id">
+          <view id="msg-{{messageIndex}}" class="message-row {{message.role === 'user' ? 'is-user' : 'is-assistant'}}">
+            <view wx:if="{{message.role === 'assistant'}}" class="message-avatar assistant-avatar">N</view>
+            <view class="message-stack">
+            <view id="message-bubble-{{messageIndex}}" class="message-bubble {{message.role === 'user' ? 'user-bubble' : 'assistant-bubble'}}" data-id="{{message.backendId}}" bindlongpress="openMessageActionMenu">
+              <view class="bubble-topline"><text class="bubble-role">{{message.role === 'assistant' ? 'NOVA' : '我'}}</text><text wx:if="{{message.timeLabel}}" class="bubble-time">{{message.timeLabel}}</text></view>
+              <view wx:if="{{message.loading}}" class="thinking-block"><view class="thinking-dots"><text class="thinking-dot dot-1"></text><text class="thinking-dot dot-2"></text><text class="thinking-dot dot-3"></text></view><text class="thinking-text">{{message.text}}</text></view>
+              <image wx:if="{{message.imagePreview}}" class="message-image" src="{{message.imagePreview}}" mode="aspectFill" />
+              <view wx:if="{{message.imageOriginalUnavailable}}" class="message-image-unavailable"><text class="message-image-unavailable-title">这是一条旧版图片消息</text><text>旧轮次没有保存原图；文字和分析结果仍保留。</text></view>
+              <view wx:if="{{message.documentInput && message.documentAttachment}}" class="message-document"><text class="message-document-mark">DOC</text><view class="message-document-copy"><text class="message-document-name">{{message.documentAttachment.originalName || '本轮文档'}}</text><text class="message-document-meta">{{message.documentAttachment.originalPersisted ? '已保存到本轮对话' : '正在发送'}}{{message.documentAttachment.sizeLabel ? ' · ' + message.documentAttachment.sizeLabel : ''}}</text></view></view>
+              <text wx:if="{{!message.loading && !message.visionResult && !message.visionError && message.text}}" class="message-text">{{message.text}}</text>
+
+              <view wx:if="{{message.visionError}}" class="vision-error-copy"><text class="vision-title">这张图片暂时没有分析完成</text><text>{{message.visionError}}</text><text>你可以点输入框旁的“+”重新选择，原图没有保存。</text></view>
+              <view wx:if="{{message.visionResult}}" class="vision-copy message-vision-copy">
+                <text wx:if="{{message.visionResult.reply}}" class="vision-reply">{{message.visionResult.reply}}</text>
+                <text wx:if="{{!message.visionResult.isPlant}}" class="vision-title">没有识别到可观察的植物：{{message.visionResult.nonPlantReason}}</text>
+                <block wx:else>
+                  <text class="vision-kicker">品种候选</text>
+                  <view class="candidate-row"><view wx:for="{{message.visionResult.candidates}}" wx:for-item="candidate" wx:key="name" class="candidate-pill"><text>{{candidate.name}}</text><text>{{candidate.confidenceLabel}}</text></view></view>
+                  <text class="vision-kicker">图片中可见</text><text class="vision-text">{{message.visionResult.visibleSignsText}}</text>
+                  <text class="vision-kicker">可能原因</text><view wx:for="{{message.visionResult.possibleCauses}}" wx:for-item="cause" wx:key="name" class="vision-line"><text class="vision-line-title">{{cause.name}}</text><text>{{cause.evidence}}</text></view>
+                  <text class="vision-kicker">建议动作</text><view wx:for="{{message.visionResult.advice}}" wx:for-item="advice" wx:key="title" class="vision-line"><text class="vision-line-title">{{advice.title}}</text><text>{{advice.detail}}</text></view>
+                  <view wx:if="{{message.visionResult.reshootQuestions.length}}" class="reshoot-box"><text>为了更稳妥，可补拍：</text><text>{{message.visionResult.reshootText}}</text></view>
+                  <text class="vision-disclaimer">{{message.visionResult.disclaimer}}</text>
+                  <text wx:if="{{message.visionOriginalUnavailable}}" class="vision-original-note">这条旧版会话没有保存原图；结构化结果仍保留在对话中。</text>
+                  <view class="vision-buttons">
+                    <button wx:if="{{selectedPlantPet && message.visionPreview && !message.diagnosisSaved}}" data-message-index="{{messageIndex}}" loading="{{savingDiagnosis}}" disabled="{{savingDiagnosis}}" bindtap="saveVisionDiagnosis">另存为 {{selectedPlantPet.nickname}} 观察记录</button>
+                    <button wx:if="{{message.diagnosisSaved}}" class="saved-button">已保存观察记录</button>
+                    <button wx:if="{{!selectedPlantPet && message.visionPreview && message.visionResult.candidates.length}}" data-message-index="{{messageIndex}}" bindtap="assistCreatePlantPet">用候选辅助建档</button>
+                  </view>
+                </block>
+              </view>
+
+              <text wx:if="{{message.summary}}" class="message-summary">{{message.summary}}</text>
+              <view wx:if="{{message.taskSuggestions && message.taskSuggestions.length}}" class="task-suggestion-list">
+                <text class="task-suggestion-heading">NOVA 任务提案</text>
+                <view wx:for="{{message.taskSuggestions}}" wx:for-item="task" wx:for-index="taskIndex" wx:key="proposalKey" class="task-suggestion">
+                  <view class="task-suggestion-copy"><text class="task-suggestion-title">{{task.title}}</text><text class="task-suggestion-meta">{{task.scheduledFor}} {{task.reminderTime || ''}} · {{task.status === 'confirmed' ? '已创建' : task.status === 'cancelled' ? '已取消' : task.status === 'expired' ? '已过期' : '确认前不会创建'}}</text></view>
+                  <button wx:if="{{task.status === 'pending'}}" data-message-index="{{messageIndex}}" data-suggestion-index="{{taskIndex}}" bindtap="previewTaskSuggestion">预览并编辑</button>
+                  <text wx:else class="proposal-status">{{task.status === 'confirmed' ? '已创建' : task.status === 'cancelled' ? '已取消' : '已过期'}}</text>
+                </view>
+              </view>
+              <view wx:if="{{message.memorySuggestions && message.memorySuggestions.length}}" class="memory-proposal-list">
+                <text class="memory-proposal-heading">称呼记忆候选</text>
+                <view wx:for="{{message.memorySuggestions}}" wx:for-item="memory" wx:for-index="memoryIndex" wx:key="proposalKey" class="memory-proposal">
+                  <view class="memory-proposal-copy"><text class="memory-proposal-title">{{memory.value}}</text><text class="memory-proposal-meta">{{memory.status === 'confirmed' ? '已保存，可在记忆页修改或删除' : memory.status === 'cancelled' ? '未保存' : memory.status === 'expired' ? '候选已过期' : '确认后才会跨会话记住；请勿使用敏感信息'}}</text></view>
+                  <view wx:if="{{memory.status === 'pending'}}" class="memory-proposal-actions"><button data-message-index="{{messageIndex}}" data-suggestion-index="{{memoryIndex}}" loading="{{proposalBusyKey === memory.proposalKey}}" disabled="{{!!proposalBusyKey}}" bindtap="confirmMemorySuggestion">确认</button><button class="ghost" data-message-index="{{messageIndex}}" data-suggestion-index="{{memoryIndex}}" disabled="{{!!proposalBusyKey}}" bindtap="dismissMemorySuggestion">不保存</button></view>
+                </view>
+              </view>
+              <view wx:if="{{message.sources.length}}" class="source-list"><text class="source-heading">本轮依据</text><view wx:for="{{message.sources}}" wx:for-item="source" wx:key="index" class="source-card" data-url="{{source.url}}" bindtap="openSource"><text class="source-title">{{source.title}}</text><text wx:if="{{source.publisher || source.updatedAt}}" class="source-meta">{{source.publisher}}{{source.publisher && source.updatedAt ? ' · ' : ''}}{{source.updatedAt}}</text><text wx:if="{{source.ref && !source.url}}" class="source-ref">{{source.ref}}</text><text wx:if="{{source.url}}" class="source-link">点击复制来源链接</text></view></view>
+              <view wx:if="{{message.suggestions.length}}" class="message-tags"><view wx:for="{{message.suggestions}}" wx:for-item="suggestion" wx:key="index" class="message-tag" data-text="{{suggestion}}" bindtap="onQuickQuestionTap"><text>{{suggestion}}</text></view></view>
+            </view>
+            </view>
+            <view wx:if="{{message.role === 'user'}}" class="message-avatar user-avatar">我</view>
+          </view>
+        </block>
+        <view id="message-end" class="message-end" aria-hidden="true"></view>
+      </view>
+    </scroll-view>
+
+    <view wx:if="{{messageActionMenuOpen}}" class="message-action-overlay" catchtap="closeMessageActionMenu">
+      <view class="message-action-menu" style="left: {{messageActionMenuLeft}}px; top: {{messageActionMenuTop}}px;" catchtap="keepMessageActionMenuOpen" aria-role="menu" aria-label="消息操作">
+        <view wx:for="{{messageActionMenuActions}}" wx:key="key" class="message-action-menu-item {{item.destructive ? 'is-destructive' : ''}}" data-action="{{item.key}}" bindtap="runMessageAction" hover-class="message-action-menu-item-active" aria-role="menuitem" aria-label="{{item.label}}">
+          <image class="message-action-menu-icon" src="{{item.icon}}" mode="aspectFit" />
+          <text>{{item.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="input-panel">
+      <view class="input-card {{pendingImage || pendingDocument ? 'has-pending-image' : ''}}">
+        <view wx:if="{{attachmentMenuOpen}}" class="attachment-menu">
+          <block wx:if="{{attachmentMenuView === 'root'}}">
+            <view class="attachment-menu-item" bindtap="showAttachmentChoices"><image class="attachment-menu-image" src="/images/icons/ui/paperclip.svg" mode="aspectFit" /><view><text class="attachment-menu-title">添加附件</text><text class="attachment-menu-desc">拍照、相册图片或植物文档</text></view><text class="attachment-menu-arrow">›</text></view>
+            <view class="attachment-menu-item" bindtap="showFunctionChoices"><image class="attachment-menu-image" src="/images/icons/ui/sliders-horizontal.svg" mode="aspectFit" /><view><text class="attachment-menu-title">选择功能</text><text class="attachment-menu-desc">使用已经实现的植宠功能</text></view><text class="attachment-menu-arrow">›</text></view>
+          </block>
+          <block wx:elif="{{attachmentMenuView === 'attachment'}}">
+            <view class="attachment-menu-head" bindtap="backAttachmentMenu"><text>‹</text><text>添加附件</text></view>
+            <view class="attachment-menu-item" data-source="camera" bindtap="choosePlantImage"><image class="attachment-menu-image" src="/images/icons/ui/camera.svg" mode="aspectFit" /><view><text class="attachment-menu-title">拍照</text><text class="attachment-menu-desc">拍摄一张植物图片</text></view></view>
+            <view class="attachment-menu-item" data-source="album" bindtap="choosePlantImage"><image class="attachment-menu-image" src="/images/icons/ui/image.svg" mode="aspectFit" /><view><text class="attachment-menu-title">从相册选择</text><text class="attachment-menu-desc">JPG、PNG、WebP，最大 2 MB</text></view></view>
+            <view class="attachment-menu-item" bindtap="choosePlantDocument"><image class="attachment-menu-image" src="/images/icons/ui/file-text.svg" mode="aspectFit" /><view><text class="attachment-menu-title">选择文档</text><text class="attachment-menu-desc">TXT、MD、CSV、JSON、PDF、DOCX，最大 1 MB</text></view></view>
+            <text class="attachment-menu-note">附件先加入草稿；点击发送后才交给第三方 AI，并保存为本轮对话附件。</text>
+          </block>
+          <block wx:else>
+            <view class="attachment-menu-head" bindtap="backAttachmentMenu"><text>‹</text><text>选择功能</text></view>
+            <view wx:for="{{functionOptions}}" wx:key="key" class="attachment-menu-item function-menu-item" data-key="{{item.key}}" bindtap="selectFunction"><image class="attachment-menu-image" src="/images/icons/message/plug.svg" mode="aspectFit" /><view><text class="attachment-menu-title">{{item.label}}</text><text class="attachment-menu-desc">{{item.description}}</text></view></view>
+            <text class="attachment-menu-note">这些是确定性入口，不会授予模型自动执行或跳过确认的权限。</text>
+          </block>
+        </view>
+        <view wx:if="{{rewriteSourceMessageId}}" class="composer-chip rewrite-chip"><text class="composer-chip-mark rewrite-chip-mark">编辑</text><text>创建分支 · 原对话保留</text><view class="composer-chip-remove" bindtap="cancelRewrite">×</view></view>
+        <view wx:if="{{pendingImage}}" class="pending-image-row"><image class="pending-image-preview" src="{{pendingImage.tempFilePath}}" mode="aspectFill" /><view class="pending-image-copy"><text class="pending-image-title">图片已加入本轮对话</text><text class="pending-image-meta">{{pendingImage.sizeLabel}} · 可继续填写问题</text></view><view class="pending-image-remove" bindtap="removePendingImage" aria-role="button" aria-label="移除待发送图片"><text>×</text></view></view>
+        <view wx:if="{{pendingDocument}}" class="pending-document-row"><text class="pending-document-mark">DOC</text><view class="pending-image-copy"><text class="pending-image-title">{{pendingDocument.name}}</text><text class="pending-image-meta">{{pendingDocument.sizeLabel}} · 可继续填写问题</text></view><view class="pending-image-remove" bindtap="removePendingDocument" aria-role="button" aria-label="移除待发送文档"><text>×</text></view></view>
+        <view class="input-box">
+          <view class="input-side-button {{visionBusy || documentBusy || sending || loadingSession || savingDiagnosis || rewriteBusy || proposalBusyKey ? 'disabled' : ''}}" bindtap="toggleAttachmentMenu" aria-role="button" aria-label="添加附件或选择功能"><image class="input-side-icon" src="/images/icons/ui/plus.svg" mode="aspectFit" /></view>
+          <view class="composer-main">
+            <conversation-composer wx:for="{{[activeSessionId]}}" wx:key="*this" id="conversation-composer" value="{{inputValue}}" function-item="{{selectedFunction}}" scope-key="{{activeSessionId}}" disabled="{{sending || loadingSession || visionBusy || documentBusy || rewriteBusy}}" bindchange="onComposerChange" bindbusy="onComposerBusy" bindeditorerror="onComposerError" />
+          </view>
+          <view class="send-fab {{composerBusy || sending || loadingSession || visionBusy || documentBusy || savingDiagnosis || rewriteBusy || proposalBusyKey || !canSend ? 'disabled' : ''}}" bindtap="sendMessage" aria-role="button" aria-label="发送本轮对话"><image class="send-fab-icon" src="/images/icons/ui/{{sending ? 'ellipsis' : 'arrow-up'}}.svg" mode="aspectFit" /></view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

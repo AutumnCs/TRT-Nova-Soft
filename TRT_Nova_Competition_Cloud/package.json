@@ -1,0 +1,36 @@
+{
+  "scripts": {
+    "test": "node --test \"dist/scf/api-scf/test/*.test.js\" \"dist/scf/agent-scf/test/*.test.js\" \"custom-tab-bar/*.test.js\" \"pages/**/*.test.js\" \"services/**/*.test.js\" \"scripts/*.test.mjs\" \"admin-web/test/*.test.js\"",
+    "check:context": "node scripts/check-ai-context.mjs",
+    "local-db": "node scripts/local-db/initialize.mjs",
+    "local-server": "node scripts/local-server/server.js",
+    "manual-acceptance:start": "pwsh -NoProfile -File scripts/local-server/manage-m7-manual-runtime.ps1 -Action start",
+    "manual-acceptance:status": "pwsh -NoProfile -File scripts/local-server/manage-m7-manual-runtime.ps1 -Action status",
+    "manual-acceptance:stop": "pwsh -NoProfile -File scripts/local-server/manage-m7-manual-runtime.ps1 -Action stop",
+    "qweather-generate-keypair": "node scripts/qweather/generate-ed25519-keypair.js",
+    "local:setup": "node scripts/setup-local.mjs",
+    "local:db:init": "node scripts/local-db/initialize.mjs",
+    "local:start": "pwsh -NoProfile -File scripts/local-server/manage-local-runtime.ps1 -Action start",
+    "local:status": "pwsh -NoProfile -File scripts/local-server/manage-local-runtime.ps1 -Action status",
+    "local:stop": "pwsh -NoProfile -File scripts/local-server/manage-local-runtime.ps1 -Action stop",
+    "local:smoke": "node scripts/local-server/competition-smoke.mjs",
+    "cloud:build": "pwsh -NoProfile -File deployment/cloud-initial/build-cloud-candidate.ps1",
+    "cloud:test": "node --test \"deployment/cloud-initial/test/*.test.mjs\"",
+    "cloud:rehearse": "pwsh -NoProfile -File deployment/cloud-initial/test-local-candidate.ps1",
+    "cloud:render": "node deployment/cloud-initial/tools/render-config.mjs",
+    "cloud:client": "node deployment/cloud-initial/tools/snapshot-client.mjs"
+  },
+  "dependencies": {
+    "tdesign-miniprogram": "^1.16.0",
+    "mysql2": "3.24.3",
+    "mqtt": "5.15.2",
+    "mammoth": "1.12.2",
+    "pdf-parse": "1.1.4"
+  },
+  "name": "trt-nova-competition-cloud",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=20.19"
+  }
+}

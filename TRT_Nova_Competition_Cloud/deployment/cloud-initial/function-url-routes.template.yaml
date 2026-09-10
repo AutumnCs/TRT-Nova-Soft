@@ -1,0 +1,156 @@
+schemaVersion: "nova.cloud-candidate/v1"
+kind: "TencentScfIndependentFunctionUrlContract"
+metadata:
+  status: "EXACT_ROUTES_REVIEWED_FROM_CURRENT_HANDLERS_NOT_CREATED_NOT_CLOUD_VALIDATED"
+  containsRealDomain: false
+  createsCloudResources: false
+
+ingress:
+  product: "Separate SCF Function URLs as in LastScf"
+  deprecatedProductForbidden: "Tencent API Gateway product 628 / SCF API Gateway trigger"
+  functionType: "Event"
+  functionUrls:
+    auth-scf: "__FILL_AUTH_SCF_FUNCTION_URL__"
+    api-scf: "__FILL_API_SCF_FUNCTION_URL__"
+    agent-scf: "__FILL_AGENT_SCF_FUNCTION_URL__"
+    ingest-scf: "" # Optional webhook; disabled by default.
+  httpsRequired: true
+  functionUrlEventShapeStatus: "PENDING_D_LEVEL_STAGING_COMPATIBILITY_TEST"
+  rewritePolicy: "preserve-original-path"
+  preserveHttpMethod: true
+  preservePath: true
+  requiredForwardHeaders: ["Authorization", "x-access-token", "Content-Type"]
+  runtimePayloadLimits:
+    synchronousBytesMaxInclusive: 6291456
+    asynchronousBytesMaxInclusive: 131072
+    staticPackageVerification: "NOT_POSSIBLE_REQUIRES_STAGING_TEST"
+  defaultFunctionUrlAllowedForProduction: true # WeChat legal-domain eligibility still requires live verification.
+
+routeGroups:
+  auth-scf:
+    authentication: "wx.login code is exchanged server-side; endpoint itself has no JWT yet"
+    routes:
+      - { method: "POST", path: "/auth/login" }
+    forbidden:
+      - "/dev/token"
+
+  api-scf:
+    authentication: "Bearer JWT required except /health"
+    routes:
+      - { method: "GET", path: "/health", auth: "none" }
+      - { method: "POST", path: "/device/latest" }
+      - { method: "POST", path: "/device/history" }
+      - { method: "POST", path: "/device/bind" }
+      - { method: "POST", path: "/device/unbind" }
+      - { method: "POST", path: "/device/profile" }
+      - { method: "GET", path: "/weather/summary" }
+      - { method: "POST", path: "/weather/cities" }
+      - { method: "POST", path: "/weather/preference" }
+      - { method: "POST", path: "/weather/preference-clear" }
+      - { method: "POST", path: "/ai/diagnoses" }
+      - { method: "POST", path: "/ai/diagnosis-save" }
+      - { method: "POST", path: "/ai/diagnosis-correct" }
+      - { method: "POST", path: "/ai/diagnosis-delete" }
+      - { method: "POST", path: "/ai/memories" }
+      - { method: "POST", path: "/ai/memory-create" }
+      - { method: "POST", path: "/ai/memory-update" }
+      - { method: "POST", path: "/ai/memory-delete" }
+      - { method: "POST", path: "/ai/memory-clear" }
+      - { method: "POST", path: "/ai/memory-proposal" }
+      - { method: "POST", path: "/ai/memory-proposal-confirm" }
+      - { method: "POST", path: "/ai/memory-proposal-dismiss" }
+      - { method: "GET", path: "/knowledge/categories" }
+      - { method: "POST", path: "/knowledge/articles" }
+      - { method: "POST", path: "/knowledge/article" }
+      - { method: "POST", path: "/knowledge/search" }
+      - { method: "POST", path: "/knowledge/recommend" }
+      - { method: "POST", path: "/knowledge/context" }
+      - { method: "POST", path: "/knowledge/plants" }
+      - { method: "POST", path: "/knowledge/plant" }
+      - { method: "POST", path: "/care/tasks" }
+      - { method: "POST", path: "/care/task" }
+      - { method: "POST", path: "/care/task-proposal" }
+      - { method: "POST", path: "/care/task-proposal-confirm" }
+      - { method: "POST", path: "/care/task-proposal-cancel" }
+      - { method: "POST", path: "/care/task-create" }
+      - { method: "POST", path: "/care/task-update" }
+      - { method: "POST", path: "/care/task-postpone" }
+      - { method: "POST", path: "/care/task-delete" }
+      - { method: "POST", path: "/care/task-complete" }
+      - { method: "GET", path: "/care/summary" }
+      - { method: "POST", path: "/care/events" }
+      - { method: "POST", path: "/todo/list" }
+      - { method: "POST", path: "/todo/global" }
+      - { method: "POST", path: "/todo/add" }
+      - { method: "POST", path: "/todo/complete" }
+      - { method: "POST", path: "/todo/toggle-urgent" }
+      - { method: "POST", path: "/journal/month" }
+      - { method: "POST", path: "/journal/day" }
+      - { method: "POST", path: "/journal/add" }
+      - { method: "POST", path: "/journal/timeline" }
+      - { method: "POST", path: "/journal/record" }
+      - { method: "POST", path: "/journal/create" }
+      - { method: "POST", path: "/journal/update" }
+      - { method: "POST", path: "/journal/delete" }
+      - { method: "GET", path: "/user/profile" }
+      - { method: "POST", path: "/user/profile" }
+      - { method: "POST", path: "/plant/pets" }
+      - { method: "POST", path: "/plant/pet" }
+      - { method: "POST", path: "/plant/pet-create" }
+      - { method: "POST", path: "/plant/pet-update" }
+      - { method: "POST", path: "/plant/pet-archive" }
+      - { method: "POST", path: "/plant/pet-delete" }
+      - { method: "GET", path: "/plant/library" }
+      - { method: "POST", path: "/plant/favorite/toggle" }
+    conditionalRoutesDisabledByDefault:
+      - { method: "POST", path: "/device/cmd", requiredRuntimeFlag: "NOVA_DEVICE_COMMANDS_ENABLED=true", additionalApproval: "device ACL, provider credentials and hardware write review" }
+    mediaRoutesAuthenticatedProxy:
+      - { method: "POST", path: "/media/upload" }
+      - { method: "POST", path: "/media/complete" }
+      - { method: "POST", path: "/media/resolve" }
+      - { method: "POST", path: "/media/discard" }
+
+  agent-scf:
+    authentication: "Bearer JWT required except /health"
+    routes:
+      - { method: "GET", path: "/health", auth: "none" }
+      - { method: "POST", path: "/agent/chat" }
+      - { method: "POST", path: "/agent/session" }
+      - { method: "POST", path: "/agent/context-memory" }
+      - { method: "POST", path: "/agent/conversations" }
+      - { method: "POST", path: "/agent/conversation-create" }
+      - { method: "POST", path: "/agent/conversation-fork" }
+      - { method: "POST", path: "/agent/conversation-withdraw" }
+      - { method: "POST", path: "/vision/analyze" }
+      - { method: "POST", path: "/document/analyze" }
+      - { method: "POST", path: "/vision/mark-saved" }
+
+  ingest-scf:
+    enabledByDefault: false
+    routes:
+      - { method: "GET", path: "/ingest", purpose: "OneNET verification only" }
+      - { method: "POST", path: "/ingest", purpose: "OneNET or EMQX webhook" }
+    authentication: "provider signature/token; never Bearer user JWT"
+
+  history-cleanup-scf:
+    publicRoutes: []
+    trigger: "SCF timer only"
+
+wechatLegalDomains:
+  request: ["__FILL_AUTH_FUNCTION_HOST__", "__FILL_API_FUNCTION_HOST__", "__FILL_AGENT_FUNCTION_HOST__"]
+  uploadFile: [] # wx.cloud.uploadFile uses the bound CloudBase environment.
+  downloadFile: [] # Attachments are resolved by authenticated SCF requests.
+  urlCheckMustBeEnabledForAcceptance: true
+
+verification:
+  - "Function type is Event and handler is index.main_handler"
+  - "Function URL request event compatibility is verified in isolated staging before any traffic"
+  - "Each separate Function URL preserves the original method, path and Authorization header"
+  - "Synchronous 6 MiB and asynchronous 128 KiB request/response boundaries are exercised in staging"
+  - "Unknown method/path fails closed"
+  - "JWT missing, expired, forged or signed with another key fails"
+  - "Cross-account and cross-PlantPet IDs fail"
+  - "No x-openid/body.openid/debug identity fallback"
+  - "Media endpoints require JWT ownership; CloudBase files are validated and resolved by SCF"
+  - "Device command is 403 unless separately enabled and approved"
+  - "Certificate, TLS and WeChat legal-domain checks pass in experience build"
