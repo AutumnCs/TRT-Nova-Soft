@@ -13,11 +13,28 @@ const PLANT_IMAGE_MAP = {
 };
 
 const METRIC_DEFS = [
-  { key: 'soil_percent', label: '土壤湿度', unit: '%' },
-  { key: 'dht_temp', label: '环境温度', unit: '℃' },
-  { key: 'dht_humi', label: '环境湿度', unit: '%' },
-  { key: 'light_val', label: '光照强度', unit: 'lx' }
+  { key: 'soil_percent', label: '土壤湿度', unit: '%', aliases: ['soil_percent', 'soil', 'soil_moisture'] },
+  { key: 'dht_temp', label: '环境温度', unit: '℃', aliases: ['dht_temp', 'temp', 'temperature', 'air_temp'] },
+  { key: 'dht_humi', label: '环境湿度', unit: '%', aliases: ['dht_humi', 'humidity', 'air_humidity'] },
+  { key: 'light_val', label: '光照强度', unit: 'lx', aliases: ['light_val', 'light', 'illuminance', 'lux'] }
 ];
+
+// 与首页 index-state.js 保持一致的参数别名解析
+function resolveParamNode(params, keys) {
+  for (const key of keys) {
+    const node = params[key];
+    if (
+      node &&
+      typeof node === 'object' &&
+      node.value !== undefined &&
+      node.value !== null &&
+      node.value !== ''
+    ) {
+      return { key, node };
+    }
+  }
+  return { key: null, node: null };
+}
 
 // 舒适区间阈值：低于 min / 高于 max 判为异常
 const METRIC_RANGES = {
@@ -150,7 +167,7 @@ Page({
     const current = optionMap[this.data.rangeKey] || optionMap.day;
     return {
       ...current,
-      historyParamKey: this.data.selectedMetricKey
+      historyParamKey: (this._activeParamKeys && this._activeParamKeys[this.data.selectedMetricKey]) || this.data.selectedMetricKey
     };
   },
 
@@ -172,9 +189,11 @@ Page({
     if (!row) return false;
     const params = row.params || {};
 
+    const activeParamKeys = {};
     const metricTabs = METRIC_DEFS.map((def) => {
-      const node = params[def.key];
+      const { key: actualKey, node } = resolveParamNode(params, def.aliases);
       const rawValue = node ? node.value : null;
+      if (actualKey) activeParamKeys[def.key] = actualKey;
       const range = METRIC_RANGES[def.key];
       const num = parseMetricValue(rawValue, def.key);
 
@@ -228,7 +247,29 @@ Page({
       irStatus: normalizeBooleanMetric(params.ir_status && typeof params.ir_status === 'object' ? params.ir_status.value : params.ir_status)
     };
 
+    this._activeParamKeys = activeParamKeys;
+
+    // 自动选中第一个有数据的指标，避免默认 soil_percent 无数据导致曲线空白
+    const firstWithData = metricTabs.find((item) => item.status !== 'na');
+    const currentSelected = metricTabs.find((item) => item.key === this.data.selectedMetricKey);
+    const effectiveSelectedKey = (currentSelected && currentSelected.status !== 'na')
+      ? this.data.selectedMetricKey
+      : (firstWithData ? firstWithData.key : this.data.selectedMetricKey);
+
+    const finalMetricTabs = metricTabs.map((item) => ({
+      ...item,
+      active: item.key === effectiveSelectedKey
+    }));
+    const selectedMetric = finalMetricTabs.find((item) => item.active) || null;
+    const rangeDescMap = { day: '近24小时', week: '近7天', month: '近30天' };
+
     this.setData({
+      selectedMetricKey: effectiveSelectedKey,
+      selectedMetricLabel: selectedMetric ? selectedMetric.label : '',
+      selectedMetricValue: selectedMetric ? selectedMetric.value : '--',
+      selectedMetricUnit: selectedMetric ? selectedMetric.unit : '',
+      rangeDesc: rangeDescMap[this.data.rangeKey] || rangeDescMap.day,
+      metricTabs: finalMetricTabs,
       device: {
         logicalKey: row.logicalKey,
         alias: row.alias || row.deviceName || '未命名设备',
@@ -238,7 +279,6 @@ Page({
         image: PLANT_IMAGE_MAP[row.plantType || '其他'] || PLANT_IMAGE_MAP.其他
       },
       extraInfo,
-      metricTabs,
       checkupStamp,
       checkupAdvice
     });
@@ -319,8 +359,12 @@ Page({
     const key = e.currentTarget.dataset.key;
     if (!key || key === this.data.selectedMetricKey) return;
 
+    const next = (this.data.metricTabs.find((item) => item.key === key) || null);
     this.setData({
       selectedMetricKey: key,
+      selectedMetricLabel: next ? next.label : '',
+      selectedMetricValue: next ? next.value : '--',
+      selectedMetricUnit: next ? next.unit : '',
       metricTabs: this.data.metricTabs.map((item) => ({
         ...item,
         active: item.key === key
@@ -335,14 +379,18 @@ Page({
     const key = e.currentTarget.dataset.key;
     if (!key || key === this.data.rangeKey) return;
 
-    this.setData({ rangeKey: key });
+    const rangeDescMap = { day: '近24小时', week: '近7天', month: '近30天' };
+    this.setData({
+      rangeKey: key,
+      rangeDesc: rangeDescMap[key] || rangeDescMap.day
+    });
     wx.showLoading({ title: '加载中...', mask: true });
     this.loadTrendData({ silent: true }).finally(() => wx.hideLoading());
   },
 
   refreshTrend() {
     const rows = this._historyRows;
-    const key = this.data.selectedMetricKey;
+    const key = (this._activeParamKeys && this._activeParamKeys[this.data.selectedMetricKey]) || this.data.selectedMetricKey;
     const now = Date.now();
     const spanMap = {
       day: 24 * 3600 * 1000,
@@ -411,6 +459,11 @@ Page({
   drawChart(points) {
     this.ensureCanvasSize(() => {
       const ctx = wx.createCanvasContext('trendCanvas', this);
+      if (!ctx) {
+        // canvas 节点尚未就绪，稍后重试一次
+        setTimeout(() => this.drawChart(points), 200);
+        return;
+      }
       const w = this._canvasW;
       const h = this._canvasH;
       const left = 42;
@@ -418,12 +471,17 @@ Page({
       const top = 14;
       const bottom = h - 28;
 
+      const isDark = this.data.theme === 'dark';
+      const palette = isDark
+        ? { bg: '#0a1112', grid: 'rgba(57, 255, 136, 0.08)', text: '#86a892', curve: '#39ff88', fill: 'rgba(57, 255, 136, 0.12)' }
+        : { bg: '#FFFFFF', grid: 'rgba(120, 140, 130, 0.15)', text: '#8a9a90', curve: '#3a8f5c', fill: 'rgba(58, 143, 92, 0.10)' };
+
       ctx.clearRect(0, 0, w, h);
-      ctx.setFillStyle('#0a1112');
+      ctx.setFillStyle(palette.bg);
       ctx.fillRect(0, 0, w, h);
 
       const gridCount = 4;
-      ctx.setStrokeStyle('rgba(57, 255, 136, 0.08)');
+      ctx.setStrokeStyle(palette.grid);
       ctx.setLineWidth(1);
       for (let i = 0; i <= gridCount; i += 1) {
         const y = top + ((bottom - top) / gridCount) * i;
@@ -434,7 +492,7 @@ Page({
       }
 
       if (!points.length) {
-        ctx.setFillStyle('#86a892');
+        ctx.setFillStyle(palette.text);
         ctx.setFontSize(13);
         ctx.setTextAlign('center');
         ctx.fillText('暂无历史数据', w / 2, h / 2);
@@ -455,7 +513,7 @@ Page({
       const mapX = (ts) => left + ((ts - minTs) / tsSpan) * (right - left);
       const mapY = (value) => bottom - ((value - minVal) / valSpan) * (bottom - top);
 
-      ctx.setFillStyle('#86a892');
+      ctx.setFillStyle(palette.text);
       ctx.setFontSize(10);
       ctx.setTextAlign('right');
       for (let i = 0; i <= gridCount; i += 1) {
@@ -471,7 +529,8 @@ Page({
         ctx.fillText(label, mapX(ts), bottom + 18);
       });
 
-      ctx.setFillStyle('rgba(57, 255, 136, 0.12)');
+      // 填充区域
+      ctx.setFillStyle(palette.fill);
       ctx.beginPath();
       ctx.moveTo(mapX(points[0].ts), bottom);
       points.forEach((item) => {
@@ -481,32 +540,37 @@ Page({
       ctx.closePath();
       ctx.fill();
 
-      ctx.setStrokeStyle('#39ff88');
-      ctx.setLineWidth(2.5);
-      ctx.setLineCap('round');
-      ctx.setLineJoin('round');
-      ctx.beginPath();
-      points.forEach((item, index) => {
-        const x = mapX(item.ts);
-        const y = mapY(item.value);
-        if (index === 0) {
-          ctx.moveTo(x, y);
-          return;
-        }
-        const prev = points[index - 1];
-        const px = mapX(prev.ts);
-        const py = mapY(prev.value);
-        const cp1x = px + (x - px) / 3;
-        const cp2x = x - (x - px) / 3;
-        ctx.bezierCurveTo(cp1x, py, cp2x, y, x, y);
-      });
-      ctx.stroke();
+      // 曲线（≥2个点才画折线；单点只画圆点）
+      if (points.length >= 2) {
+        ctx.setStrokeStyle(palette.curve);
+        ctx.setLineWidth(2.5);
+        ctx.setLineCap('round');
+        ctx.setLineJoin('round');
+        ctx.beginPath();
+        points.forEach((item, index) => {
+          const x = mapX(item.ts);
+          const y = mapY(item.value);
+          if (index === 0) {
+            ctx.moveTo(x, y);
+            return;
+          }
+          const prev = points[index - 1];
+          const px = mapX(prev.ts);
+          const py = mapY(prev.value);
+          const cp1x = px + (x - px) / 3;
+          const cp2x = x - (x - px) / 3;
+          ctx.bezierCurveTo(cp1x, py, cp2x, y, x, y);
+        });
+        ctx.stroke();
+      }
 
-      if (points.length <= 30) {
-        ctx.setFillStyle('#39ff88');
+      // 数据点
+      const dotRadius = points.length <= 1 ? 5 : (points.length <= 30 ? 3 : 0);
+      if (dotRadius > 0) {
+        ctx.setFillStyle(palette.curve);
         points.forEach((item) => {
           ctx.beginPath();
-          ctx.arc(mapX(item.ts), mapY(item.value), 3, 0, Math.PI * 2);
+          ctx.arc(mapX(item.ts), mapY(item.value), dotRadius, 0, Math.PI * 2);
           ctx.fill();
         });
       }
